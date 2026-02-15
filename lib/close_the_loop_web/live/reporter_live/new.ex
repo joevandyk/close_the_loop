@@ -11,6 +11,8 @@ defmodule CloseTheLoopWeb.ReporterLive.New do
       |> assign(:tenant, tenant)
       |> assign(:location_id, location_id)
       |> assign(:body, "")
+      |> assign(:name, "")
+      |> assign(:email, "")
       |> assign(:phone, "")
       |> assign(:consent, false)
       |> assign(:submitted, false)
@@ -69,13 +71,38 @@ defmodule CloseTheLoopWeb.ReporterLive.New do
 
             <div class="space-y-2">
               <.input
+                id="reporter_name"
+                name="report[name]"
+                type="text"
+                label="Your name"
+                sublabel="Optional"
+                value={@name}
+                autocomplete="name"
+              />
+
+              <.input
+                id="reporter_email"
+                name="report[email]"
+                type="email"
+                label="Email"
+                sublabel="Optional"
+                value={@email}
+                autocomplete="email"
+                inputmode="email"
+                help_text="Only used if the business needs to follow up."
+              />
+
+              <.input
                 id="phone"
                 name="report[phone]"
                 type="tel"
-                label="Text me updates (optional)"
-                placeholder="+1 555 555 5555"
+                label="Phone number"
+                sublabel="Optional"
+                placeholder="+15555550100"
                 value={@phone}
                 inputmode="tel"
+                autocomplete="tel"
+                help_text="For international numbers, start with + and country code."
               />
 
               <.checkbox
@@ -112,12 +139,16 @@ defmodule CloseTheLoopWeb.ReporterLive.New do
     tenant = socket.assigns.tenant
     location_id = socket.assigns.location_id
 
+    name_raw = Map.get(params, "name", "")
+    email_raw = Map.get(params, "email", "")
     phone_raw = Map.get(params, "phone", "")
     wants_updates = Map.get(params, "consent") in ["true", "1", true]
 
     socket =
       socket
       |> assign(:body, body)
+      |> assign(:name, name_raw)
+      |> assign(:email, email_raw)
       |> assign(:phone, phone_raw)
       |> assign(:consent, wants_updates)
 
@@ -126,6 +157,8 @@ defmodule CloseTheLoopWeb.ReporterLive.New do
            Intake.submit_report(tenant, location_id, %{
              body: body,
              source: :qr,
+             reporter_name: name_raw,
+             reporter_email: email_raw,
              reporter_phone: phone,
              consent: wants_updates and not is_nil(phone)
            }) do

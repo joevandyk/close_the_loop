@@ -122,50 +122,66 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
         </div>
       </div>
 
-      <div class="overflow-x-auto rounded-2xl border border-base bg-base shadow-base">
+      <div class="overflow-x-auto">
         <.table>
           <.table_head>
             <:col>Location</:col>
-            <:col>Reporter link</:col>
+            <:col>Reporter</:col>
+            <:col>Poster</:col>
             <:col class="text-right"><span class="sr-only">Actions</span></:col>
             <:col class="text-right">QR</:col>
           </.table_head>
           <.table_body>
             <.table_row :for={loc <- @locations}>
-              <:cell class="font-medium">{loc.full_path || loc.name}</:cell>
-              <:cell class="text-sm">
-                <a
-                  class="underline underline-offset-2 text-foreground-soft hover:text-foreground transition"
+              <:cell>{loc.full_path || loc.name}</:cell>
+              <:cell>
+                <.button
                   href={loc.reporter_link}
                   target="_blank"
                   rel="noreferrer"
+                  variant="ghost"
+                  size="sm"
                 >
-                  {loc.reporter_link}
-                </a>
-              </:cell>
-              <:cell class="text-right whitespace-nowrap">
-                <.button
-                  type="button"
-                  size="xs"
-                  variant="outline"
-                  phx-click="edit"
-                  phx-value-id={loc.id}
-                >
-                  Edit
+                  Open link
                 </.button>
+              </:cell>
+              <:cell>
+                <.button
+                  href={~p"/app/locations/#{loc.id}/poster"}
+                  target="_blank"
+                  rel="noreferrer"
+                  variant="ghost"
+                  size="sm"
+                >
+                  Print / Save PDF
+                </.button>
+              </:cell>
+              <:cell class="text-right">
+                <.button_group>
+                  <.button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    phx-click="edit"
+                    phx-value-id={loc.id}
+                  >
+                    Edit
+                  </.button>
+                </.button_group>
               </:cell>
               <:cell class="text-right">
                 <img
                   src={loc.reporter_qr}
                   alt={"QR code for " <> (loc.full_path || loc.name)}
-                  class="inline-block w-20 h-20 border border-base rounded-lg bg-base"
+                  width="96"
+                  height="96"
                 />
               </:cell>
             </.table_row>
           </.table_body>
         </.table>
 
-        <div :if={@locations == []} class="px-4 py-10 text-center text-sm text-foreground-soft">
+        <div :if={@locations == []} class="py-10 text-center text-sm text-foreground-soft">
           No locations yet.
         </div>
       </div>

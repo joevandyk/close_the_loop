@@ -15,11 +15,31 @@ defmodule CloseTheLoop.Feedback.IssueCategory do
 
     create :create do
       primary? true
-      accept [:key, :label, :active]
+
+      accept [
+        :key,
+        :label,
+        :active,
+        :description,
+        :ai_guidance,
+        :ai_include_keywords,
+        :ai_exclude_keywords,
+        :ai_examples
+      ]
     end
 
     update :update do
-      accept [:label, :active]
+      primary? true
+
+      accept [
+        :label,
+        :active,
+        :description,
+        :ai_guidance,
+        :ai_include_keywords,
+        :ai_exclude_keywords,
+        :ai_examples
+      ]
     end
   end
 
@@ -50,9 +70,40 @@ defmodule CloseTheLoop.Feedback.IssueCategory do
       public? true
     end
 
+    # Optional longer description shown in settings and used by AI.
+    attribute :description, :string do
+      allow_nil? true
+      public? true
+    end
+
     attribute :active, :boolean do
       allow_nil? false
       default true
+      public? true
+    end
+
+    # Additional context that helps the AI choose the right category.
+    #
+    # These are all optional, but can materially improve classification quality:
+    # - include/exclude keywords to disambiguate similar categories
+    # - examples of real reports that should (or should not) map here
+    attribute :ai_guidance, :string do
+      allow_nil? true
+      public? true
+    end
+
+    attribute :ai_include_keywords, :string do
+      allow_nil? true
+      public? true
+    end
+
+    attribute :ai_exclude_keywords, :string do
+      allow_nil? true
+      public? true
+    end
+
+    attribute :ai_examples, :string do
+      allow_nil? true
       public? true
     end
 

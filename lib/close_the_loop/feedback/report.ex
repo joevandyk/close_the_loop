@@ -20,6 +20,8 @@ defmodule CloseTheLoop.Feedback.Report do
         :body,
         :normalized_body,
         :source,
+        :reporter_name,
+        :reporter_email,
         :reporter_phone,
         :consent,
         :location_id,
@@ -28,7 +30,11 @@ defmodule CloseTheLoop.Feedback.Report do
     end
 
     update :reassign_issue do
-      accept [:issue_id]
+      argument :issue_id, :uuid do
+        allow_nil? false
+      end
+
+      change set_attribute(:issue_id, arg(:issue_id))
     end
   end
 
@@ -62,6 +68,16 @@ defmodule CloseTheLoop.Feedback.Report do
     end
 
     attribute :reporter_phone, :string do
+      allow_nil? true
+      public? false
+    end
+
+    attribute :reporter_name, :string do
+      allow_nil? true
+      public? false
+    end
+
+    attribute :reporter_email, :string do
       allow_nil? true
       public? false
     end

@@ -63,12 +63,19 @@ defmodule CloseTheLoopWeb.Router do
 
       live "/app/issues/:id", IssuesLive.Show, :show
 
+      live "/app/reports", ReportsLive.Index, :index
+
+      live "/app/reports/:id", ReportsLive.Show, :show
+
       live "/app/locations", LocationsLive.Index, :index
 
       live "/app/settings", SettingsLive.Index, :index
 
       live "/app/settings/issue-categories", IssueCategoriesLive.Index, :index
     end
+
+    # Printable poster (HTML -> browser "Save as PDF")
+    get "/app/locations/:id/poster", LocationPosterController, :show
   end
 
   scope "/", CloseTheLoopWeb do

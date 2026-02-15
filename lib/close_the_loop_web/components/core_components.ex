@@ -53,6 +53,8 @@ defmodule CloseTheLoopWeb.CoreComponents do
       phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> hide("##{@id}")}
       role="alert"
       class="fixed top-4 right-4 z-50 w-[min(24rem,calc(100vw-2rem))]"
+      data-auto-dismiss="true"
+      data-timeout-ms={if @kind == :info, do: 5000, else: 10_000}
       {@rest}
     >
       <div class={[

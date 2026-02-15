@@ -18,7 +18,7 @@ export default defineConfig({
         //
         // We run through Doppler so DATABASE_URL/SECRET_KEY_BASE/etc come from
         // your Doppler config, but we still force the port for test stability.
-        command: `bash -lc "cd .. && doppler run --preserve-env -- env PORT=${port} MIX_ENV=dev bash -lc 'mix ecto.create && mix ecto.migrate && mix phx.server'"`,
+        command: `bash -lc "cd .. && doppler run --preserve-env -- env PORT=${port} MIX_ENV=dev bash -lc 'mix ecto.create && mix ash_postgres.migrate && mix run priv/repo/e2e_seeds.exs && mix phx.server'"`,
         url: `http://localhost:${port}`,
         reuseExistingServer: false,
         timeout: 120_000,

@@ -45,7 +45,7 @@ defmodule CloseTheLoop.Feedback.IntakeTest do
              Intake.submit_report(tenant, location.id, %{
                body: "Cold water",
                source: :qr,
-               reporter_phone: "555-555-0100",
+               reporter_phone: "555-555-010",
                consent: true
              })
 
@@ -58,5 +58,24 @@ defmodule CloseTheLoop.Feedback.IntakeTest do
 
     {:ok, reports} = Ash.read(query, tenant: tenant)
     assert reports == []
+  end
+
+  test "stores optional reporter name/email when provided" do
+    tenant = "public"
+
+    {:ok, location} =
+      Ash.create(Location, %{name: "Gym", full_path: "Gym"}, tenant: tenant)
+
+    {:ok, %{report: report}} =
+      Intake.submit_report(tenant, location.id, %{
+        body: "The sauna is too cold",
+        source: :qr,
+        reporter_name: "  Alex  ",
+        reporter_email: " alex@example.com ",
+        consent: false
+      })
+
+    assert report.reporter_name == "Alex"
+    assert report.reporter_email == "alex@example.com"
   end
 end

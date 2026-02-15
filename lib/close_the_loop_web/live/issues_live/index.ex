@@ -19,6 +19,7 @@ defmodule CloseTheLoopWeb.IssuesLive.Index do
       |> assign(:tenant, nil)
       |> assign(:issues, [])
       |> assign(:category_labels, %{})
+      |> assign(:active_category_labels, %{})
 
     with {:ok, %Organization{} = org} <- Ash.get(Organization, user.organization_id),
          tenant when is_binary(tenant) <- org.tenant_schema,
@@ -28,7 +29,8 @@ defmodule CloseTheLoopWeb.IssuesLive.Index do
        socket
        |> assign(:tenant, tenant)
        |> assign(:issues, issues)
-       |> assign(:category_labels, Categories.key_label_map(tenant))}
+       |> assign(:category_labels, Categories.key_label_map(tenant))
+       |> assign(:active_category_labels, Categories.active_key_label_map(tenant))}
     else
       _ ->
         {:ok, put_flash(socket, :error, "Failed to load issues")}
@@ -53,7 +55,7 @@ defmodule CloseTheLoopWeb.IssuesLive.Index do
         <h1 class="text-2xl font-semibold">Inbox</h1>
       </div>
 
-      <div class="mt-6 overflow-x-auto rounded-2xl border border-base bg-base shadow-base">
+      <div class="mt-6 overflow-x-auto">
         <.table>
           <.table_head>
             <:col>Issue</:col>
@@ -70,8 +72,22 @@ defmodule CloseTheLoopWeb.IssuesLive.Index do
               <:cell>{issue.location.full_path || issue.location.name}</:cell>
               <:cell>
                 <%= if issue.category && issue.category != "" do %>
-                  <.badge variant="surface" color="primary">
-                    {Map.get(@category_labels, issue.category, issue.category)}
+                  <% key = issue.category %>
+                  <% label = Map.get(@category_labels, key, key) %>
+                  <% active? = Map.has_key?(@active_category_labels, key) %>
+
+                  <.badge
+                    variant={if(active?, do: "surface", else: "ghost")}
+                    color={if(active?, do: "primary", else: "warning")}
+                    title={
+                      if(active?,
+                        do: nil,
+                        else: "This category is inactive (kept for existing issues)."
+                      )
+                    }
+                  >
+                    {label}
+                    <span :if={!active?} class="ml-1 text-[10px] opacity-80">(inactive)</span>
                   </.badge>
                 <% else %>
                   <span class="text-sm text-foreground-soft">—</span>
@@ -92,7 +108,7 @@ defmodule CloseTheLoopWeb.IssuesLive.Index do
           </.table_body>
         </.table>
 
-        <div :if={@issues == []} class="px-4 py-10 text-center text-sm text-foreground-soft">
+        <div :if={@issues == []} class="py-10 text-center text-sm text-foreground-soft">
           No issues yet.
         </div>
       </div>

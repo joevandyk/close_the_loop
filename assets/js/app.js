@@ -27,6 +27,99 @@ import { Hooks as FluxonHooks, DOM as FluxonDOM } from "fluxon"
 import topbar from "../vendor/topbar"
 
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
+
+// Auto-dismiss flash toasts on both LiveView and controller-rendered pages.
+// We still "click" first so LiveView flashes get cleared server-side.
+const armAutoDismissFlashes = (() => {
+  const armed = new WeakSet()
+
+  function dismiss(el) {
+    try { el.click() } catch (_) {}
+
+    // If it didn't go away (non-LiveView page), fade it out and remove.
+    el.style.transition = "opacity 200ms ease, transform 200ms ease"
+    el.style.opacity = "0"
+    el.style.transform = "translateY(-4px)"
+    window.setTimeout(() => el.remove(), 220)
+  }
+
+  function arm(el) {
+    if (!(el instanceof HTMLElement)) return
+    if (armed.has(el)) return
+    if (el.dataset.autoDismiss === "false") return
+    if (el.hasAttribute("hidden")) return
+
+    const ms = Number.parseInt(el.dataset.timeoutMs || "0", 10)
+    if (!Number.isFinite(ms) || ms <= 0) return
+
+    armed.add(el)
+
+    let timer = window.setTimeout(() => dismiss(el), ms)
+
+    const pause = () => { if (timer) window.clearTimeout(timer); timer = null }
+    const resume = () => { pause(); timer = window.setTimeout(() => dismiss(el), ms) }
+
+    el.addEventListener("mouseenter", pause)
+    el.addEventListener("mouseleave", resume)
+    el.addEventListener("focusin", pause)
+    el.addEventListener("focusout", resume)
+  }
+
+  function scan(root = document) {
+    root
+      .querySelectorAll?.('[data-auto-dismiss="true"][data-timeout-ms]')
+      .forEach(arm)
+  }
+
+  function start() {
+    scan(document)
+
+    const obs = new MutationObserver(mutations => {
+      for (const m of mutations) {
+        for (const node of m.addedNodes || []) {
+          if (node instanceof HTMLElement) {
+            if (node.matches?.('[data-auto-dismiss="true"][data-timeout-ms]')) arm(node)
+            scan(node)
+          }
+        }
+      }
+    })
+
+    obs.observe(document.documentElement, {childList: true, subtree: true})
+  }
+
+  return {start, scan}
+})()
+
+// Enable "Print / Save PDF" buttons on controller pages.
+// Avoid inline `onclick` in templates (stays compatible with LiveView too).
+const armPrintButtons = (() => {
+  const armed = new WeakSet()
+
+  function arm(el) {
+    if (!(el instanceof HTMLElement)) return
+    if (armed.has(el)) return
+    armed.add(el)
+
+    el.addEventListener("click", (e) => {
+      e.preventDefault()
+      window.print()
+    })
+  }
+
+  function scan(root = document) {
+    root
+      .querySelectorAll?.('[data-ctl-print="true"]')
+      .forEach(arm)
+  }
+
+  function start() {
+    scan(document)
+  }
+
+  return {start, scan}
+})()
+
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: {_csrf_token: csrfToken},
@@ -45,6 +138,8 @@ window.addEventListener("phx:page-loading-stop", _info => topbar.hide())
 
 // connect if there are any LiveViews on the page
 liveSocket.connect()
+armAutoDismissFlashes.start()
+armPrintButtons.start()
 
 // expose liveSocket on window for web console debug logs and latency simulation:
 // >> liveSocket.enableDebug()

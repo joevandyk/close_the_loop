@@ -7,6 +7,7 @@ defmodule CloseTheLoop.Feedback do
     resource CloseTheLoop.Feedback.Issue
     resource CloseTheLoop.Feedback.Report
     resource CloseTheLoop.Feedback.IssueUpdate
+    resource CloseTheLoop.Feedback.IssueComment
     resource CloseTheLoop.Feedback.IssueCategory
   end
 end

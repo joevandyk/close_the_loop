@@ -20,11 +20,11 @@ defmodule CloseTheLoop.Tenants.Organization do
 
     create :create do
       primary? true
-      accept [:name, :tenant_schema]
+      accept [:name, :tenant_schema, :ai_business_context, :ai_categorization_instructions]
     end
 
     update :update do
-      accept [:name]
+      accept [:name, :ai_business_context, :ai_categorization_instructions]
     end
   end
 
@@ -47,6 +47,17 @@ defmodule CloseTheLoop.Tenants.Organization do
       allow_nil? false
       public? true
       default &CloseTheLoop.Tenants.generate_tenant_schema/0
+    end
+
+    # Optional AI context editable by the owner, used to guide categorization.
+    attribute :ai_business_context, :string do
+      allow_nil? true
+      public? true
+    end
+
+    attribute :ai_categorization_instructions, :string do
+      allow_nil? true
+      public? true
     end
 
     create_timestamp :inserted_at

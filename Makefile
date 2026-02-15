@@ -41,7 +41,8 @@ lint:
 # ─── Database ────────────────────────────────────────────────────────
 
 migrate:
-	mix ecto.migrate
+	mix ash_postgres.migrate
+	mix ash_postgres.migrate --tenants
 
 seed:
 	mix run priv/repo/seeds.exs

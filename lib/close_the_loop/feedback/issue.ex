@@ -42,6 +42,21 @@ defmodule CloseTheLoop.Feedback.Issue do
 
       change set_attribute(:duplicate_of_issue_id, arg(:duplicate_of_issue_id))
     end
+
+    update :edit_details do
+      accept [:title, :description]
+      require_atomic? false
+
+      change fn changeset, _ctx ->
+        desc = Ash.Changeset.get_attribute(changeset, :description)
+
+        Ash.Changeset.change_attribute(
+          changeset,
+          :normalized_description,
+          CloseTheLoop.Feedback.Text.normalize_for_dedupe(desc)
+        )
+      end
+    end
   end
 
   policies do
@@ -112,6 +127,11 @@ defmodule CloseTheLoop.Feedback.Issue do
     has_many :updates, CloseTheLoop.Feedback.IssueUpdate do
       destination_attribute :issue_id
       public? true
+    end
+
+    has_many :comments, CloseTheLoop.Feedback.IssueComment do
+      destination_attribute :issue_id
+      public? false
     end
 
     belongs_to :duplicate_of, __MODULE__ do

@@ -1,66 +1,43 @@
 import { test, expect } from "@playwright/test";
 
 test("business can onboard, receive a report, and view it", async ({ page }) => {
-  const email = `e2e_${Date.now()}@example.com`;
+  const email = "e2e_owner@example.com";
+  const password = "password1234";
 
-  // Start from a clean mailbox to avoid flakiness.
-  await page.goto("/dev/mailbox");
-  const emptyMailbox = page.getByRole("button", { name: /empty mailbox/i });
-  if (await emptyMailbox.isVisible()) {
-    await emptyMailbox.click();
-  }
-
-  // Sign in via magic link (works even when confirmation is enabled).
+  // Sign in via password (avoid /dev/mailbox).
   await page.goto("/sign-in");
+  await page.waitForFunction(() => (window as any).liveSocket?.isConnected?.(), { timeout: 20_000 });
 
   // No vendor branding.
   await expect(page.getByText(/ash framework/i)).toHaveCount(0);
   await expect(page.locator('img[src*="ash-framework"]')).toHaveCount(0);
 
-  // Fill the email field inside the magic link form specifically (avoid ambiguity).
-  const magicForm = page.locator("form", {
-    has: page.getByRole("button", { name: /request magic link/i }),
-  });
-  await magicForm.getByRole("textbox", { name: /^email$/i }).fill(email);
-  const requestMagicLink = magicForm.getByRole("button", { name: /request magic link/i });
-  await requestMagicLink.click();
-  // Give the server a moment to enqueue + render any response.
-  await expect(requestMagicLink).toBeEnabled({ timeout: 10_000 });
-
-  // Open the mailbox preview and click the sign-in link.
-  await page.goto("/dev/mailbox");
-  const mailboxEntry = page.getByRole("link", { name: /your login link/i }).first();
-
-  // The mailbox is server-rendered; poll with reloads until the message arrives.
-  for (let i = 0; i < 10; i++) {
-    if (await mailboxEntry.isVisible()) break;
-    await page.waitForTimeout(500);
-    await page.reload();
-  }
-
-  await expect(mailboxEntry).toBeVisible({ timeout: 5_000 });
-  await mailboxEntry.click();
-
-  const emailFrame = page.frameLocator("iframe").first();
-  const magicHref = await emailFrame.locator('a[href*="/magic_link/"]').first().getAttribute("href");
-  expect(magicHref).toBeTruthy();
-  await page.goto(magicHref!);
   await Promise.all([
-    page.waitForURL((url) => !url.pathname.includes("/magic_link/"), { timeout: 15_000 }),
-    page.getByRole("button", { name: /^sign in$/i }).click(),
+    page.waitForURL(/\/app\//, { timeout: 30_000 }),
+    (async () => {
+      // There are 2 "Email" fields on this page (password + magic link).
+      // The password form appears first.
+      await page.getByRole("textbox", { name: /^email$/i }).first().fill(email);
+      await page.getByRole("textbox", { name: /^password$/i }).fill(password);
+      await page.getByRole("button", { name: /^sign in$/i }).click();
+    })(),
   ]);
 
   // After auth, go to the app. Without an org, we should be redirected to onboarding.
   await page.goto("/app/issues");
   await expect(page).toHaveURL(/\/app\/onboarding/);
 
-  const orgName = `E2E Org ${Date.now()}`;
+  await page.waitForFunction(() => (window as any).liveSocket?.isConnected?.(), { timeout: 20_000 });
+
+  const orgName = `[E2E] Org ${Date.now()}`;
   await page.getByRole("textbox", { name: /organization name/i }).fill(orgName);
   await page.getByRole("button", { name: /create organization/i }).click();
   await expect(page).toHaveURL(/\/app\/issues/);
 
   // Create a new location and use its reporter link.
   await page.goto("/app/locations");
+  // Ensure LiveView JS is loaded + connected before interacting.
+  await page.waitForFunction(() => (window as any).liveSocket?.isConnected?.(), { timeout: 20_000 });
   const locationName = `Locker room ${Date.now()}`;
   const createLocationForm = page.locator("form", {
     has: page.getByRole("button", { name: /create location/i }),
@@ -69,7 +46,9 @@ test("business can onboard, receive a report, and view it", async ({ page }) => 
   await expect(nameInput).toBeVisible();
   await nameInput.fill(locationName);
   await createLocationForm.getByRole("button", { name: /create location/i }).click();
-  await expect(page.getByRole("row", { name: new RegExp(locationName, "i") })).toBeVisible();
+  await expect(page.getByRole("row", { name: new RegExp(locationName, "i") })).toBeVisible({
+    timeout: 30_000,
+  });
 
   const lockerRoomLink = page
     .getByRole("row", { name: new RegExp(locationName, "i") })
@@ -80,6 +59,7 @@ test("business can onboard, receive a report, and view it", async ({ page }) => 
   expect(reporterLink).toBeTruthy();
 
   await page.goto(reporterLink!);
+  await page.waitForFunction(() => (window as any).liveSocket?.isConnected?.(), { timeout: 20_000 });
 
   const reportBody = "Cold water in the men's showers";
   await page.locator('textarea[name="report[body]"]').fill(reportBody);

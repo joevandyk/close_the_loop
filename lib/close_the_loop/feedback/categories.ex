@@ -82,4 +82,35 @@ defmodule CloseTheLoop.Feedback.Categories do
         Enum.map(@default_categories, & &1.key)
     end
   end
+
+  @doc """
+  Returns active keys without any fallback behavior.
+
+  Useful for UI validations where we want to prevent "all inactive".
+  """
+  @spec active_keys_strict(binary()) :: list(String.t())
+  def active_keys_strict(tenant) when is_binary(tenant) do
+    case Ash.read(IssueCategory, tenant: tenant) do
+      {:ok, cats} ->
+        cats
+        |> Enum.filter(& &1.active)
+        |> Enum.map(& &1.key)
+
+      _ ->
+        []
+    end
+  end
+
+  @spec active_for_ai(binary()) :: list(IssueCategory.t())
+  def active_for_ai(tenant) when is_binary(tenant) do
+    case Ash.read(IssueCategory, tenant: tenant) do
+      {:ok, cats} when is_list(cats) ->
+        cats
+        |> Enum.filter(& &1.active)
+        |> Enum.sort_by(& &1.key)
+
+      _ ->
+        []
+    end
+  end
 end

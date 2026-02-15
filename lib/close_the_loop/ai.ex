@@ -7,6 +7,52 @@ defmodule CloseTheLoop.AI do
   alias OpenaiEx.ChatMessage
 
   alias CloseTheLoop.Feedback.Categories
+  alias CloseTheLoop.Tenants.Organization
+
+  require Ash.Query
+
+  @doc false
+  def completion_token_opts(model, limit)
+      when is_binary(model) and is_integer(limit) and limit > 0 do
+    [{completion_token_key(model), limit}]
+  end
+
+  defp completion_token_key(model) do
+    # OpenAI "reasoning" and newest models don't accept `max_tokens` in Chat Completions.
+    # They require `max_completion_tokens` instead.
+    if String.starts_with?(model, ["gpt-5", "o1", "o3"]) do
+      :max_completion_tokens
+    else
+      :max_tokens
+    end
+  end
+
+  defp create_chat_completion(openai, opts, limit) do
+    req =
+      Chat.Completions.new(opts ++ completion_token_opts(Keyword.fetch!(opts, :model), limit))
+
+    case openai |> Chat.Completions.create(req) do
+      {:error, %OpenaiEx.Error{code: "unsupported_parameter", param: "max_tokens"}} ->
+        # Retry once with the alternate token param to be robust to model changes.
+        req2 =
+          Chat.Completions.new(
+            Keyword.delete(opts, :max_tokens) ++ [max_completion_tokens: limit]
+          )
+
+        openai |> Chat.Completions.create(req2)
+
+      {:error, %OpenaiEx.Error{code: "unsupported_parameter", param: "max_completion_tokens"}} ->
+        req2 =
+          Chat.Completions.new(
+            Keyword.delete(opts, :max_completion_tokens) ++ [max_tokens: limit]
+          )
+
+        openai |> Chat.Completions.create(req2)
+
+      other ->
+        other
+    end
+  end
 
   @spec categorize_issue(String.t(), binary()) :: {:ok, String.t()} | {:error, term()}
   def categorize_issue(text, tenant) when is_binary(text) and is_binary(tenant) do
@@ -19,26 +65,23 @@ defmodule CloseTheLoop.AI do
 
       api_key ->
         allowed = Categories.active_keys(tenant)
+        categories = Categories.active_for_ai(tenant)
+        org = get_org_by_tenant(tenant)
         model = System.get_env("OPENAI_MODEL", "gpt-5.2")
         openai = OpenaiEx.new(api_key) |> OpenaiEx.with_receive_timeout(45_000)
 
-        prompt = """
-        You categorize customer-reported facility issues for a business.
-        Return ONLY one category key from: #{Enum.join(allowed, ", ")}.
-        """
+        prompt = build_categorize_prompt(allowed, categories, org)
 
-        req =
-          Chat.Completions.new(
-            model: model,
-            messages: [
-              ChatMessage.system(prompt),
-              ChatMessage.user(text)
-            ],
-            max_tokens: 10,
-            temperature: 0
-          )
+        opts = [
+          model: model,
+          messages: [
+            ChatMessage.system(prompt),
+            ChatMessage.user(text)
+          ],
+          temperature: 0
+        ]
 
-        case openai |> Chat.Completions.create(req) do
+        case create_chat_completion(openai, opts, 10) do
           {:ok, %{"choices" => [%{"message" => %{"content" => content}} | _]}} ->
             category =
               content
@@ -99,18 +142,16 @@ defmodule CloseTheLoop.AI do
         #{encode_candidates(candidates)}
         """
 
-        req =
-          Chat.Completions.new(
-            model: model,
-            messages: [
-              ChatMessage.system(prompt),
-              ChatMessage.user(user)
-            ],
-            max_tokens: 20,
-            temperature: 0
-          )
+        opts = [
+          model: model,
+          messages: [
+            ChatMessage.system(prompt),
+            ChatMessage.user(user)
+          ],
+          temperature: 0
+        ]
 
-        case openai |> Chat.Completions.create(req) do
+        case create_chat_completion(openai, opts, 20) do
           {:ok, %{"choices" => [%{"message" => %{"content" => content}} | _]}} ->
             answer =
               content
@@ -181,5 +222,93 @@ defmodule CloseTheLoop.AI do
     else
       {:error, {:invalid_category, category}}
     end
+  end
+
+  defp get_org_by_tenant(tenant) when is_binary(tenant) do
+    query =
+      Organization
+      |> Ash.Query.filter(tenant_schema == ^tenant)
+      |> Ash.Query.limit(1)
+
+    case Ash.read_one(query) do
+      {:ok, %Organization{} = org} -> org
+      _ -> nil
+    end
+  end
+
+  defp build_categorize_prompt(allowed, categories, org)
+       when is_list(allowed) and is_list(categories) do
+    fallback =
+      cond do
+        "other" in allowed -> "other"
+        allowed != [] -> List.first(allowed)
+        true -> "other"
+      end
+
+    org_bits =
+      case org do
+        %Organization{} ->
+          [
+            org.ai_business_context && String.trim(org.ai_business_context) != "" &&
+              "Business context:\n#{String.trim(org.ai_business_context)}",
+            org.ai_categorization_instructions &&
+              String.trim(org.ai_categorization_instructions) != "" &&
+              "Categorization rules:\n#{String.trim(org.ai_categorization_instructions)}"
+          ]
+          |> Enum.filter(& &1)
+          |> Enum.join("\n\n")
+
+        _ ->
+          ""
+      end
+
+    categories_block =
+      categories
+      |> Enum.map(fn c ->
+        bits = [
+          c.description && String.trim(c.description) != "" &&
+            "Description: #{String.trim(c.description)}",
+          c.ai_guidance && String.trim(c.ai_guidance) != "" &&
+            "AI guidance: #{String.trim(c.ai_guidance)}",
+          c.ai_include_keywords && String.trim(c.ai_include_keywords) != "" &&
+            "Include keywords:\n#{String.trim(c.ai_include_keywords)}",
+          c.ai_exclude_keywords && String.trim(c.ai_exclude_keywords) != "" &&
+            "Exclude keywords:\n#{String.trim(c.ai_exclude_keywords)}",
+          c.ai_examples && String.trim(c.ai_examples) != "" &&
+            "Examples:\n#{String.trim(c.ai_examples)}"
+        ]
+
+        body =
+          bits
+          |> Enum.filter(& &1)
+          |> Enum.join("\n")
+
+        header = "- #{c.key}: #{c.label}"
+
+        if body == "" do
+          header
+        else
+          header <> "\n" <> body
+        end
+      end)
+      |> Enum.join("\n\n")
+
+    """
+    You categorize customer-reported facility issues for a business.
+
+    Return ONLY one category key from this list:
+    #{Enum.join(allowed, ", ")}
+
+    Rules:
+    - Output exactly one key, nothing else (no punctuation, no explanation).
+    - If you're unsure, choose "#{fallback}".
+    - Use the category definitions and keywords to disambiguate similar categories.
+
+    #{org_bits}
+
+    Categories:
+    #{categories_block}
+    """
+    |> String.trim()
   end
 end

@@ -9,6 +9,7 @@ defmodule CloseTheLoop.Feedback.Intake do
   import Ash.Expr
 
   alias CloseTheLoop.Feedback.{Issue, Report}
+  alias CloseTheLoop.Feedback.Text
   alias CloseTheLoop.Messaging.Phone
 
   require Ash.Query
@@ -18,9 +19,16 @@ defmodule CloseTheLoop.Feedback.Intake do
   @spec submit_report(String.t(), Ash.UUID.t(), map()) ::
           {:ok, %{issue: Issue.t(), report: Report.t()}} | {:error, term()}
   def submit_report(tenant, location_id, %{body: body} = attrs) when is_binary(tenant) do
-    normalized = normalize_body(body)
+    normalized = Text.normalize_for_dedupe(body)
 
-    with {:ok, reporter_phone} <- Phone.normalize_e164(Map.get(attrs, :reporter_phone)),
+    reporter_name =
+      blank_to_nil(Map.get(attrs, :reporter_name) || Map.get(attrs, "reporter_name"))
+
+    reporter_email =
+      blank_to_nil(Map.get(attrs, :reporter_email) || Map.get(attrs, "reporter_email"))
+
+    with :ok <- validate_email(reporter_email),
+         {:ok, reporter_phone} <- Phone.normalize_e164(Map.get(attrs, :reporter_phone)),
          {:ok, issue} <- get_or_create_issue(tenant, location_id, body, normalized),
          {:ok, report} <-
            Ash.create(
@@ -31,6 +39,8 @@ defmodule CloseTheLoop.Feedback.Intake do
                body: body,
                normalized_body: normalized,
                source: Map.fetch!(attrs, :source),
+               reporter_name: reporter_name,
+               reporter_email: reporter_email,
                reporter_phone: reporter_phone,
                consent: Map.get(attrs, :consent, false) and not is_nil(reporter_phone)
              },
@@ -106,10 +116,22 @@ defmodule CloseTheLoop.Feedback.Intake do
     end
   end
 
-  defp normalize_body(body) do
-    body
-    |> String.downcase()
-    |> String.replace(~r/[^a-z0-9]+/u, " ")
-    |> String.trim()
+  defp blank_to_nil(nil), do: nil
+
+  defp blank_to_nil(val) do
+    val = val |> to_string() |> String.trim()
+    if val == "", do: nil, else: val
+  end
+
+  # Intentionally loose validation: we want to avoid blocking legitimate addresses
+  # while still catching obvious typos that hurt follow-ups.
+  defp validate_email(nil), do: :ok
+
+  defp validate_email(email) when is_binary(email) do
+    if Regex.match?(~r/^[^\s@]+@[^\s@]+\.[^\s@]+$/, email) do
+      :ok
+    else
+      {:error, "Email address looks invalid"}
+    end
   end
 end

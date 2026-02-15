@@ -87,6 +87,7 @@ defmodule CloseTheLoopWeb.Layouts do
         title={gettext("We can't find the internet")}
         phx-disconnected={show(".phx-client-error #client-error") |> JS.remove_attribute("hidden")}
         phx-connected={hide("#client-error") |> JS.set_attribute({"hidden", ""})}
+        data-auto-dismiss="false"
         hidden
       >
         {gettext("Attempting to reconnect")}
@@ -99,6 +100,7 @@ defmodule CloseTheLoopWeb.Layouts do
         title={gettext("Something went wrong!")}
         phx-disconnected={show(".phx-server-error #server-error") |> JS.remove_attribute("hidden")}
         phx-connected={hide("#server-error") |> JS.set_attribute({"hidden", ""})}
+        data-auto-dismiss="false"
         hidden
       >
         {gettext("Attempting to reconnect")}

@@ -38,7 +38,11 @@ config :close_the_loop, CloseTheLoopWeb.Endpoint,
   # Bind to 0.0.0.0 to expose the server to the docker host machine.
   # This makes make the service accessible from any network interface.
   # Change to `ip: {127, 0, 0, 1}` to allow access only from the server machine.
-  http: [ip: {0, 0, 0, 0}],
+  #
+  # E2E tests run the dev server on a dynamic port, so we must also
+  # update `url` to avoid emitting asset/websocket URLs pointing to :4000.
+  http: [ip: {0, 0, 0, 0}, port: String.to_integer(System.get_env("PORT", "4000"))],
+  url: [host: "localhost", port: String.to_integer(System.get_env("PORT", "4000"))],
   check_origin: false,
   code_reloader: true,
   debug_errors: true,
