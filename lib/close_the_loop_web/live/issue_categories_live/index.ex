@@ -22,6 +22,8 @@ defmodule CloseTheLoopWeb.IssueCategoriesLive.Index do
        |> assign(:categories, categories)
        |> assign(:ai_business_context, org.ai_business_context || "")
        |> assign(:ai_categorization_instructions, org.ai_categorization_instructions || "")
+       |> assign(:ai_saved?, false)
+       |> assign(:ai_save_error, nil)
        |> assign(:editing_category, nil)
        |> assign(:edit_label, "")
        |> assign(:edit_description, "")
@@ -93,8 +95,32 @@ defmodule CloseTheLoopWeb.IssueCategoriesLive.Index do
             placeholder="If a report mentions water temperature, leaks, toilets, drains, or showers -> plumbing. If it's about lighting, outlets, breakers -> electrical. If uncertain, choose other."
           />
 
-          <div class="flex justify-end">
-            <.button type="submit" variant="solid" color="primary" phx-disable-with="Saving...">
+          <div class="flex items-center justify-between gap-3">
+            <div
+              id="ai-settings-status"
+              data-state={ai_settings_state(@ai_saved?, @ai_save_error)}
+              class="min-h-5"
+            >
+              <%= if @ai_saved? do %>
+                <span class="inline-flex items-center gap-1 text-xs font-medium text-emerald-700">
+                  <.icon name="hero-check-circle-mini" class="size-4" /> Saved
+                </span>
+              <% end %>
+
+              <%= if @ai_save_error do %>
+                <span class="text-xs font-medium text-danger">
+                  {@ai_save_error}
+                </span>
+              <% end %>
+            </div>
+
+            <.button
+              id="save-ai-settings-button"
+              type="submit"
+              variant="solid"
+              color="primary"
+              phx-disable-with="Saving..."
+            >
               Save AI settings
             </.button>
           </div>
@@ -352,16 +378,28 @@ defmodule CloseTheLoopWeb.IssueCategoriesLive.Index do
   end
 
   @impl true
-  def handle_event(
-        "save_ai_settings",
-        %{
-          "ai" => %{"business_context" => business, "categorization_instructions" => instructions}
-        },
-        socket
-      ) do
+  def handle_event("save_ai_settings", %{"ai" => params}, socket) when is_map(params) do
     org = socket.assigns.org
-    business = business |> to_string() |> String.trim()
-    instructions = instructions |> to_string() |> String.trim()
+
+    business =
+      params
+      |> Map.get("business_context")
+      |> case do
+        nil -> socket.assigns.ai_business_context
+        val -> val
+      end
+      |> to_string()
+      |> String.trim()
+
+    instructions =
+      params
+      |> Map.get("categorization_instructions")
+      |> case do
+        nil -> socket.assigns.ai_categorization_instructions
+        val -> val
+      end
+      |> to_string()
+      |> String.trim()
 
     attrs = %{
       ai_business_context: if(business == "", do: nil, else: business),
@@ -375,10 +413,16 @@ defmodule CloseTheLoopWeb.IssueCategoriesLive.Index do
          |> assign(:org, org)
          |> assign(:ai_business_context, org.ai_business_context || "")
          |> assign(:ai_categorization_instructions, org.ai_categorization_instructions || "")
+         |> assign(:ai_saved?, true)
+         |> assign(:ai_save_error, nil)
          |> put_flash(:info, "AI settings saved.")}
 
       {:error, err} ->
-        {:noreply, put_flash(socket, :error, "Failed to save AI settings: #{inspect(err)}")}
+        {:noreply,
+         socket
+         |> assign(:ai_saved?, false)
+         |> assign(:ai_save_error, "Failed to save AI settings")
+         |> put_flash(:error, "Failed to save AI settings: #{inspect(err)}")}
     end
   end
 
@@ -509,4 +553,8 @@ defmodule CloseTheLoopWeb.IssueCategoriesLive.Index do
     val = val |> to_string() |> String.trim()
     if val == "", do: nil, else: val
   end
+
+  defp ai_settings_state(true, _err), do: "saved"
+  defp ai_settings_state(_saved, err) when is_binary(err) and err != "", do: "error"
+  defp ai_settings_state(_saved, _err), do: "idle"
 end

@@ -87,12 +87,9 @@ echo ""
 echo "==> Installing dependencies..."
 cd "${PROJECT_DIR}"
 if command -v doppler &> /dev/null; then
-  doppler run --preserve-env -- scripts/setup-fluxon-hex-repo
   doppler run --preserve-env -- mix deps.get
 else
-  echo "  ✖ Doppler CLI is required to fetch Fluxon UI dependencies."
-  echo "    Install: https://docs.doppler.com/docs/cli"
-  exit 1
+  mix deps.get
 fi
 
 

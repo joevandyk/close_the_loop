@@ -137,9 +137,32 @@ defmodule CloseTheLoop.Accounts.User do
       change {AshAuthentication.Strategy.Password.HashPasswordChange, strategy_name: :password}
     end
 
+    update :change_email do
+      description "Change the user's email after confirming their password."
+
+      require_atomic? false
+      accept [:email]
+
+      argument :current_password, :string, sensitive?: true, allow_nil?: false
+
+      validate {AshAuthentication.Strategy.Password.PasswordValidation,
+                strategy_name: :password, password_argument: :current_password}
+    end
+
+    update :update_profile do
+      description "Update basic profile fields (e.g., display name)."
+
+      accept [:name]
+    end
+
     update :set_organization do
       description "Attach the user to an organization (used during onboarding)."
       accept [:organization_id, :role]
+    end
+
+    update :set_confirmed_at do
+      description "Set confirmed_at (e.g. for dev seeds so user can sign in without email confirmation)."
+      accept [:confirmed_at]
     end
 
     read :sign_in_with_password do
@@ -284,10 +307,20 @@ defmodule CloseTheLoop.Accounts.User do
     policy action(:set_organization) do
       authorize_if expr(id == ^actor(:id))
     end
+
+    # Allow signed-in users to update their own account/profile.
+    policy action([:update_profile, :change_email, :change_password, :set_confirmed_at]) do
+      authorize_if expr(id == ^actor(:id))
+    end
   end
 
   attributes do
     uuid_primary_key :id
+
+    attribute :name, :string do
+      allow_nil? true
+      public? true
+    end
 
     attribute :email, :ci_string do
       allow_nil? false

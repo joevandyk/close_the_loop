@@ -24,6 +24,7 @@ defmodule CloseTheLoop.Tenants.Organization do
     end
 
     update :update do
+      primary? true
       accept [:name, :ai_business_context, :ai_categorization_instructions]
     end
   end

@@ -63,7 +63,7 @@ defmodule CloseTheLoop.Feedback.Report do
 
     attribute :source, :atom do
       allow_nil? false
-      constraints one_of: [:qr, :sms]
+      constraints one_of: [:qr, :sms, :manual]
       public? true
     end
 

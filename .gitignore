@@ -11,6 +11,19 @@
 /deps_darwin/
 /_build_darwin/
 
+# E2E / Playwright custom Mix build path
+/_build_e2e/
+
+# Platform-specific binaries (esbuild, tailwind)
+/esbuild-darwin-arm64
+/esbuild-darwin-x64
+/tailwind-macos-arm64
+/tailwind-macos-x64
+
+# Crash dumps
+/erl_crash.dump
+erl_crash.dump
+
 # Env files (use Doppler)
 .env
 .env.local

@@ -65,6 +65,8 @@ defmodule CloseTheLoopWeb.Router do
 
       live "/app/reports", ReportsLive.Index, :index
 
+      live "/app/reports/new", ReportsLive.New, :new
+
       live "/app/reports/:id", ReportsLive.Show, :show
 
       live "/app/locations", LocationsLive.Index, :index

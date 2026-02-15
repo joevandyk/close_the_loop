@@ -5,8 +5,6 @@ defmodule CloseTheLoopWeb.ReportsLive.Index do
   alias CloseTheLoop.Feedback.Report
   alias CloseTheLoop.Tenants.Organization
 
-  require Ash.Query
-
   @impl true
   def mount(_params, _session, socket) do
     user = socket.assigns.current_user
@@ -42,6 +40,7 @@ defmodule CloseTheLoopWeb.ReportsLive.Index do
     <div class="max-w-5xl mx-auto">
       <div class="flex items-center justify-between gap-4">
         <h1 class="text-2xl font-semibold">Reports</h1>
+        <.button navigate={~p"/app/reports/new"} variant="outline">New report</.button>
       </div>
 
       <div class="mt-6 overflow-x-auto">

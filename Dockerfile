@@ -25,16 +25,9 @@ RUN apt-get update -y && apt-get install -y build-essential git \
 RUN mix local.hex --force && \
     mix local.rebar --force
 
-# Install mix dependencies
-COPY mix.exs mix.lock ./
-RUN --mount=type=secret,id=FLUXON_LICENSE_KEY \
-    --mount=type=secret,id=FLUXON_KEY_FINGERPRINT \
-    FLUXON_LICENSE_KEY="$(cat /run/secrets/FLUXON_LICENSE_KEY)" \
-    FLUXON_KEY_FINGERPRINT="$(cat /run/secrets/FLUXON_KEY_FINGERPRINT)" \
-    mix hex.repo add fluxon https://repo.fluxonui.com \
-      --fetch-public-key "${FLUXON_KEY_FINGERPRINT}" \
-      --auth-key "${FLUXON_LICENSE_KEY}" && \
-    mix deps.get --only $MIX_ENV
+# Install mix dependencies (fluxon is vendored in vendor/fluxon)
+COPY mix.exs mix.lock vendor/ ./vendor/
+RUN mix deps.get --only $MIX_ENV
 RUN mkdir config
 
 # Copy compile-time config

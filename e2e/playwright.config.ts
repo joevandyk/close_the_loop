@@ -1,6 +1,13 @@
 import { defineConfig } from "@playwright/test";
 
+// Dedicated port for e2e so it never conflicts with dev (4000) or other services.
 const port = process.env.E2E_PORT ?? "41731";
+
+// E2E runs the app in dev mode but against the test DB for isolation.
+// Override with E2E_DATABASE_URL if your test Postgres is not on localhost.
+const e2eDatabaseUrl =
+  process.env.E2E_DATABASE_URL ??
+  "postgres://postgres:postgres@localhost/close_the_loop_test";
 
 export default defineConfig({
   testDir: "./tests",
@@ -13,15 +20,10 @@ export default defineConfig({
   webServer: process.env.E2E_WEB_SERVER
     ? undefined
     : {
-        // Use a dedicated port to avoid accidentally reusing an unrelated service
-        // on :3000 (a common dev port).
-        //
-        // We run through Doppler so DATABASE_URL/SECRET_KEY_BASE/etc come from
-        // your Doppler config, but we still force the port for test stability.
-        command: `bash -lc "cd .. && doppler run --preserve-env -- env PORT=${port} MIX_ENV=dev bash -lc 'mix ecto.create && mix ash_postgres.migrate && mix run priv/repo/e2e_seeds.exs && mix phx.server'"`,
+        command: `bash -lc "cd .. && doppler run --preserve-env -- env PORT=${port} MIX_ENV=dev MIX_BUILD_PATH=_build_e2e DATABASE_URL='${e2eDatabaseUrl}' bash -lc 'mix ecto.create && mix ash_postgres.migrate && mix run priv/repo/seeds.exs && mix run priv/repo/e2e_seeds.exs && mix phx.server'"`,
         url: `http://localhost:${port}`,
         reuseExistingServer: false,
-        timeout: 120_000,
+        timeout: 180_000,
       },
 });
 

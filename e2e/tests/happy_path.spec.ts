@@ -34,6 +34,40 @@ test("business can onboard, receive a report, and view it", async ({ page }) => 
   await page.getByRole("button", { name: /create organization/i }).click();
   await expect(page).toHaveURL(/\/app\/issues/);
 
+  // Save AI settings (regression: button must be clickable and submit successfully).
+  await page.goto("/app/settings/issue-categories");
+  await page.waitForFunction(() => (window as any).liveSocket?.isConnected?.(), { timeout: 20_000 });
+
+  // Wait for LiveView to fully hydrate the page (data-phx-id appears after join).
+  await expect(page.locator("#save-ai-settings-button")).toHaveAttribute("data-phx-id", /phx-/i, {
+    timeout: 20_000,
+  });
+
+  await page.locator("#ai_business_context").fill("We run a gym with locker rooms and saunas.");
+  await page
+    .locator("#ai_categorization_instructions")
+    .fill("If it mentions showers, drains, leaks, or water temp then plumbing.");
+
+  // Sanity: the inputs must be in the same form.
+  await expect(page.locator("#ai_business_context")).toHaveValue(
+    "We run a gym with locker rooms and saunas."
+  );
+  await expect(page.locator("#ai_categorization_instructions")).toHaveValue(
+    "If it mentions showers, drains, leaks, or water temp then plumbing."
+  );
+
+  await page.locator("#save-ai-settings-button").click();
+  await expect(page.locator("#ai-settings-status")).toHaveAttribute("data-state", "saved", {
+    timeout: 20_000,
+  });
+
+  // Ensure settings persist after reload.
+  await page.reload();
+  await page.waitForFunction(() => (window as any).liveSocket?.isConnected?.(), { timeout: 20_000 });
+  await expect(page.locator("#ai_business_context")).toHaveValue(
+    "We run a gym with locker rooms and saunas."
+  );
+
   // Create a new location and use its reporter link.
   await page.goto("/app/locations");
   // Ensure LiveView JS is loaded + connected before interacting.
@@ -58,10 +92,22 @@ test("business can onboard, receive a report, and view it", async ({ page }) => 
   const reporterLink = await lockerRoomLink.getAttribute("href");
   expect(reporterLink).toBeTruthy();
 
+  // Manual entry: front desk can log a report.
+  const locationId = reporterLink!.split("/").pop();
+  expect(locationId).toBeTruthy();
+
+  await page.goto(`/app/reports/new?location_id=${locationId}`);
+  await page.waitForFunction(() => (window as any).liveSocket?.isConnected?.(), { timeout: 20_000 });
+  await expect(page.locator("#manual-report-form")).toBeVisible();
+
+  const reportBody = "Cold water in the men's showers";
+  await page.locator("#manual-body").fill(reportBody);
+  await page.getByRole("button", { name: /add report/i }).click();
+  await expect(page.getByRole("heading", { name: /cold water/i })).toBeVisible({ timeout: 20_000 });
+
   await page.goto(reporterLink!);
   await page.waitForFunction(() => (window as any).liveSocket?.isConnected?.(), { timeout: 20_000 });
 
-  const reportBody = "Cold water in the men's showers";
   await page.locator('textarea[name="report[body]"]').fill(reportBody);
   await page.locator('input[name="report[phone]"]').fill("+15555555555");
   await page.getByRole("checkbox", { name: /agree to receive text updates/i }).check();

@@ -19,7 +19,6 @@ endif
 # ─── Development ──────────────────────────────────────────────────────
 
 install:
-	./scripts/setup-fluxon-hex-repo
 	mix deps.get
 
 dev:
@@ -31,7 +30,6 @@ build:
 # ─── Quality ─────────────────────────────────────────────────────────
 
 test:
-	./scripts/setup-fluxon-hex-repo
 	mix deps.get
 	MIX_ENV=test mix test
 

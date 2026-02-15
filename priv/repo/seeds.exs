@@ -22,6 +22,7 @@ end
 {:ok, _} = Application.ensure_all_started(:close_the_loop)
 
 org = CloseTheLoop.DevSeeds.run()
+user = CloseTheLoop.DevSeeds.ensure_dev_user!(org)
 
 require Ash.Query
 
@@ -40,9 +41,11 @@ Seeded:
   org.name=#{org.name}
   org.tenant_schema=#{org.tenant_schema}
 
+Dev login:
+  /sign-in → #{user.email} / #{user.password}
+
 Try:
   /sign-in
-  /app/onboarding
   /app/issues
   /app/locations
 

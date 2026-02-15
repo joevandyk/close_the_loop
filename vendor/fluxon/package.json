@@ -1,0 +1,23 @@
+{
+  "name": "fluxon",
+  "version": "0.0.1",
+  "license": "MIT",
+  "private": true,
+  "author": "Andriel Nuernberg <andrielfn@gmail.com>",
+  "description": "A collection of UI components for Phoenix LiveView.",
+  "module": "./priv/static/fluxon.esm.js",
+  "main": "./priv/static/fluxon.cjs.js",
+  "exports": {
+    ".": {
+      "import": "./priv/static/fluxon.esm.js",
+      "require": "./priv/static/fluxon.cjs.js"
+    },
+    "./theme": "./priv/static/theme.css"
+  },
+  "files": [
+    "README.md",
+    "LICENSE.md",
+    "package.json",
+    "priv/static/*"
+  ]
+}

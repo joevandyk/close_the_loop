@@ -6,8 +6,8 @@
 @source "../css";
 @source "../js";
 @source "../../lib/close_the_loop_web";
-@source "../../deps/fluxon";
-@import "../../deps/fluxon/priv/static/theme";
+@source "../../vendor/fluxon";
+@import "../../vendor/fluxon/priv/static/theme";
 
 /* A Tailwind plugin that makes "hero-#{ICON}" classes available.
    The heroicons installation itself is managed by your mix.exs */

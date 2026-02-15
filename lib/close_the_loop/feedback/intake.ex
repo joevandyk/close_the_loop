@@ -14,7 +14,7 @@ defmodule CloseTheLoop.Feedback.Intake do
 
   require Ash.Query
 
-  @type source :: :qr | :sms
+  @type source :: :qr | :sms | :manual
 
   @spec submit_report(String.t(), Ash.UUID.t(), map()) ::
           {:ok, %{issue: Issue.t(), report: Report.t()}} | {:error, term()}

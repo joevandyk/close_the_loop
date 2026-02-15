@@ -2,6 +2,7 @@ defmodule CloseTheLoopWeb.SettingsLive.Index do
   use CloseTheLoopWeb, :live_view
   on_mount {CloseTheLoopWeb.LiveUserAuth, :live_org_required}
 
+  alias CloseTheLoop.Accounts.User
   alias CloseTheLoop.Tenants.Organization
 
   @impl true
@@ -15,7 +16,12 @@ defmodule CloseTheLoopWeb.SettingsLive.Index do
          |> assign(:org, org)
          |> assign(:tenant, org.tenant_schema)
          |> assign(:org_name, org.name)
-         |> assign(:error, nil)}
+         |> assign(:error, nil)
+         |> assign(:user_name, user.name || "")
+         |> assign(:user_email, to_string(user.email))
+         |> assign(:profile_error, nil)
+         |> assign(:email_error, nil)
+         |> assign(:password_error, nil)}
 
       _ ->
         {:ok, put_flash(socket, :error, "Failed to load settings")}
@@ -57,6 +63,10 @@ defmodule CloseTheLoopWeb.SettingsLive.Index do
 
           <dl class="mt-4 space-y-3 text-sm">
             <div class="flex items-center justify-between gap-4">
+              <dt class="text-foreground-soft">Name</dt>
+              <dd class="font-medium">{@current_user.name || "—"}</dd>
+            </div>
+            <div class="flex items-center justify-between gap-4">
               <dt class="text-foreground-soft">Email</dt>
               <dd class="font-medium">{@current_user.email}</dd>
             </div>
@@ -65,6 +75,115 @@ defmodule CloseTheLoopWeb.SettingsLive.Index do
               <dd class="font-medium">{@current_user.role || :staff}</dd>
             </div>
           </dl>
+
+          <.separator text="Update profile" class="my-5" />
+
+          <.form for={%{}} id="user-profile-form" phx-submit="save_profile" class="space-y-3">
+            <.input
+              id="user_name"
+              name="profile[name]"
+              type="text"
+              label="Name"
+              value={@user_name}
+              placeholder="Jane Doe"
+            />
+
+            <%= if @profile_error do %>
+              <.alert color="danger" hide_close>{@profile_error}</.alert>
+            <% end %>
+
+            <.button
+              type="submit"
+              variant="solid"
+              color="primary"
+              class="w-full"
+              phx-disable-with="Saving..."
+            >
+              Save name
+            </.button>
+          </.form>
+
+          <.separator text="Change email" class="my-5" />
+
+          <.form for={%{}} id="user-email-form" phx-submit="change_email" class="space-y-3">
+            <.input
+              id="user_email"
+              name="email[email]"
+              type="email"
+              label="Email"
+              value={@user_email}
+              autocomplete="email"
+              required
+            />
+
+            <.input
+              id="user_email_current_password"
+              name="email[current_password]"
+              type="password"
+              label="Current password"
+              autocomplete="current-password"
+              required
+            />
+
+            <%= if @email_error do %>
+              <.alert color="danger" hide_close>{@email_error}</.alert>
+            <% end %>
+
+            <.button
+              type="submit"
+              variant="solid"
+              color="primary"
+              class="w-full"
+              phx-disable-with="Saving..."
+            >
+              Update email
+            </.button>
+          </.form>
+
+          <.separator text="Change password" class="my-5" />
+
+          <.form for={%{}} id="user-password-form" phx-submit="change_password" class="space-y-3">
+            <.input
+              id="user_current_password"
+              name="password[current_password]"
+              type="password"
+              label="Current password"
+              autocomplete="current-password"
+              required
+            />
+
+            <.input
+              id="user_new_password"
+              name="password[password]"
+              type="password"
+              label="New password"
+              autocomplete="new-password"
+              required
+            />
+
+            <.input
+              id="user_new_password_confirmation"
+              name="password[password_confirmation]"
+              type="password"
+              label="Confirm new password"
+              autocomplete="new-password"
+              required
+            />
+
+            <%= if @password_error do %>
+              <.alert color="danger" hide_close>{@password_error}</.alert>
+            <% end %>
+
+            <.button
+              type="submit"
+              variant="solid"
+              color="primary"
+              class="w-full"
+              phx-disable-with="Saving..."
+            >
+              Update password
+            </.button>
+          </.form>
 
           <div class="mt-6">
             <.button href={~p"/sign-out"} variant="outline" class="w-full">
@@ -112,6 +231,98 @@ defmodule CloseTheLoopWeb.SettingsLive.Index do
 
       other ->
         {:noreply, assign(socket, :error, "Failed to save: #{inspect(other)}")}
+    end
+  end
+
+  @impl true
+  def handle_event("save_profile", %{"profile" => %{"name" => name}}, socket) do
+    user = socket.assigns.current_user
+    name = name |> to_string() |> String.trim()
+
+    attrs = %{name: if(name == "", do: nil, else: name)}
+
+    case Ash.update(user, attrs, action: :update_profile, actor: user) do
+      {:ok, %User{} = user} ->
+        {:noreply,
+         socket
+         |> assign(:current_user, user)
+         |> assign(:user_name, user.name || "")
+         |> assign(:profile_error, nil)
+         |> put_flash(:info, "Profile updated.")}
+
+      {:error, err} ->
+        {:noreply, assign(socket, :profile_error, Exception.message(err))}
+    end
+  end
+
+  @impl true
+  def handle_event(
+        "change_email",
+        %{"email" => %{"email" => email, "current_password" => current_password}},
+        socket
+      ) do
+    user = socket.assigns.current_user
+    email = email |> to_string() |> String.trim()
+
+    with true <- email != "" || {:error, "Email is required"},
+         {:ok, %User{} = user} <-
+           Ash.update(
+             user,
+             %{email: email, current_password: current_password},
+             action: :change_email,
+             actor: user
+           ) do
+      {:noreply,
+       socket
+       |> assign(:current_user, user)
+       |> assign(:user_email, to_string(user.email))
+       |> assign(:email_error, nil)
+       |> put_flash(:info, "Email updated.")}
+    else
+      {:error, msg} when is_binary(msg) ->
+        {:noreply, assign(socket, :email_error, msg)}
+
+      {:error, err} ->
+        {:noreply, assign(socket, :email_error, Exception.message(err))}
+
+      other ->
+        {:noreply, assign(socket, :email_error, "Failed to update email: #{inspect(other)}")}
+    end
+  end
+
+  @impl true
+  def handle_event(
+        "change_password",
+        %{
+          "password" => %{
+            "current_password" => current_password,
+            "password" => password,
+            "password_confirmation" => password_confirmation
+          }
+        },
+        socket
+      ) do
+    user = socket.assigns.current_user
+
+    case Ash.update(
+           user,
+           %{
+             current_password: current_password,
+             password: password,
+             password_confirmation: password_confirmation
+           },
+           action: :change_password,
+           actor: user
+         ) do
+      {:ok, %User{} = user} ->
+        {:noreply,
+         socket
+         |> assign(:current_user, user)
+         |> assign(:password_error, nil)
+         |> put_flash(:info, "Password updated.")}
+
+      {:error, err} ->
+        {:noreply, assign(socket, :password_error, Exception.message(err))}
     end
   end
 end

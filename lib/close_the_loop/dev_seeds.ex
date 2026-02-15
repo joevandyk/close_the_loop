@@ -10,12 +10,15 @@ defmodule CloseTheLoop.DevSeeds do
 
   require Ash.Query
 
+  alias CloseTheLoop.Accounts.User
   alias CloseTheLoop.Feedback
   alias CloseTheLoop.Feedback.{Issue, IssueCategory, IssueComment, IssueUpdate, Location, Report}
   alias CloseTheLoop.Tenants.Organization
 
   @default_tenant_schema "org_demo"
   @default_org_name "Demo Organization"
+  @dev_user_email "demo_owner@example.com"
+  @dev_user_password "password1234"
 
   @doc """
   Seeds a demo organization (public schema) and demo tenant data.
@@ -70,6 +73,42 @@ defmodule CloseTheLoop.DevSeeds do
     Organization
     |> Ash.Query.filter(tenant_schema == ^tenant_schema)
     |> Ash.read_one()
+  end
+
+  @doc """
+  Ensures a dev user exists, confirmed and attached to the given organization as owner.
+
+  Returns `%{email: email, password: password}` for printing login instructions.
+  Override with `DEV_USER_EMAIL` and `DEV_USER_PASSWORD` env vars.
+  """
+  @spec ensure_dev_user!(Organization.t()) :: %{email: String.t(), password: String.t()}
+  def ensure_dev_user!(org) do
+    email = System.get_env("DEV_USER_EMAIL", @dev_user_email)
+    password = System.get_env("DEV_USER_PASSWORD", @dev_user_password)
+    now = DateTime.utc_now()
+
+    user =
+      case User
+           |> Ash.Query.for_read(:get_by_email, %{email: email})
+           |> Ash.read_one(authorize?: false) do
+        {:ok, %User{} = existing} ->
+          existing
+          |> Ash.update!(%{confirmed_at: now}, action: :set_confirmed_at, authorize?: false)
+          |> then(&Ash.update!(&1, %{organization_id: org.id, role: :owner}, action: :set_organization, authorize?: false))
+          |> then(&Ash.update!(&1, %{name: "Demo Owner"}, action: :update_profile, authorize?: false))
+
+        {:ok, nil} ->
+          User
+          |> Ash.create!(%{email: email, password: password, password_confirmation: password}, action: :register_with_password, authorize?: false)
+          |> then(&Ash.update!(&1, %{confirmed_at: now}, action: :set_confirmed_at, authorize?: false))
+          |> then(&Ash.update!(&1, %{organization_id: org.id, role: :owner}, action: :set_organization, authorize?: false))
+          |> then(&Ash.update!(&1, %{name: "Demo Owner"}, action: :update_profile, authorize?: false))
+
+        {:error, error} ->
+          raise "Failed to ensure dev user: #{inspect(error)}"
+      end
+
+    %{email: user.email, password: password}
   end
 
   defp seed_tenant!(tenant) when is_binary(tenant) do
