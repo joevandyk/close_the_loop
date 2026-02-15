@@ -28,79 +28,62 @@ defmodule CloseTheLoopWeb.SettingsLive.Index do
     <div class="max-w-4xl mx-auto space-y-8">
       <div>
         <h1 class="text-2xl font-semibold">Settings</h1>
-        <p class="mt-2 text-sm text-zinc-600">
+        <p class="mt-2 text-sm text-foreground-soft">
           Manage your organization and account.
         </p>
       </div>
 
       <div class="grid gap-6 lg:grid-cols-2">
-        <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
+        <div class="rounded-2xl border border-base bg-base p-6 shadow-base">
           <h2 class="text-sm font-semibold">Organization</h2>
 
           <.form for={%{}} as={:org} phx-submit="save_org" class="mt-4 space-y-4">
-            <div class="form-control">
-              <label class="label" for="org_name">
-                <span class="label-text">Name</span>
-              </label>
-              <input
-                id="org_name"
-                name="name"
-                type="text"
-                value={@org_name}
-                class="input input-bordered w-full"
-                required
-              />
-            </div>
+            <.input id="org_name" name="name" type="text" label="Name" value={@org_name} required />
 
             <div class="text-xs text-zinc-500">
               Tenant: <span class="font-mono">{@tenant}</span>
             </div>
 
             <%= if @error do %>
-              <div class="alert alert-error">
-                <span>{@error}</span>
-              </div>
+              <.alert color="danger" hide_close>{@error}</.alert>
             <% end %>
 
-            <button type="submit" class="btn btn-primary w-full">Save</button>
+            <.button type="submit" variant="solid" color="primary" class="w-full">Save</.button>
           </.form>
         </div>
 
-        <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
+        <div class="rounded-2xl border border-base bg-base p-6 shadow-base">
           <h2 class="text-sm font-semibold">Account</h2>
 
           <dl class="mt-4 space-y-3 text-sm">
             <div class="flex items-center justify-between gap-4">
-              <dt class="text-zinc-600">Email</dt>
+              <dt class="text-foreground-soft">Email</dt>
               <dd class="font-medium">{@current_user.email}</dd>
             </div>
             <div class="flex items-center justify-between gap-4">
-              <dt class="text-zinc-600">Role</dt>
+              <dt class="text-foreground-soft">Role</dt>
               <dd class="font-medium">{@current_user.role || :staff}</dd>
             </div>
           </dl>
 
           <div class="mt-6">
-            <a
-              href={~p"/sign-out"}
-              class="btn btn-outline w-full"
-            >
+            <.button href={~p"/sign-out"} variant="outline" class="w-full">
               Sign out
-            </a>
+            </.button>
           </div>
         </div>
       </div>
 
-      <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
+      <div class="rounded-2xl border border-base bg-base p-6 shadow-base">
         <h2 class="text-sm font-semibold">Inbox configuration</h2>
-        <p class="mt-2 text-sm text-zinc-600">
+        <p class="mt-2 text-sm text-foreground-soft">
           Control AI-driven issue categorization labels for your business.
         </p>
 
         <div class="mt-4">
-          <.link navigate={~p"/app/settings/issue-categories"} class="btn btn-outline">
+          <.button navigate={~p"/app/settings/issue-categories"} variant="outline">
             Manage issue categories
-          </.link>
+          </.button>
         </div>
       </div>
     </div>

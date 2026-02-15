@@ -51,7 +51,9 @@ jobs:
           key: ${{ runner.os }}-mix-${{ hashFiles('mix.lock') }}
 
       - name: Install dependencies
-        run: mix deps.get
+        run: |
+          doppler run -- scripts/setup-fluxon-hex-repo
+          doppler run -- mix deps.get
 
       - name: Lint
         run: doppler run -- make lint
@@ -71,13 +73,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install Doppler CLI
+        uses: dopplerhq/cli-action@v3
+
       - name: Build Docker image
         run: |
-          docker build \
-            --build-arg GIT_SHA=${{ github.sha }} \
-            --build-arg APP_VERSION=${{ github.sha }} \
-            -t close-the-loop:${{ github.sha }} \
-            .
+          doppler run --command "\
+            DOCKER_BUILDKIT=1 docker build \
+              --secret id=FLUXON_LICENSE_KEY,env=FLUXON_LICENSE_KEY \
+              --secret id=FLUXON_KEY_FINGERPRINT,env=FLUXON_KEY_FINGERPRINT \
+              --build-arg GIT_SHA=${{ github.sha }} \
+              --build-arg APP_VERSION=${{ github.sha }} \
+              -t close-the-loop:${{ github.sha }} \
+              ."
 
       - name: Verify health endpoint
         run: |

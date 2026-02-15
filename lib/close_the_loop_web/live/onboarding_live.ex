@@ -26,35 +26,30 @@ defmodule CloseTheLoopWeb.OnboardingLive do
     ~H"""
     <div class="max-w-lg mx-auto">
       <h1 class="text-2xl font-semibold">Set up your business</h1>
-      <p class="text-base-content/70 mt-2">
+      <p class="text-foreground-soft mt-2">
         Create your organization to start receiving reports.
       </p>
 
       <.form for={%{}} as={:onboarding} phx-submit="save" class="mt-6 space-y-4">
-        <div class="form-control">
-          <label class="label" for="org_name">
-            <span class="label-text">Organization name</span>
-          </label>
-          <input
-            id="org_name"
-            name="org_name"
-            type="text"
-            value={@org_name}
-            class="input input-bordered w-full"
-            placeholder="Acme Gym"
-            required
-          />
-        </div>
+        <.input
+          id="org_name"
+          name="org_name"
+          type="text"
+          label="Organization name"
+          placeholder="Acme Gym"
+          value={@org_name}
+          required
+        />
 
         <%= if @error do %>
-          <div class="alert alert-error">
-            <span>{@error}</span>
-          </div>
+          <.alert color="danger" hide_close>
+            {@error}
+          </.alert>
         <% end %>
 
-        <button type="submit" class="btn btn-primary w-full">
+        <.button type="submit" variant="solid" color="primary" class="w-full">
           Create organization
-        </button>
+        </.button>
       </.form>
     </div>
     """

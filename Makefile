@@ -19,6 +19,7 @@ endif
 # ─── Development ──────────────────────────────────────────────────────
 
 install:
+	./scripts/setup-fluxon-hex-repo
 	mix deps.get
 
 dev:
@@ -30,6 +31,7 @@ build:
 # ─── Quality ─────────────────────────────────────────────────────────
 
 test:
+	./scripts/setup-fluxon-hex-repo
 	mix deps.get
 	MIX_ENV=test mix test
 
@@ -55,7 +57,10 @@ cron:
 # ─── Docker ──────────────────────────────────────────────────────────
 
 docker-build:
-	docker build -t close-the-loop:latest .
+	DOCKER_BUILDKIT=1 docker build \
+		--secret id=FLUXON_LICENSE_KEY,env=FLUXON_LICENSE_KEY \
+		--secret id=FLUXON_KEY_FINGERPRINT,env=FLUXON_KEY_FINGERPRINT \
+		-t close-the-loop:latest .
 
 docker-run:
 	@if [ ! -f ".env" ]; then \
@@ -69,7 +74,7 @@ docker-run:
 # Run tests in the Dockerized dev environment (Linux + Postgres)
 docker-test:
 	docker compose -f .devcontainer/docker-compose.yml up -d --build --wait db
-	docker compose -f .devcontainer/docker-compose.yml run --rm -e MIX_ENV=test app bash -lc "cd /workspace && make test"
+	docker compose -f .devcontainer/docker-compose.yml run --rm -e MIX_ENV=test app bash -lc "cd /workspace && doppler run -- make test"
 
 # ─── Utility ─────────────────────────────────────────────────────────
 

@@ -6,7 +6,7 @@
   "features": {
     "ghcr.io/devcontainers/features/git:1": {}
   },
-  "postCreateCommand": "bash -lc 'if [ ! -f mix.exs ]; then scripts/setup-phoenix.sh; fi && mix deps.get'",
+  "postCreateCommand": "bash -lc 'if [ ! -f mix.exs ]; then scripts/setup-phoenix.sh; fi && doppler run -- scripts/setup-fluxon-hex-repo && doppler run -- mix deps.get'",
   "customizations": {
     "vscode": {
       "extensions": [

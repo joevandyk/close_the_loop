@@ -9,6 +9,10 @@ import Config
 
 config :ash_oban, pro?: false
 
+# Fluxon UI: translate Phoenix validation errors via our Gettext backend.
+# See https://docs.fluxonui.com/gettext.html
+config :fluxon, :translate_function, &CloseTheLoopWeb.CoreComponents.translate_error/1
+
 config :close_the_loop, Oban,
   engine: Oban.Engines.Basic,
   notifier: Oban.Notifiers.Postgres,

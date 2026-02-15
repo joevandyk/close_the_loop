@@ -31,69 +31,78 @@ defmodule CloseTheLoopWeb.ReporterLive.New do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="max-w-lg mx-auto p-4">
-      <%= if @submitted do %>
-        <div class="alert alert-success">
-          <span>Got it. We'll update you.</span>
-        </div>
-      <% else %>
-        <h1 class="text-xl font-semibold">Report an issue</h1>
+    <div class="space-y-5">
+      <div class="space-y-1">
+        <h1 class="text-2xl font-semibold tracking-tight">Report an issue</h1>
+        <p :if={@location} class="text-sm text-foreground-soft">
+          Location:
+          <span class="font-medium text-foreground">{@location.full_path || @location.name}</span>
+        </p>
+      </div>
 
-        <%= if @location do %>
-          <p class="text-base-content/70 mt-1">
-            Location: <span class="font-medium">{@location.full_path || @location.name}</span>
-          </p>
-        <% end %>
+      <div class="rounded-2xl border border-base bg-base p-5 shadow-base">
+        <%= if @submitted do %>
+          <div class="space-y-4">
+            <.alert color="success" hide_close>
+              Got it. We'll update you.
+            </.alert>
 
-        <.form for={%{}} as={:report} phx-submit="submit" class="mt-5 space-y-4">
-          <div class="form-control">
-            <label class="label" for="body">
-              <span class="label-text">What's wrong?</span>
-            </label>
-            <textarea
+            <p class="text-sm text-foreground-soft">
+              If you opted into text updates, we will send status changes to your phone.
+            </p>
+
+            <.button href={~p"/r/#{@tenant}/#{@location_id}"} variant="outline">
+              Report another issue
+            </.button>
+          </div>
+        <% else %>
+          <.form for={%{}} as={:report} phx-submit="submit" class="space-y-4">
+            <.textarea
               id="body"
               name="report[body]"
-              class="textarea textarea-bordered w-full"
-              rows="4"
-              placeholder="Cold water in the men’s showers"
+              label="What's wrong?"
+              rows={4}
+              placeholder="Cold water in the men's showers"
+              value={@body}
               required
-            ><%= @body %></textarea>
-          </div>
-
-          <div class="form-control">
-            <label class="label" for="phone">
-              <span class="label-text">Text me updates (optional)</span>
-            </label>
-            <input
-              id="phone"
-              name="report[phone]"
-              type="tel"
-              value={@phone}
-              class="input input-bordered w-full"
-              placeholder="+1 555 555 5555"
-              inputmode="tel"
             />
-            <label class="label cursor-pointer gap-3 justify-start mt-2">
-              <input
-                type="checkbox"
-                name="report[consent]"
-                class="checkbox"
-                value="true"
-                checked={@consent}
+
+            <div class="space-y-2">
+              <.input
+                id="phone"
+                name="report[phone]"
+                type="tel"
+                label="Text me updates (optional)"
+                placeholder="+1 555 555 5555"
+                value={@phone}
+                inputmode="tel"
               />
-              <span class="label-text">I agree to receive text updates about this issue.</span>
-            </label>
-          </div>
 
-          <%= if @error do %>
-            <div class="alert alert-error">
-              <span>{@error}</span>
+              <.checkbox
+                name="report[consent]"
+                checked={@consent}
+                label="I agree to receive text updates about this issue."
+              />
             </div>
-          <% end %>
 
-          <button type="submit" class="btn btn-primary w-full">Submit</button>
-        </.form>
-      <% end %>
+            <%= if @error do %>
+              <.alert color="danger" hide_close>
+                {@error}
+              </.alert>
+            <% end %>
+
+            <.button
+              type="submit"
+              variant="solid"
+              color="primary"
+              class="w-full"
+              phx-disable-with="Submitting..."
+            >
+              Submit
+            </.button>
+          </.form>
+        <% end %>
+      </div>
     </div>
     """
   end
@@ -104,7 +113,7 @@ defmodule CloseTheLoopWeb.ReporterLive.New do
     location_id = socket.assigns.location_id
 
     phone_raw = Map.get(params, "phone", "")
-    wants_updates = Map.has_key?(params, "consent")
+    wants_updates = Map.get(params, "consent") in ["true", "1", true]
 
     socket =
       socket

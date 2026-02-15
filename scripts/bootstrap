@@ -58,7 +58,23 @@ if [ "$RUNTIME" = "node" ]; then
   npm install
 elif [ "$RUNTIME" = "elixir-phoenix" ]; then
   if [ -f "mix.exs" ]; then
-    mix deps.get
+    if [ -x "scripts/setup-fluxon-hex-repo" ]; then
+      # Fluxon is a private Hex repo; configure it before deps.get.
+      if [ -n "${FLUXON_LICENSE_KEY:-}" ] && [ -n "${FLUXON_KEY_FINGERPRINT:-}" ]; then
+        scripts/setup-fluxon-hex-repo
+        mix deps.get
+      elif command -v doppler &> /dev/null; then
+        doppler run --preserve-env -- scripts/setup-fluxon-hex-repo
+        doppler run --preserve-env -- mix deps.get
+      else
+        echo "  ✖ Fluxon requires Doppler (or FLUXON_* env vars) to fetch deps."
+        echo "    Set up Doppler and re-run:"
+        echo "      doppler setup --project ${APP_NAME} --config local"
+        exit 1
+      fi
+    else
+      mix deps.get
+    fi
   else
     echo "  ⊘ No mix.exs found — run scripts/setup-phoenix.sh first"
   fi
@@ -76,10 +92,10 @@ fi
 # ─── Doppler setup hint ──────────────────────────────────────────────
 
 if command -v doppler &> /dev/null; then
-  if [ ! -f ".doppler.yaml" ]; then
+  if [ ! -f ".doppler.yaml" ] && [ ! -f "doppler.yaml" ]; then
     echo ""
     echo "  Next: set up Doppler secrets"
-    echo "    doppler setup --project ${APP_NAME} --config local_close_the_loop"
+    echo "    doppler setup --project ${APP_NAME} --config local"
   fi
 else
   echo ""

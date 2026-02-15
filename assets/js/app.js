@@ -23,13 +23,19 @@ import "phoenix_html"
 import {Socket} from "phoenix"
 import {LiveSocket} from "phoenix_live_view"
 import {hooks as colocatedHooks} from "phoenix-colocated/close_the_loop"
+import { Hooks as FluxonHooks, DOM as FluxonDOM } from "fluxon"
 import topbar from "../vendor/topbar"
 
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: {_csrf_token: csrfToken},
-  hooks: {...colocatedHooks},
+  hooks: {...FluxonHooks, ...colocatedHooks},
+  dom: {
+    onBeforeElUpdated(from, to) {
+      FluxonDOM.onBeforeElUpdated(from, to)
+    },
+  },
 })
 
 // Show progress bar on live navigation and form submits

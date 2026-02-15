@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1
+# syntax=docker/dockerfile:1.4
 
 # ─── Build Stage ──────────────────────────────────────────────────────
 ARG ELIXIR_VERSION=1.20.0-rc.1
@@ -27,7 +27,14 @@ RUN mix local.hex --force && \
 
 # Install mix dependencies
 COPY mix.exs mix.lock ./
-RUN mix deps.get --only $MIX_ENV
+RUN --mount=type=secret,id=FLUXON_LICENSE_KEY \
+    --mount=type=secret,id=FLUXON_KEY_FINGERPRINT \
+    FLUXON_LICENSE_KEY="$(cat /run/secrets/FLUXON_LICENSE_KEY)" \
+    FLUXON_KEY_FINGERPRINT="$(cat /run/secrets/FLUXON_KEY_FINGERPRINT)" \
+    mix hex.repo add fluxon https://repo.fluxonui.com \
+      --fetch-public-key "${FLUXON_KEY_FINGERPRINT}" \
+      --auth-key "${FLUXON_LICENSE_KEY}" && \
+    mix deps.get --only $MIX_ENV
 RUN mkdir config
 
 # Copy compile-time config

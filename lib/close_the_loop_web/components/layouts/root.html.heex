@@ -30,18 +30,17 @@
     <script>
       (() => {
         const setTheme = (theme) => {
-          // Prefer an explicit theme so daisyUI doesn't auto-switch based on
-          // prefers-color-scheme and accidentally create contrast issues on
-          // custom (non-daisyUI) page layouts.
-          if (theme === "system") {
-            localStorage.removeItem("phx:theme");
-            document.documentElement.setAttribute("data-theme", "light");
+          // Fluxon supports both automatic and manual theme control.
+          // We keep a 3-state toggle: system (default), light, dark.
+          if (!theme || theme === "system") {
+            localStorage.removeItem("phx:theme")
+            document.documentElement.setAttribute("data-theme", "system")
           } else {
-            localStorage.setItem("phx:theme", theme);
-            document.documentElement.setAttribute("data-theme", theme);
+            localStorage.setItem("phx:theme", theme)
+            document.documentElement.setAttribute("data-theme", theme)
           }
         };
-        setTheme(localStorage.getItem("phx:theme") || "light");
+        setTheme(localStorage.getItem("phx:theme") || "system");
         window.addEventListener("storage", (e) => e.key === "phx:theme" && setTheme(e.newValue || "system"));
         
         window.addEventListener("phx:set-theme", (e) => setTheme(e.target.dataset.phxTheme));

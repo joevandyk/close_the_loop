@@ -53,60 +53,56 @@ defmodule CloseTheLoopWeb.IssuesLive.Index do
         <h1 class="text-2xl font-semibold">Inbox</h1>
       </div>
 
-      <div class="mt-6 overflow-x-auto">
-        <table class="table table-zebra w-full">
-          <thead>
-            <tr>
-              <th>Issue</th>
-              <th>Location</th>
-              <th>Category</th>
-              <th>Status</th>
-              <th class="text-right">Reporters</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            <%= for issue <- @issues do %>
-              <tr>
-                <td class="font-medium">{issue.title}</td>
-                <td>{issue.location.full_path || issue.location.name}</td>
-                <td>
-                  <%= if issue.category && issue.category != "" do %>
-                    <span class="badge badge-ghost">
-                      {Map.get(@category_labels, issue.category, issue.category)}
-                    </span>
-                  <% else %>
-                    <span class="text-base-content/50 text-sm">—</span>
-                  <% end %>
-                </td>
-                <td>
-                  <span class={"badge #{status_badge(issue.status)}"}>{issue.status}</span>
-                </td>
-                <td class="text-right">{issue.reporter_count}</td>
-                <td class="text-right">
-                  <.link class="btn btn-sm" navigate={~p"/app/issues/#{issue.id}"}>
-                    View
-                  </.link>
-                </td>
-              </tr>
-            <% end %>
-            <%= if @issues == [] do %>
-              <tr>
-                <td colspan="6" class="text-center text-base-content/60 py-8">
-                  No issues yet.
-                </td>
-              </tr>
-            <% end %>
-          </tbody>
-        </table>
+      <div class="mt-6 overflow-x-auto rounded-2xl border border-base bg-base shadow-base">
+        <.table>
+          <.table_head>
+            <:col>Issue</:col>
+            <:col>Location</:col>
+            <:col>Category</:col>
+            <:col>Status</:col>
+            <:col class="text-right">Reporters</:col>
+            <:col class="text-right"><span class="sr-only">Actions</span></:col>
+          </.table_head>
+
+          <.table_body>
+            <.table_row :for={issue <- @issues}>
+              <:cell class="font-medium">{issue.title}</:cell>
+              <:cell>{issue.location.full_path || issue.location.name}</:cell>
+              <:cell>
+                <%= if issue.category && issue.category != "" do %>
+                  <.badge variant="surface" color="primary">
+                    {Map.get(@category_labels, issue.category, issue.category)}
+                  </.badge>
+                <% else %>
+                  <span class="text-sm text-foreground-soft">—</span>
+                <% end %>
+              </:cell>
+              <:cell>
+                <.badge variant="soft" color={status_color(issue.status)}>
+                  {issue.status}
+                </.badge>
+              </:cell>
+              <:cell class="text-right">{issue.reporter_count}</:cell>
+              <:cell class="text-right">
+                <.button size="sm" variant="outline" navigate={~p"/app/issues/#{issue.id}"}>
+                  View
+                </.button>
+              </:cell>
+            </.table_row>
+          </.table_body>
+        </.table>
+
+        <div :if={@issues == []} class="px-4 py-10 text-center text-sm text-foreground-soft">
+          No issues yet.
+        </div>
       </div>
     </div>
     """
   end
 
-  defp status_badge(:new), do: "badge-info"
-  defp status_badge(:acknowledged), do: "badge-warning"
-  defp status_badge(:in_progress), do: "badge-warning"
-  defp status_badge(:fixed), do: "badge-success"
-  defp status_badge(_), do: "badge-ghost"
+  defp status_color(:new), do: "info"
+  defp status_color(:acknowledged), do: "warning"
+  defp status_color(:in_progress), do: "warning"
+  defp status_color(:fixed), do: "success"
+  defp status_color(_), do: "primary"
 end

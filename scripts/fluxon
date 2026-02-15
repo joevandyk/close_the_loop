@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Configure Fluxon's private Hex repo (idempotent-ish).
+#
+# Requires:
+# - FLUXON_LICENSE_KEY
+# - FLUXON_KEY_FINGERPRINT (SHA256:...)
+
+if [ -z "${FLUXON_LICENSE_KEY:-}" ] || [ -z "${FLUXON_KEY_FINGERPRINT:-}" ]; then
+  echo "Missing Fluxon secrets."
+  echo "Set FLUXON_LICENSE_KEY and FLUXON_KEY_FINGERPRINT in Doppler (local/preview/prod), then re-run."
+  exit 1
+fi
+
+if mix hex.repo add fluxon https://repo.fluxonui.com \
+  --fetch-public-key "${FLUXON_KEY_FINGERPRINT}" \
+  --auth-key "${FLUXON_LICENSE_KEY}" >/dev/null 2>&1; then
+  echo "✔ Fluxon Hex repo configured"
+  exit 0
+fi
+
+# If the repo already exists, consider that success. Otherwise, bubble up the failure.
+if mix hex.repo show fluxon --url >/dev/null 2>&1; then
+  echo "✔ Fluxon Hex repo already configured"
+  exit 0
+fi
+
+echo "✖ Failed to configure Fluxon Hex repo"
+echo "Try running:"
+echo "  mix hex.repo remove fluxon"
+echo "  scripts/fluxon"
+exit 1
+

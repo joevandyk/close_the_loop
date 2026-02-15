@@ -55,13 +55,13 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
     <div class="max-w-5xl mx-auto space-y-8">
       <div>
         <h1 class="text-2xl font-semibold">Locations</h1>
-        <p class="mt-2 text-zinc-600 text-sm">
+        <p class="mt-2 text-foreground-soft text-sm">
           Create a QR code for each location. Each location has its own reporter link.
         </p>
       </div>
 
       <div class="grid gap-6 lg:grid-cols-2">
-        <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
+        <div class="rounded-2xl border border-base bg-base p-6 shadow-base">
           <h2 class="text-sm font-semibold">
             <%= if @editing_id do %>
               Edit location
@@ -71,62 +71,50 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
           </h2>
 
           <.form for={%{}} as={:location} phx-submit="save" class="mt-4 space-y-4">
-            <div class="form-control">
-              <label class="label" for="location_name">
-                <span class="label-text">Name</span>
-              </label>
-              <input
-                id="location_name"
-                name="name"
-                type="text"
-                value={@name}
-                class="input input-bordered w-full"
-                placeholder="Downtown"
-                required
-              />
-            </div>
+            <.input
+              id="location_name"
+              name="name"
+              type="text"
+              label="Name"
+              value={@name}
+              placeholder="Downtown"
+              required
+            />
 
-            <div class="form-control">
-              <label class="label" for="location_full_path">
-                <span class="label-text">Full path (optional)</span>
-              </label>
-              <input
-                id="location_full_path"
-                name="full_path"
-                type="text"
-                value={@full_path}
-                class="input input-bordered w-full"
-                placeholder="Building A / Floor 2"
-              />
-            </div>
+            <.input
+              id="location_full_path"
+              name="full_path"
+              type="text"
+              label="Full path (optional)"
+              value={@full_path}
+              placeholder="Building A / Floor 2"
+            />
 
             <%= if @error do %>
-              <div class="alert alert-error">
-                <span>{@error}</span>
-              </div>
+              <.alert color="danger" hide_close>{@error}</.alert>
             <% end %>
 
             <div class="flex gap-2">
-              <button type="submit" class="btn btn-primary flex-1">
+              <.button type="submit" variant="solid" color="primary" class="flex-1">
                 <%= if @editing_id do %>
                   Save changes
                 <% else %>
                   Create location
                 <% end %>
-              </button>
+              </.button>
 
               <%= if @editing_id do %>
-                <button type="button" phx-click="cancel_edit" class="btn btn-outline">
+                <.button type="button" phx-click="cancel_edit" variant="outline">
                   Cancel
-                </button>
+                </.button>
               <% end %>
             </div>
           </.form>
         </div>
 
-        <div class="rounded-2xl border border-zinc-200 bg-zinc-50 p-6">
+        <div class="rounded-2xl border border-base bg-accent p-6">
           <h2 class="text-sm font-semibold">Tips</h2>
-          <ul class="mt-3 text-sm text-zinc-700 space-y-2">
+          <ul class="mt-3 text-sm text-foreground space-y-2">
             <li>Print the QR code and post it where customers will see it.</li>
             <li>Use one location per physical site or area (e.g. locker room).</li>
             <li>Customers can optionally opt in to SMS updates.</li>
@@ -134,56 +122,52 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
         </div>
       </div>
 
-      <div class="overflow-x-auto rounded-2xl border border-zinc-200 bg-white shadow-sm">
-        <table class="table table-zebra w-full">
-          <thead>
-            <tr>
-              <th>Location</th>
-              <th>Reporter link</th>
-              <th></th>
-              <th class="text-right">QR</th>
-            </tr>
-          </thead>
-          <tbody>
-            <%= for loc <- @locations do %>
-              <tr>
-                <td class="font-medium">
-                  {loc.full_path || loc.name}
-                </td>
-                <td class="text-sm">
-                  <a class="link" href={loc.reporter_link} target="_blank" rel="noreferrer">
-                    {loc.reporter_link}
-                  </a>
-                </td>
-                <td class="text-right whitespace-nowrap">
-                  <button
-                    type="button"
-                    class="btn btn-xs"
-                    phx-click="edit"
-                    phx-value-id={loc.id}
-                  >
-                    Edit
-                  </button>
-                </td>
-                <td class="text-right">
-                  <img
-                    src={loc.reporter_qr}
-                    alt={"QR code for " <> (loc.full_path || loc.name)}
-                    class="inline-block w-20 h-20 border rounded bg-white"
-                  />
-                </td>
-              </tr>
-            <% end %>
+      <div class="overflow-x-auto rounded-2xl border border-base bg-base shadow-base">
+        <.table>
+          <.table_head>
+            <:col>Location</:col>
+            <:col>Reporter link</:col>
+            <:col class="text-right"><span class="sr-only">Actions</span></:col>
+            <:col class="text-right">QR</:col>
+          </.table_head>
+          <.table_body>
+            <.table_row :for={loc <- @locations}>
+              <:cell class="font-medium">{loc.full_path || loc.name}</:cell>
+              <:cell class="text-sm">
+                <a
+                  class="underline underline-offset-2 text-foreground-soft hover:text-foreground transition"
+                  href={loc.reporter_link}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {loc.reporter_link}
+                </a>
+              </:cell>
+              <:cell class="text-right whitespace-nowrap">
+                <.button
+                  type="button"
+                  size="xs"
+                  variant="outline"
+                  phx-click="edit"
+                  phx-value-id={loc.id}
+                >
+                  Edit
+                </.button>
+              </:cell>
+              <:cell class="text-right">
+                <img
+                  src={loc.reporter_qr}
+                  alt={"QR code for " <> (loc.full_path || loc.name)}
+                  class="inline-block w-20 h-20 border border-base rounded-lg bg-base"
+                />
+              </:cell>
+            </.table_row>
+          </.table_body>
+        </.table>
 
-            <%= if @locations == [] do %>
-              <tr>
-                <td colspan="4" class="text-center text-zinc-600 py-10">
-                  No locations yet.
-                </td>
-              </tr>
-            <% end %>
-          </tbody>
-        </table>
+        <div :if={@locations == []} class="px-4 py-10 text-center text-sm text-foreground-soft">
+          No locations yet.
+        </div>
       </div>
     </div>
     """

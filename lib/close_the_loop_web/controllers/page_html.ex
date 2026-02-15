@@ -54,7 +54,7 @@ defmodule CloseTheLoopWeb.PageHTML do
     ~H"""
     <Layouts.flash_group flash={@flash} />
 
-    <div class="min-h-screen bg-base-100 text-base-content">
+    <div class="min-h-screen bg-base text-foreground">
       <div class="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80">
         <div class="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-indigo-400 to-rose-400 opacity-20 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]">
         </div>
@@ -75,18 +75,12 @@ defmodule CloseTheLoopWeb.PageHTML do
           </div>
 
           <div class="flex items-center gap-2">
-            <a
-              href={@secondary_href}
-              class="rounded-lg px-3 py-2 text-sm font-medium text-zinc-700 hover:text-zinc-900 hover:bg-zinc-50 transition"
-            >
+            <.button href={@secondary_href} variant="ghost" size="sm">
               {@secondary_label}
-            </a>
-            <a
-              href={@primary_href}
-              class="rounded-lg bg-zinc-900 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-zinc-800 transition"
-            >
+            </.button>
+            <.button href={@primary_href} variant="solid" color="primary" size="sm">
               {@primary_label}
-            </a>
+            </.button>
           </div>
         </nav>
       </header>

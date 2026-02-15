@@ -62,92 +62,85 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
       <div class="flex items-start justify-between gap-4">
         <div>
           <h1 class="text-2xl font-semibold">{@issue.title}</h1>
-          <div class="text-base-content/70 mt-1">
+          <div class="text-foreground-soft mt-1 text-sm">
             <span>Location:</span>
             <span class="font-medium">{@issue.location.full_path || @issue.location.name}</span>
             <span class="mx-2">•</span>
             <span>{@issue.reporter_count} reporter(s)</span>
             <%= if @issue.category && @issue.category != "" do %>
               <span class="mx-2">•</span>
-              <span class="badge badge-ghost">
+              <.badge variant="surface" color="primary">
                 {Map.get(@category_labels, @issue.category, @issue.category)}
-              </span>
+              </.badge>
             <% end %>
           </div>
         </div>
 
-        <.link class="btn" navigate={~p"/app/issues"}>Back</.link>
+        <.button navigate={~p"/app/issues"} variant="ghost">Back</.button>
       </div>
 
-      <div class="card bg-base-100 border">
-        <div class="card-body">
-          <p class="whitespace-pre-wrap">{@issue.description}</p>
-        </div>
+      <div class="rounded-2xl border border-base bg-base p-6 shadow-base">
+        <p class="whitespace-pre-wrap text-sm leading-6">{@issue.description}</p>
       </div>
 
-      <div class="card bg-base-100 border">
-        <div class="card-body space-y-4">
-          <h2 class="card-title">Status</h2>
+      <div class="rounded-2xl border border-base bg-base p-6 shadow-base space-y-4">
+        <h2 class="text-sm font-semibold">Status</h2>
 
-          <div class="flex gap-2 flex-wrap">
-            <%= for {label, value} <- status_options() do %>
-              <button
-                type="button"
-                class={"btn btn-sm #{if @issue.status == value, do: "btn-primary", else: "btn-outline"}"}
-                phx-click="set_status"
-                phx-value-status={value}
-              >
-                {label}
-              </button>
-            <% end %>
-          </div>
-        </div>
+        <.button_group>
+          <.button
+            :for={{label, value} <- status_options()}
+            type="button"
+            size="sm"
+            color="primary"
+            variant={if @issue.status == value, do: "solid", else: "outline"}
+            phx-click="set_status"
+            phx-value-status={value}
+          >
+            {label}
+          </.button>
+        </.button_group>
       </div>
 
-      <div class="card bg-base-100 border">
-        <div class="card-body space-y-4">
-          <h2 class="card-title">Send update to reporters</h2>
+      <div class="rounded-2xl border border-base bg-base p-6 shadow-base space-y-4">
+        <h2 class="text-sm font-semibold">Send update to reporters</h2>
 
-          <.form for={%{}} as={:update} phx-submit="send_update" class="space-y-3">
-            <textarea
-              name="message"
-              class="textarea textarea-bordered w-full"
-              rows="3"
-              placeholder="New water heater ordered. ETA Tuesday."
-              required
-            ><%= @message %></textarea>
+        <.form for={%{}} as={:update} phx-submit="send_update" class="space-y-3">
+          <.textarea
+            name="message"
+            rows={3}
+            placeholder="New water heater ordered. ETA Tuesday."
+            value={@message}
+            required
+          />
 
-            <button type="submit" class="btn btn-primary">
-              Send update (SMS)
-            </button>
-          </.form>
+          <.button type="submit" variant="solid" color="primary" phx-disable-with="Sending...">
+            Send update (SMS)
+          </.button>
+        </.form>
 
-          <%= if @issue.updates != [] do %>
-            <div class="divider">Updates</div>
-            <ul class="space-y-2">
-              <%= for upd <- @issue.updates do %>
-                <li class="text-sm">
-                  <span class="text-base-content/70">{upd.inserted_at}</span>
-                  <div class="whitespace-pre-wrap">{upd.message}</div>
-                </li>
-              <% end %>
-            </ul>
-          <% end %>
-        </div>
-      </div>
-
-      <div class="card bg-base-100 border">
-        <div class="card-body space-y-4">
-          <h2 class="card-title">Reports</h2>
-          <ul class="space-y-2">
-            <%= for r <- @reports do %>
+        <%= if @issue.updates != [] do %>
+          <.separator text="Updates" class="my-4" />
+          <ul class="space-y-3">
+            <%= for upd <- @issue.updates do %>
               <li class="text-sm">
-                <span class="text-base-content/70">{r.inserted_at}</span>
-                <div class="whitespace-pre-wrap">{r.body}</div>
+                <div class="text-foreground-soft">{upd.inserted_at}</div>
+                <div class="whitespace-pre-wrap">{upd.message}</div>
               </li>
             <% end %>
           </ul>
-        </div>
+        <% end %>
+      </div>
+
+      <div class="rounded-2xl border border-base bg-base p-6 shadow-base space-y-4">
+        <h2 class="text-sm font-semibold">Reports</h2>
+        <ul class="space-y-3">
+          <%= for r <- @reports do %>
+            <li class="text-sm">
+              <div class="text-foreground-soft">{r.inserted_at}</div>
+              <div class="whitespace-pre-wrap">{r.body}</div>
+            </li>
+          <% end %>
+        </ul>
       </div>
     </div>
     """

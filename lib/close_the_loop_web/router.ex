@@ -79,7 +79,11 @@ defmodule CloseTheLoopWeb.Router do
     get "/pricing", PageController, :pricing
     get "/privacy", PageController, :privacy
     get "/terms", PageController, :terms
-    live "/r/:tenant/:location_id", ReporterLive.New, :new
+
+    live_session :reporter, layout: {CloseTheLoopWeb.Layouts, :auth} do
+      live "/r/:tenant/:location_id", ReporterLive.New, :new
+    end
+
     auth_routes AuthController, CloseTheLoop.Accounts.User, path: "/auth"
     sign_out_route AuthController
 
@@ -91,7 +95,7 @@ defmodule CloseTheLoopWeb.Router do
                   on_mount: [{CloseTheLoopWeb.LiveUserAuth, :live_no_user}],
                   overrides: [
                     CloseTheLoopWeb.AuthOverrides,
-                    Elixir.AshAuthentication.Phoenix.Overrides.DaisyUI
+                    Elixir.AshAuthentication.Phoenix.Overrides.Default
                   ]
 
     # Remove this if you do not want to use the reset password feature
@@ -99,7 +103,7 @@ defmodule CloseTheLoopWeb.Router do
                 layout: {CloseTheLoopWeb.Layouts, :auth},
                 overrides: [
                   CloseTheLoopWeb.AuthOverrides,
-                  Elixir.AshAuthentication.Phoenix.Overrides.DaisyUI
+                  Elixir.AshAuthentication.Phoenix.Overrides.Default
                 ]
 
     # Remove this if you do not use the confirmation strategy
@@ -108,7 +112,7 @@ defmodule CloseTheLoopWeb.Router do
       layout: {CloseTheLoopWeb.Layouts, :auth},
       overrides: [
         CloseTheLoopWeb.AuthOverrides,
-        Elixir.AshAuthentication.Phoenix.Overrides.DaisyUI
+        Elixir.AshAuthentication.Phoenix.Overrides.Default
       ]
 
     # Remove this if you do not use the magic link strategy.
@@ -117,7 +121,7 @@ defmodule CloseTheLoopWeb.Router do
       layout: {CloseTheLoopWeb.Layouts, :auth},
       overrides: [
         CloseTheLoopWeb.AuthOverrides,
-        Elixir.AshAuthentication.Phoenix.Overrides.DaisyUI
+        Elixir.AshAuthentication.Phoenix.Overrides.Default
       ]
     )
   end

@@ -84,6 +84,10 @@ defmodule CloseTheLoopWeb do
 
       # HTML escaping functionality
       import Phoenix.HTML
+
+      # Fluxon UI components (LiveView-first, accessible)
+      use Fluxon
+
       # Core UI components
       import CloseTheLoopWeb.CoreComponents
 

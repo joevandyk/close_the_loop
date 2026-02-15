@@ -86,7 +86,14 @@ done
 echo ""
 echo "==> Installing dependencies..."
 cd "${PROJECT_DIR}"
-mix deps.get
+if command -v doppler &> /dev/null; then
+  doppler run --preserve-env -- scripts/setup-fluxon-hex-repo
+  doppler run --preserve-env -- mix deps.get
+else
+  echo "  ✖ Doppler CLI is required to fetch Fluxon UI dependencies."
+  echo "    Install: https://docs.doppler.com/docs/cli"
+  exit 1
+fi
 
 
 if [ "${DB_FLAG}" = "--no-ecto" ]; then
@@ -113,7 +120,7 @@ echo ""
 echo "  ✔ Phoenix app setup complete!"
 echo ""
 echo "  Next steps:"
-echo "    1. Set up Doppler:    doppler setup --project ${APP_NAME} --config dev"
+echo "    1. Set up Doppler:    doppler setup --project ${APP_NAME} --config local"
 if [ "${DB_FLAG}" != "--no-ecto" ]; then
 echo "    2. Create database:   mix ecto.create"
 echo "    3. Run migrations:    scripts/migrate"
