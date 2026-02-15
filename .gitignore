@@ -1,0 +1,32 @@
+# Dependencies
+/deps/
+/_build/
+/priv/static/assets/
+
+# When using devcontainers, keep Linux artifacts separate
+/deps_linux/
+/_build_linux/
+
+# When running locally on macOS, keep artifacts separate too
+/deps_darwin/
+/_build_darwin/
+
+# Env files (use Doppler)
+.env
+.env.local
+.env.*.local
+
+# Misc
+.DS_Store
+*.beam
+*.ez
+
+# IDE
+.vscode/
+.idea/
+.elixir_ls/
+
+# E2E (Playwright)
+node_modules/
+e2e/playwright-report/
+e2e/test-results/

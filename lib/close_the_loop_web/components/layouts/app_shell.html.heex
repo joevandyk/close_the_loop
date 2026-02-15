@@ -1,0 +1,62 @@
+<div class="min-h-screen bg-zinc-50 text-zinc-900">
+  <header class="border-b border-zinc-200 bg-white">
+    <div class="mx-auto max-w-6xl px-6 py-4">
+      <nav class="flex items-center justify-between gap-4">
+        <a href={~p"/"} class="flex items-center gap-2">
+          <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-zinc-900 text-white text-sm font-semibold">
+            CTL
+          </span>
+          <span class="text-sm font-semibold tracking-tight">CloseTheLoop</span>
+        </a>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <.link
+            navigate={~p"/app/issues"}
+            class="rounded-lg px-3 py-2 text-sm font-medium text-zinc-700 hover:text-zinc-900 hover:bg-zinc-50 transition"
+          >
+            Inbox
+          </.link>
+          <.link
+            navigate={~p"/app/locations"}
+            class="rounded-lg px-3 py-2 text-sm font-medium text-zinc-700 hover:text-zinc-900 hover:bg-zinc-50 transition"
+          >
+            Locations
+          </.link>
+          <.link
+            navigate={~p"/app/settings"}
+            class="rounded-lg px-3 py-2 text-sm font-medium text-zinc-700 hover:text-zinc-900 hover:bg-zinc-50 transition"
+          >
+            Settings
+          </.link>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <%= if assigns[:current_user] do %>
+            <span class="hidden text-sm text-zinc-600 sm:inline">
+              {@current_user.email}
+            </span>
+            <a
+              href={~p"/sign-out"}
+              class="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm font-semibold text-zinc-900 hover:bg-zinc-50 transition"
+            >
+              Sign out
+            </a>
+          <% else %>
+            <a
+              href={~p"/sign-in"}
+              class="rounded-lg px-3 py-2 text-sm font-medium text-zinc-700 hover:text-zinc-900 hover:bg-zinc-50 transition"
+            >
+              Sign in
+            </a>
+          <% end %>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <CloseTheLoopWeb.Layouts.flash_group flash={@flash} />
+
+  <main class="mx-auto max-w-6xl px-6 py-10">
+    {@inner_content}
+  </main>
+</div>

@@ -1,0 +1,9 @@
+_build
+deps
+.git
+.gitignore
+README.md
+docs
+scripts
+*.md
+.env*

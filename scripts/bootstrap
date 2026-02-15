@@ -1,0 +1,95 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# ─── Bootstrap — first-time project setup ─────────────────────────────
+# Safe to re-run. No interactive prompts. Fails fast with clear errors.
+
+APP_NAME="close-the-loop"
+RUNTIME="elixir-phoenix"
+
+echo ""
+echo "  Bootstrapping ${APP_NAME}..."
+echo ""
+
+# ─── Check prerequisites ─────────────────────────────────────────────
+
+check_binary() {
+  if ! command -v "$1" &> /dev/null; then
+    echo "  ✖ $1 not found — $2"
+    return 1
+  else
+    echo "  ✔ $1 found"
+    return 0
+  fi
+}
+
+MISSING=0
+
+check_binary "git" "Install: https://git-scm.com/" || MISSING=1
+check_binary "docker" "Install: https://docs.docker.com/get-docker/" || MISSING=1
+
+if [ "$RUNTIME" = "node" ]; then
+  check_binary "node" "Install Node.js 24+: https://nodejs.org/" || MISSING=1
+  check_binary "npm" "Comes with Node.js" || MISSING=1
+elif [ "$RUNTIME" = "elixir-phoenix" ]; then
+  check_binary "elixir" "Install: https://elixir-lang.org/install.html" || MISSING=1
+  check_binary "mix" "Comes with Elixir" || MISSING=1
+fi
+
+# Doppler is recommended but not strictly required for bootstrap
+if command -v doppler &> /dev/null; then
+  echo "  ✔ doppler found"
+else
+  echo "  ⊘ doppler not found (optional for bootstrap, required for dev)"
+  echo "    Install: https://docs.doppler.com/docs/install-cli"
+fi
+
+echo ""
+
+if [ "$MISSING" -eq 1 ]; then
+  echo "  ✖ Missing required tools. Install them and re-run scripts/bootstrap"
+  exit 1
+fi
+
+# ─── Install dependencies ────────────────────────────────────────────
+
+echo "  Installing dependencies..."
+if [ "$RUNTIME" = "node" ]; then
+  npm install
+elif [ "$RUNTIME" = "elixir-phoenix" ]; then
+  if [ -f "mix.exs" ]; then
+    mix deps.get
+  else
+    echo "  ⊘ No mix.exs found — run scripts/setup-phoenix.sh first"
+  fi
+fi
+
+# ─── Git setup ────────────────────────────────────────────────────────
+
+if [ ! -d ".git" ]; then
+  echo "  Initializing git repository..."
+  git init
+  git add -A
+  git commit -m "Initial scaffold from sideproj" --no-verify 2>/dev/null || true
+fi
+
+# ─── Doppler setup hint ──────────────────────────────────────────────
+
+if command -v doppler &> /dev/null; then
+  if [ ! -f ".doppler.yaml" ]; then
+    echo ""
+    echo "  Next: set up Doppler secrets"
+    echo "    doppler setup --project ${APP_NAME} --config local_close_the_loop"
+  fi
+else
+  echo ""
+  echo "  Next: install Doppler CLI for secrets management"
+  echo "    https://docs.doppler.com/docs/install-cli"
+fi
+
+echo ""
+echo "  ✔ Bootstrap complete!"
+echo ""
+echo "  To start developing:"
+echo "    scripts/dev"
+echo ""

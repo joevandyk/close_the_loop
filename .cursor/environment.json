@@ -1,0 +1,7 @@
+{
+  "$schema": "https://cursor.sh/schema/environment.json",
+  "dockerfile": {
+    "path": ".devcontainer/Dockerfile",
+    "context": "."
+  }
+}

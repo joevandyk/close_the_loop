@@ -1,0 +1,27 @@
+{
+  "name": "close-the-loop",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspace",
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {}
+  },
+  "postCreateCommand": "bash -lc 'if [ ! -f mix.exs ]; then scripts/setup-phoenix.sh; fi && mix deps.get'",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "jakebecker.elixir-ls",
+        "phoenixframework.phoenix",
+        "bradlc.vscode-tailwindcss"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "[elixir]": {
+          "editor.defaultFormatter": "jakebecker.elixir-ls"
+        }
+      }
+    }
+  },
+  "forwardPorts": [3000, 5432, 9000, 9001],
+  "remoteUser": "root"
+}

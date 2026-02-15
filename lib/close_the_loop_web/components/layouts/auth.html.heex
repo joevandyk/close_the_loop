@@ -1,0 +1,51 @@
+<div class="min-h-screen bg-white text-zinc-900">
+  <div class="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80">
+    <div class="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-indigo-400 to-rose-400 opacity-20 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]">
+    </div>
+  </div>
+
+  <header class="mx-auto max-w-6xl px-6 pt-8">
+    <nav class="flex items-center justify-between">
+      <a href={~p"/"} class="flex items-center gap-2">
+        <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-zinc-900 text-white text-sm font-semibold">
+          CTL
+        </span>
+        <span class="text-sm font-semibold tracking-tight">CloseTheLoop</span>
+      </a>
+
+      <div class="hidden items-center gap-6 text-sm font-medium text-zinc-600 sm:flex">
+        <a href={~p"/how-it-works"} class="hover:text-zinc-900 transition">How it works</a>
+        <a href={~p"/pricing"} class="hover:text-zinc-900 transition">Pricing</a>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <a
+          href={~p"/sign-in"}
+          class="rounded-lg px-3 py-2 text-sm font-medium text-zinc-700 hover:text-zinc-900 hover:bg-zinc-50 transition"
+        >
+          Sign in
+        </a>
+        <a
+          href={~p"/register"}
+          class="rounded-lg bg-zinc-900 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-zinc-800 transition"
+        >
+          Get started
+        </a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="mx-auto max-w-6xl px-6 py-12">
+    {@inner_content}
+  </main>
+
+  <footer class="mx-auto max-w-6xl px-6 pb-10 text-sm text-zinc-500">
+    <div class="flex flex-wrap items-center justify-between gap-3 border-t border-zinc-200 pt-6">
+      <span>CloseTheLoop</span>
+      <div class="flex items-center gap-4">
+        <a href={~p"/privacy"} class="hover:text-zinc-700 transition">Privacy</a>
+        <a href={~p"/terms"} class="hover:text-zinc-700 transition">Terms</a>
+      </div>
+    </div>
+  </footer>
+</div>

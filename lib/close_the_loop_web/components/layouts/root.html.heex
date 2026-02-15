@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="csrf-token" content={get_csrf_token()} />
+    <meta
+      name="description"
+      content={
+        assigns[:page_description] ||
+          "QR + SMS issue intake. Let customers report problems in seconds - and automatically close the loop."
+      }
+    />
+    <meta property="og:title" content={assigns[:page_title] || "CloseTheLoop"} />
+    <meta
+      property="og:description"
+      content={
+        assigns[:page_description] ||
+          "QR + SMS issue intake. Let customers report problems in seconds - and automatically close the loop."
+      }
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content={~p"/images/marketing/og.svg"} />
+    <.live_title default="CloseTheLoop" suffix="">
+      {assigns[:page_title]}
+    </.live_title>
+    <link phx-track-static rel="stylesheet" href={~p"/assets/css/app.css"} />
+    <script defer phx-track-static type="text/javascript" src={~p"/assets/js/app.js"}>
+    </script>
+    <script>
+      (() => {
+        const setTheme = (theme) => {
+          // Prefer an explicit theme so daisyUI doesn't auto-switch based on
+          // prefers-color-scheme and accidentally create contrast issues on
+          // custom (non-daisyUI) page layouts.
+          if (theme === "system") {
+            localStorage.removeItem("phx:theme");
+            document.documentElement.setAttribute("data-theme", "light");
+          } else {
+            localStorage.setItem("phx:theme", theme);
+            document.documentElement.setAttribute("data-theme", theme);
+          }
+        };
+        setTheme(localStorage.getItem("phx:theme") || "light");
+        window.addEventListener("storage", (e) => e.key === "phx:theme" && setTheme(e.newValue || "system"));
+        
+        window.addEventListener("phx:set-theme", (e) => setTheme(e.target.dataset.phxTheme));
+      })();
+    </script>
+  </head>
+  <body>
+    {@inner_content}
+  </body>
+</html>

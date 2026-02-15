@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# Allow local overrides like `PORT=4000 scripts/dev` even if Doppler has PORT set.
+exec doppler run --preserve-env -- make dev

@@ -1,0 +1,89 @@
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    volumes:
+      - ..:/workspace:cached
+      # Allows running `doppler run ...` inside the devcontainer using your host login.
+      - ${HOME}/.doppler:/root/.doppler:ro
+    command: sleep infinity
+    environment:
+      - APP_NAME=close-the-loop
+      - APP_ENV=local
+      - PORT=3000
+      - LOG_LEVEL=debug
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/close_the_loop_local
+      - SECRET_KEY_BASE=dev-only-secret-key-base-at-least-64-characters-long-CHANGEME-IN-DOPPLER
+      - MIX_ENV=dev
+
+      # Avoid mixing Linux build artifacts with macOS host builds.
+      - MIX_BUILD_PATH=/workspace/_build_linux
+      - MIX_DEPS_PATH=/workspace/deps_linux
+      
+      # S3-compatible object storage (MinIO) for local development
+      - STORAGE_ENDPOINT=http://minio:9000
+      - STORAGE_BUCKET=close-the-loop-local
+      - STORAGE_ACCESS_KEY=minio
+      - STORAGE_SECRET_KEY=minio123
+      - STORAGE_REGION=us-east-1
+      - STORAGE_FORCE_PATH_STYLE=true
+      
+    depends_on:
+      db:
+        condition: service_healthy
+      
+      minio:
+        condition: service_started
+      
+
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: close_the_loop_local
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  
+
+  minio:
+    image: minio/minio:latest
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: minio123
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - miniodata:/data
+
+  minio_init:
+    image: minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_started
+    entrypoint: >
+      /bin/sh -c "
+      until mc alias set local http://minio:9000 minio minio123 2>/dev/null; do sleep 1; done;
+      mc mb --ignore-existing local/close-the-loop-local;
+      exit 0;
+      "
+
+  
+
+volumes:
+  pgdata:
+  
+  miniodata:
+  
