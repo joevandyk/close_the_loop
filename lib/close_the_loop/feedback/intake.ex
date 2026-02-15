@@ -3,12 +3,13 @@ defmodule CloseTheLoop.Feedback.Intake do
   Entry points for reporter submissions (QR + SMS).
 
   MVP dedupe is deterministic: same location + same normalized body + not fixed.
-  We'll layer in OpenAI-assisted categorization/dedupe via Oban next.
+  We also run best-effort AI categorization + dedupe via Oban.
   """
 
   import Ash.Expr
 
   alias CloseTheLoop.Feedback.{Issue, Report}
+  alias CloseTheLoop.Messaging.Phone
 
   require Ash.Query
 
@@ -19,7 +20,8 @@ defmodule CloseTheLoop.Feedback.Intake do
   def submit_report(tenant, location_id, %{body: body} = attrs) when is_binary(tenant) do
     normalized = normalize_body(body)
 
-    with {:ok, issue} <- get_or_create_issue(tenant, location_id, body, normalized),
+    with {:ok, reporter_phone} <- Phone.normalize_e164(Map.get(attrs, :reporter_phone)),
+         {:ok, issue} <- get_or_create_issue(tenant, location_id, body, normalized),
          {:ok, report} <-
            Ash.create(
              Report,
@@ -29,8 +31,8 @@ defmodule CloseTheLoop.Feedback.Intake do
                body: body,
                normalized_body: normalized,
                source: Map.fetch!(attrs, :source),
-               reporter_phone: Map.get(attrs, :reporter_phone),
-               consent: Map.get(attrs, :consent, false)
+               reporter_phone: reporter_phone,
+               consent: Map.get(attrs, :consent, false) and not is_nil(reporter_phone)
              },
              tenant: tenant
            ) do
@@ -44,7 +46,7 @@ defmodule CloseTheLoop.Feedback.Intake do
       |> Ash.Query.filter(
         expr(
           location_id == ^location_id and status != :fixed and
-            normalized_description == ^normalized
+            normalized_description == ^normalized and is_nil(duplicate_of_issue_id)
         )
       )
       |> Ash.Query.sort(inserted_at: :desc)

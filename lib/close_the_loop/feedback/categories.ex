@@ -52,6 +52,17 @@ defmodule CloseTheLoop.Feedback.Categories do
     end
   end
 
+  @spec key_label_map(binary()) :: %{optional(String.t()) => String.t()}
+  def key_label_map(tenant) when is_binary(tenant) do
+    case Ash.read(IssueCategory, tenant: tenant) do
+      {:ok, cats} when is_list(cats) and cats != [] ->
+        Map.new(cats, &{&1.key, &1.label})
+
+      _ ->
+        Map.new(@default_categories, &{&1.key, &1.label})
+    end
+  end
+
   @spec active_keys(binary()) :: list(String.t())
   def active_keys(tenant) when is_binary(tenant) do
     case Ash.read(IssueCategory, tenant: tenant) do
@@ -72,4 +83,3 @@ defmodule CloseTheLoop.Feedback.Categories do
     end
   end
 end
-

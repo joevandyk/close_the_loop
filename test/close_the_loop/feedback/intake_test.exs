@@ -1,7 +1,10 @@
 defmodule CloseTheLoop.Feedback.IntakeTest do
   use CloseTheLoop.DataCase, async: true
 
-  alias CloseTheLoop.Feedback.{Intake, Issue, Location}
+  import Ash.Expr
+  require Ash.Query
+
+  alias CloseTheLoop.Feedback.{Intake, Issue, Location, Report}
 
   test "dedupes identical reports at same location" do
     tenant = "public"
@@ -30,5 +33,30 @@ defmodule CloseTheLoop.Feedback.IntakeTest do
 
     {:ok, issue} = Ash.get(Issue, issue1.id, load: [:reporter_count], tenant: tenant)
     assert issue.reporter_count == 2
+  end
+
+  test "rejects invalid phone numbers when provided" do
+    tenant = "public"
+
+    {:ok, location} =
+      Ash.create(Location, %{name: "Gym", full_path: "Gym"}, tenant: tenant)
+
+    assert {:error, msg} =
+             Intake.submit_report(tenant, location.id, %{
+               body: "Cold water",
+               source: :qr,
+               reporter_phone: "555-555-0100",
+               consent: true
+             })
+
+    assert is_binary(msg)
+
+    # Ensure we didn't store a report with that invalid phone.
+    query =
+      Report
+      |> Ash.Query.filter(expr(body == "Cold water"))
+
+    {:ok, reports} = Ash.read(query, tenant: tenant)
+    assert reports == []
   end
 end

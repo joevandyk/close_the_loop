@@ -2,7 +2,7 @@
 # All commands assume env vars are injected by Doppler.
 # Use scripts/* wrappers for local development.
 
-.PHONY: install dev build test lint migrate seed worker cron docker-build docker-run clean
+.PHONY: install dev build test lint migrate seed worker cron docker-build docker-run docker-test clean
 .PHONY: e2e e2e-install
 
 # ─── Devcontainer (Linux) build isolation ─────────────────────────────
@@ -58,7 +58,18 @@ docker-build:
 	docker build -t close-the-loop:latest .
 
 docker-run:
+	@if [ ! -f ".env" ]; then \
+		echo "Missing .env file."; \
+		echo "Create one from .env.example (do not commit it), then re-run:"; \
+		echo "  cp .env.example .env"; \
+		exit 1; \
+	fi
 	docker run --rm -p 3000:3000 --env-file .env close-the-loop:latest
+
+# Run tests in the Dockerized dev environment (Linux + Postgres)
+docker-test:
+	docker compose -f .devcontainer/docker-compose.yml up -d --build --wait db
+	docker compose -f .devcontainer/docker-compose.yml run --rm -e MIX_ENV=test app bash -lc "cd /workspace && make test"
 
 # ─── Utility ─────────────────────────────────────────────────────────
 

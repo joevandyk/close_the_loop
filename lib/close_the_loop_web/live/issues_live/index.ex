@@ -2,20 +2,33 @@ defmodule CloseTheLoopWeb.IssuesLive.Index do
   use CloseTheLoopWeb, :live_view
   on_mount {CloseTheLoopWeb.LiveUserAuth, :live_org_required}
 
+  import Ash.Expr
+
   alias CloseTheLoop.Feedback.Issue
+  alias CloseTheLoop.Feedback.Categories
   alias CloseTheLoop.Tenants.Organization
+
+  require Ash.Query
 
   @impl true
   def mount(_params, _session, socket) do
     user = socket.assigns.current_user
 
+    socket =
+      socket
+      |> assign(:tenant, nil)
+      |> assign(:issues, [])
+      |> assign(:category_labels, %{})
+
     with {:ok, %Organization{} = org} <- Ash.get(Organization, user.organization_id),
          tenant when is_binary(tenant) <- org.tenant_schema,
+         :ok <- Categories.ensure_defaults(tenant),
          {:ok, issues} <- list_issues(tenant) do
       {:ok,
        socket
        |> assign(:tenant, tenant)
-       |> assign(:issues, issues)}
+       |> assign(:issues, issues)
+       |> assign(:category_labels, Categories.key_label_map(tenant))}
     else
       _ ->
         {:ok, put_flash(socket, :error, "Failed to load issues")}
@@ -25,6 +38,7 @@ defmodule CloseTheLoopWeb.IssuesLive.Index do
   defp list_issues(tenant) do
     query =
       Issue
+      |> Ash.Query.filter(expr(is_nil(duplicate_of_issue_id)))
       |> Ash.Query.load([:reporter_count, location: [:name, :full_path]])
       |> Ash.Query.sort(inserted_at: :desc)
 
@@ -58,7 +72,9 @@ defmodule CloseTheLoopWeb.IssuesLive.Index do
                 <td>{issue.location.full_path || issue.location.name}</td>
                 <td>
                   <%= if issue.category && issue.category != "" do %>
-                    <span class="badge badge-ghost">{issue.category}</span>
+                    <span class="badge badge-ghost">
+                      {Map.get(@category_labels, issue.category, issue.category)}
+                    </span>
                   <% else %>
                     <span class="text-base-content/50 text-sm">—</span>
                   <% end %>

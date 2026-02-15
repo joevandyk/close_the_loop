@@ -68,4 +68,36 @@ defmodule CloseTheLoopWeb.IssuesLiveTest do
     assert html =~ "Inbox"
     assert html =~ "Cold shower"
   end
+
+  test "dangling org_id does not crash issues page", %{conn: conn} do
+    {:ok, user} =
+      Ash.create(
+        User,
+        %{
+          email: "dangling@example.com",
+          password: "password1234",
+          password_confirmation: "password1234"
+        },
+        action: :register_with_password,
+        context: %{private: %{ash_authentication?: true}}
+      )
+
+    # Point at a non-existent org (this can happen in dev if org rows are removed).
+    org_id = Ash.UUID.generate()
+
+    {:ok, user} =
+      Ash.update(user, %{organization_id: org_id, role: :owner},
+        action: :set_organization,
+        actor: user
+      )
+
+    conn =
+      conn
+      |> init_test_session(%{})
+      |> AshAuthentication.Plug.Helpers.store_in_session(user)
+
+    {:ok, _view, html} = live(conn, ~p"/app/issues")
+    assert html =~ "Inbox"
+    assert html =~ "No issues yet."
+  end
 end

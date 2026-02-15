@@ -3,6 +3,7 @@ defmodule CloseTheLoopWeb.OnboardingLive do
   on_mount {CloseTheLoopWeb.LiveUserAuth, :live_user_required}
 
   alias CloseTheLoop.Accounts.User
+  alias CloseTheLoop.Feedback.Categories
   alias CloseTheLoop.Feedback.Location
   alias CloseTheLoop.Tenants.Organization
 
@@ -70,13 +71,17 @@ defmodule CloseTheLoopWeb.OnboardingLive do
            Ash.create(Location, %{name: "General", full_path: "General"},
              tenant: org.tenant_schema
            ),
-         {:ok, %User{} = _updated_user} <-
+         {:ok, %User{} = updated_user} <-
            Ash.update(user, %{organization_id: org.id, role: :owner},
              action: :set_organization,
              actor: user
            ) do
+      # Seed default categories for this business (best-effort).
+      _ = Categories.ensure_defaults(org.tenant_schema)
+
       socket =
         socket
+        |> assign(:current_user, updated_user)
         |> put_flash(:info, "Organization created. Your first location is ready.")
         |> push_navigate(to: ~p"/app/issues")
 

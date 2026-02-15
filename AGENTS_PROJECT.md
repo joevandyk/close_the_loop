@@ -34,6 +34,7 @@
 - Update docs when changing architecture or integrations
 - Add runbook entries for new operational procedures
 - Never hardcode secrets: add to Doppler and reference via env vars
+- Add tests for new routes/features (at least 1 happy path + 1 failure/edge case for user-visible pages).
 
 ## Product UX Expectations
 

@@ -66,6 +66,8 @@ defmodule CloseTheLoopWeb.Router do
       live "/app/locations", LocationsLive.Index, :index
 
       live "/app/settings", SettingsLive.Index, :index
+
+      live "/app/settings/issue-categories", IssueCategoriesLive.Index, :index
     end
   end
 

@@ -2,6 +2,7 @@ defmodule CloseTheLoopWeb.ReporterLive.New do
   use CloseTheLoopWeb, :live_view
 
   alias CloseTheLoop.Feedback.{Intake, Location}
+  alias CloseTheLoop.Messaging.Phone
 
   @impl true
   def mount(%{"tenant" => tenant, "location_id" => location_id}, _session, socket) do
@@ -70,9 +71,16 @@ defmodule CloseTheLoopWeb.ReporterLive.New do
               value={@phone}
               class="input input-bordered w-full"
               placeholder="+1 555 555 5555"
+              inputmode="tel"
             />
             <label class="label cursor-pointer gap-3 justify-start mt-2">
-              <input type="checkbox" name="report[consent]" class="checkbox" value="true" />
+              <input
+                type="checkbox"
+                name="report[consent]"
+                class="checkbox"
+                value="true"
+                checked={@consent}
+              />
               <span class="label-text">I agree to receive text updates about this issue.</span>
             </label>
           </div>
@@ -95,17 +103,27 @@ defmodule CloseTheLoopWeb.ReporterLive.New do
     tenant = socket.assigns.tenant
     location_id = socket.assigns.location_id
 
-    phone = String.trim(Map.get(params, "phone", ""))
-    consent = Map.has_key?(params, "consent") and phone != ""
+    phone_raw = Map.get(params, "phone", "")
+    wants_updates = Map.has_key?(params, "consent")
 
-    case Intake.submit_report(tenant, location_id, %{
-           body: body,
-           source: :qr,
-           reporter_phone: if(phone == "", do: nil, else: phone),
-           consent: consent
-         }) do
-      {:ok, _} ->
-        {:noreply, assign(socket, :submitted, true)}
+    socket =
+      socket
+      |> assign(:body, body)
+      |> assign(:phone, phone_raw)
+      |> assign(:consent, wants_updates)
+
+    with {:ok, phone} <- Phone.normalize_e164(phone_raw),
+         {:ok, _} <-
+           Intake.submit_report(tenant, location_id, %{
+             body: body,
+             source: :qr,
+             reporter_phone: phone,
+             consent: wants_updates and not is_nil(phone)
+           }) do
+      {:noreply, assign(socket, :submitted, true)}
+    else
+      {:error, msg} when is_binary(msg) ->
+        {:noreply, assign(socket, :error, msg)}
 
       {:error, err} ->
         {:noreply, assign(socket, :error, inspect(err))}

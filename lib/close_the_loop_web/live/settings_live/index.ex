@@ -90,6 +90,19 @@ defmodule CloseTheLoopWeb.SettingsLive.Index do
           </div>
         </div>
       </div>
+
+      <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
+        <h2 class="text-sm font-semibold">Inbox configuration</h2>
+        <p class="mt-2 text-sm text-zinc-600">
+          Control AI-driven issue categorization labels for your business.
+        </p>
+
+        <div class="mt-4">
+          <.link navigate={~p"/app/settings/issue-categories"} class="btn btn-outline">
+            Manage issue categories
+          </.link>
+        </div>
+      </div>
     </div>
     """
   end

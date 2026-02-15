@@ -5,6 +5,7 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
   import Ash.Expr
 
   alias CloseTheLoop.Feedback.{Issue, IssueUpdate, Report}
+  alias CloseTheLoop.Feedback.Categories
   alias CloseTheLoop.Tenants.Organization
 
   require Ash.Query
@@ -15,14 +16,23 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
 
     with {:ok, %Organization{} = org} <- Ash.get(Organization, user.organization_id),
          tenant when is_binary(tenant) <- org.tenant_schema,
+         :ok <- Categories.ensure_defaults(tenant),
          {:ok, issue} <- get_issue(tenant, id),
          {:ok, reports} <- list_reports(tenant, id) do
-      {:ok,
-       socket
-       |> assign(:tenant, tenant)
-       |> assign(:issue, issue)
-       |> assign(:reports, reports)
-       |> assign(:message, "")}
+      if issue.duplicate_of_issue_id do
+        {:ok,
+         socket
+         |> put_flash(:info, "This issue was merged into another issue.")
+         |> push_navigate(to: ~p"/app/issues/#{issue.duplicate_of_issue_id}")}
+      else
+        {:ok,
+         socket
+         |> assign(:tenant, tenant)
+         |> assign(:issue, issue)
+         |> assign(:reports, reports)
+         |> assign(:category_labels, Categories.key_label_map(tenant))
+         |> assign(:message, "")}
+      end
     else
       _ ->
         {:ok, put_flash(socket, :error, "Issue not found") |> push_navigate(to: ~p"/app/issues")}
@@ -59,7 +69,9 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
             <span>{@issue.reporter_count} reporter(s)</span>
             <%= if @issue.category && @issue.category != "" do %>
               <span class="mx-2">•</span>
-              <span class="badge badge-ghost">{@issue.category}</span>
+              <span class="badge badge-ghost">
+                {Map.get(@category_labels, @issue.category, @issue.category)}
+              </span>
             <% end %>
           </div>
         </div>

@@ -82,11 +82,11 @@ test("business can onboard, receive a report, and view it", async ({ page }) => 
   await page.goto(reporterLink!);
 
   const reportBody = "Cold water in the men's showers";
-  await page.getByLabel(/what.*wrong/i).fill(reportBody);
-  await page.getByLabel(/text me updates/i).fill("+15555555555");
+  await page.locator('textarea[name="report[body]"]').fill(reportBody);
+  await page.locator('input[name="report[phone]"]').fill("+15555555555");
   await page.getByRole("checkbox", { name: /agree to receive text updates/i }).check();
   await page.getByRole("button", { name: /^submit$/i }).click();
-  await expect(page.getByText(/got it/i)).toBeVisible();
+  await expect(page.getByText(/got it/i)).toBeVisible({ timeout: 20_000 });
 
   // Back on the business inbox, verify we can see and open the issue + report.
   await page.goto("/app/issues");

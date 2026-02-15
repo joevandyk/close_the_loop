@@ -17,6 +17,7 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
        |> assign(:tenant, tenant)
        |> assign(:org, org)
        |> assign(:locations, decorate_locations(tenant, locations))
+       |> assign(:editing_id, nil)
        |> assign(:name, "")
        |> assign(:full_path, "")
        |> assign(:error, nil)}
@@ -61,9 +62,15 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
 
       <div class="grid gap-6 lg:grid-cols-2">
         <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
-          <h2 class="text-sm font-semibold">Add a location</h2>
+          <h2 class="text-sm font-semibold">
+            <%= if @editing_id do %>
+              Edit location
+            <% else %>
+              Add a location
+            <% end %>
+          </h2>
 
-          <.form for={%{}} as={:location} phx-submit="create" class="mt-4 space-y-4">
+          <.form for={%{}} as={:location} phx-submit="save" class="mt-4 space-y-4">
             <div class="form-control">
               <label class="label" for="location_name">
                 <span class="label-text">Name</span>
@@ -99,7 +106,21 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
               </div>
             <% end %>
 
-            <button type="submit" class="btn btn-primary w-full">Create location</button>
+            <div class="flex gap-2">
+              <button type="submit" class="btn btn-primary flex-1">
+                <%= if @editing_id do %>
+                  Save changes
+                <% else %>
+                  Create location
+                <% end %>
+              </button>
+
+              <%= if @editing_id do %>
+                <button type="button" phx-click="cancel_edit" class="btn btn-outline">
+                  Cancel
+                </button>
+              <% end %>
+            </div>
           </.form>
         </div>
 
@@ -119,6 +140,7 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
             <tr>
               <th>Location</th>
               <th>Reporter link</th>
+              <th></th>
               <th class="text-right">QR</th>
             </tr>
           </thead>
@@ -133,6 +155,16 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
                     {loc.reporter_link}
                   </a>
                 </td>
+                <td class="text-right whitespace-nowrap">
+                  <button
+                    type="button"
+                    class="btn btn-xs"
+                    phx-click="edit"
+                    phx-value-id={loc.id}
+                  >
+                    Edit
+                  </button>
+                </td>
                 <td class="text-right">
                   <img
                     src={loc.reporter_qr}
@@ -145,7 +177,7 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
 
             <%= if @locations == [] do %>
               <tr>
-                <td colspan="3" class="text-center text-zinc-600 py-10">
+                <td colspan="4" class="text-center text-zinc-600 py-10">
                   No locations yet.
                 </td>
               </tr>
@@ -158,7 +190,33 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
   end
 
   @impl true
-  def handle_event("create", %{"name" => name} = params, socket) do
+  def handle_event("edit", %{"id" => id}, socket) do
+    case Enum.find(socket.assigns.locations, &("#{&1.id}" == to_string(id))) do
+      nil ->
+        {:noreply, put_flash(socket, :error, "Location not found")}
+
+      loc ->
+        {:noreply,
+         socket
+         |> assign(:editing_id, loc.id)
+         |> assign(:name, loc.name || "")
+         |> assign(:full_path, loc.full_path || "")
+         |> assign(:error, nil)}
+    end
+  end
+
+  @impl true
+  def handle_event("cancel_edit", _params, socket) do
+    {:noreply,
+     socket
+     |> assign(:editing_id, nil)
+     |> assign(:name, "")
+     |> assign(:full_path, "")
+     |> assign(:error, nil)}
+  end
+
+  @impl true
+  def handle_event("save", %{"name" => name} = params, socket) do
     tenant = socket.assigns.tenant
 
     name = String.trim(name || "")
@@ -170,14 +228,32 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
         v -> v
       end
 
+    result =
+      case socket.assigns.editing_id do
+        nil ->
+          Ash.create(Location, %{name: name, full_path: full_path}, tenant: tenant)
+
+        id ->
+          with {:ok, %Location{} = loc} <- Ash.get(Location, id, tenant: tenant) do
+            Ash.update(loc, %{name: name, full_path: full_path}, action: :update, tenant: tenant)
+          end
+      end
+
     with true <- name != "" || {:error, "Name is required"},
-         {:ok, %Location{}} <-
-           Ash.create(Location, %{name: name, full_path: full_path}, tenant: tenant),
+         {:ok, %Location{}} <- result,
          {:ok, locations} <- list_locations(tenant) do
+      flash_msg =
+        if socket.assigns.editing_id do
+          "Location updated."
+        else
+          "Location created."
+        end
+
       {:noreply,
        socket
-       |> put_flash(:info, "Location created.")
+       |> put_flash(:info, flash_msg)
        |> assign(:locations, decorate_locations(tenant, locations))
+       |> assign(:editing_id, nil)
        |> assign(:name, "")
        |> assign(:full_path, "")
        |> assign(:error, nil)}
@@ -189,7 +265,7 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
         {:noreply, assign(socket, :error, Exception.message(err))}
 
       other ->
-        {:noreply, assign(socket, :error, "Failed to create: #{inspect(other)}")}
+        {:noreply, assign(socket, :error, "Failed to save: #{inspect(other)}")}
     end
   end
 end

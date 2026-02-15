@@ -64,4 +64,3 @@ defmodule CloseTheLoop.Feedback.IssueCategory do
     identity :unique_key, [:key]
   end
 end
-
