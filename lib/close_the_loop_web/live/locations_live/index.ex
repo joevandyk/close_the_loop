@@ -4,6 +4,7 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
 
   alias CloseTheLoop.Feedback, as: FeedbackDomain
   alias CloseTheLoop.Feedback.Location
+  alias CloseTheLoop.Events.ChangeMetadata
 
   @impl true
   def mount(_params, _session, socket) do
@@ -19,6 +20,7 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
        |> assign(:locations, decorate_locations(tenant, locations))
        |> assign(:location_modal_open?, false)
        |> assign(:editing_id, nil)
+       |> assign(:editing_location, nil)
        |> assign(:location_form, new_location_form(tenant, user))
        |> assign(:error, nil)}
     else
@@ -224,6 +226,7 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
      socket
      |> assign(:location_modal_open?, true)
      |> assign(:editing_id, nil)
+     |> assign(:editing_location, nil)
      |> assign(:location_form, new_location_form(tenant, user))
      |> assign(:error, nil)}
   end
@@ -237,6 +240,7 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
      socket
      |> assign(:location_modal_open?, false)
      |> assign(:editing_id, nil)
+     |> assign(:editing_location, nil)
      |> assign(:location_form, new_location_form(tenant, user))
      |> assign(:error, nil)}
   end
@@ -252,6 +256,7 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
          socket
          |> assign(:location_modal_open?, true)
          |> assign(:editing_id, loc.id)
+         |> assign(:editing_location, loc)
          |> assign(:location_form, edit_location_form(tenant, loc, user))
          |> assign(:error, nil)}
 
@@ -265,7 +270,22 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
     tenant = socket.assigns.current_tenant
     user = socket.assigns.current_user
 
-    case AshPhoenix.Form.submit(socket.assigns.location_form, params: params) do
+    context =
+      case socket.assigns.editing_location do
+        %Location{} = loc ->
+          loc
+          |> ChangeMetadata.diff(params,
+            fields: [:name, :full_path],
+            trim?: true,
+            empty_to_nil?: true
+          )
+          |> ChangeMetadata.context_for_changes()
+
+        _ ->
+          %{}
+      end
+
+    case AshPhoenix.Form.submit(socket.assigns.location_form, params: params, context: context) do
       {:ok, %Location{}} ->
         {:ok, locations} = list_locations(tenant)
 
@@ -282,6 +302,7 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
          |> assign(:locations, decorate_locations(tenant, locations))
          |> assign(:location_modal_open?, false)
          |> assign(:editing_id, nil)
+         |> assign(:editing_location, nil)
          |> assign(:location_form, new_location_form(tenant, user))
          |> assign(:error, nil)}
 

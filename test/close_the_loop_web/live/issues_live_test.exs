@@ -460,7 +460,8 @@ defmodule CloseTheLoopWeb.IssuesLiveTest do
       |> init_test_session(%{})
       |> AshAuthentication.Plug.Helpers.store_in_session(user)
 
-    {:ok, _view, html} = live(conn, ~p"/app/#{org.id}/issues?q=faucet")
+    # Case-insensitive search
+    {:ok, _view, html} = live(conn, ~p"/app/#{org.id}/issues?q=FAUCET")
     assert html =~ "Broken faucet"
     refute html =~ "Cold shower"
   end

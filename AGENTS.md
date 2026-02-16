@@ -73,6 +73,21 @@ custom classes must fully style the input
         }
       )
 
+- When an update should show *what changed* (old/new values) in the timeline, attach a structured diff under `ash_events_metadata["changes"]`:
+
+      context: %{
+        ash_events_metadata: %{
+          "changes" => %{
+            "title" => %{"from" => old_title, "to" => new_title},
+            "description" => %{"from" => old_desc, "to" => new_desc}
+          }
+        }
+      }
+
+  Use `CloseTheLoop.Events.ChangeMetadata` to build/merge these diffs in the web layer.
+
+- Do not infer "what changed" by looking at `event.data` keys (forms often submit full payloads, which overstates changes).
+- Never store secrets (passwords, current_password, tokens) in `ash_events_metadata` (even if other PII fields are allowed).
 - The `ActivityFeed` component in `activity_feed.ex` is responsible for rendering structured event data into human-readable, linkable summaries. Keep display logic (titles, summaries, entity links) out of stored strings.
 - When referencing another entity (issue, report, location) in an activity summary, render it as a `<.link navigate={...}>` so users can navigate directly.
 - Handle the case where a referenced entity has been deleted: show a safe fallback (e.g. "(deleted issue)") rather than crashing.

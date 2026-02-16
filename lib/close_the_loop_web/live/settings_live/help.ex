@@ -31,20 +31,16 @@ defmodule CloseTheLoopWeb.SettingsLive.Help do
         <section class="space-y-4">
           <h2 class="text-lg font-semibold">How customers use the site</h2>
           <p class="text-sm text-foreground-soft leading-relaxed">
-            Your customers (reporters) can submit issues in two ways:
+            Your customers (reporters) submit issues by scanning a QR code at each location:
           </p>
           <ul class="list-disc list-inside space-y-2 text-sm text-foreground-soft">
             <li>
               <strong>QR code</strong>
               — At each location you add a printable poster with a QR code. When someone scans it, they open a mobile-friendly form with the location already set. They describe the issue, optionally add their phone number, and submit.
             </li>
-            <li>
-              <strong>SMS</strong>
-              — In areas with poor Wi‑Fi, customers can text your configured number. Each message becomes a report; the system matches it to a location when possible. You can reply with status updates to anyone who provided a number.
-            </li>
           </ul>
           <p class="text-sm text-foreground-soft leading-relaxed">
-            If a reporter opts in (e.g. by checking “Notify me”), they can receive SMS updates when you acknowledge or resolve the issue. This “closes the loop” between report and resolution.
+            If a reporter opts in (e.g. by checking “Notify me”), they can receive updates (email/SMS) when you acknowledge or resolve the issue. This “closes the loop” between report and resolution.
           </p>
         </section>
 
@@ -78,7 +74,7 @@ defmodule CloseTheLoopWeb.SettingsLive.Help do
             <h3 class="font-medium">Locations</h3>
             <p class="text-sm text-foreground-soft">
               <strong>Locations</strong>
-              are the physical places where issues can occur (e.g. “Locker room A”, “Main pool”). Each location can have a QR code poster; reports submitted via that QR (or matched by your SMS setup) are tied to that location. You manage locations under Admin → Locations and can print or download QR posters from there.
+              are the physical places where issues can occur (e.g. “Locker room A”, “Main pool”). Each location can have a QR code poster; reports submitted via that QR are tied to that location. You manage locations under Admin → Locations and can print or download QR posters from there.
             </p>
           </div>
 
@@ -115,7 +111,7 @@ defmodule CloseTheLoopWeb.SettingsLive.Help do
             <div class="rounded-lg border border-base bg-base p-3">
               <dt class="font-medium text-foreground">Report</dt>
               <dd class="mt-1 text-foreground-soft">
-                A single submission from a customer—via QR form or SMS—containing a description, optional contact info, and the location (if known).
+                A single submission from a customer via the QR form, containing a description, optional contact info, and the location (if known).
               </dd>
             </div>
             <div class="rounded-lg border border-base bg-base p-3">
@@ -127,7 +123,7 @@ defmodule CloseTheLoopWeb.SettingsLive.Help do
             <div class="rounded-lg border border-base bg-base p-3">
               <dt class="font-medium text-foreground">Reporter</dt>
               <dd class="mt-1 text-foreground-soft">
-                The person who submitted a report. If they opted in, they can receive SMS updates when the issue is acknowledged or resolved.
+                The person who submitted a report. If they opted in, they can receive updates (email/SMS) when the issue is acknowledged or resolved.
               </dd>
             </div>
             <div class="rounded-lg border border-base bg-base p-3">

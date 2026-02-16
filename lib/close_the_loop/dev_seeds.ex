@@ -100,10 +100,14 @@ defmodule CloseTheLoop.DevSeeds do
     days_ago = Map.fetch!(issue, "days_ago")
     inserted_at = DateTime.add(now, -days_ago, :day)
 
+    description = Map.fetch!(issue, "description")
+    title_source = Map.get(issue, "title") || description
+
     %{
       key: Map.fetch!(issue, "key"),
       location_key: Map.fetch!(issue, "location_key"),
-      description: Map.fetch!(issue, "description"),
+      title: build_title(title_source),
+      description: description,
       status: string_to_status!(Map.fetch!(issue, "status")),
       category: Map.fetch!(issue, "category_key"),
       inserted_at: inserted_at,
@@ -375,7 +379,7 @@ defmodule CloseTheLoop.DevSeeds do
       Issue,
       %{
         location_id: location.id,
-        title: build_title(desc),
+        title: attrs.title,
         description: desc,
         normalized_description: normalize_text(desc),
         status: attrs.status,
@@ -426,7 +430,6 @@ defmodule CloseTheLoop.DevSeeds do
   defp build_title(body) do
     body
     |> String.trim()
-    |> String.slice(0, 80)
     |> case do
       "" -> "New report"
       title -> title

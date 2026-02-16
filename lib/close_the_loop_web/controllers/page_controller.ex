@@ -6,7 +6,7 @@ defmodule CloseTheLoopWeb.PageController do
     |> assign(:page_title, "CloseTheLoop")
     |> assign(
       :page_description,
-      "QR + SMS issue intake. Let customers report problems in seconds - and automatically close the loop."
+      "QR issue intake. Let customers report problems in seconds - and automatically close the loop."
     )
     |> render(:home)
   end

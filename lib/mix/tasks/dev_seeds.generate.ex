@@ -78,6 +78,7 @@ defmodule Mix.Tasks.DevSeeds.Generate do
           "required" => [
             "key",
             "location_key",
+            "title",
             "description",
             "status",
             "category_key",
@@ -90,6 +91,7 @@ defmodule Mix.Tasks.DevSeeds.Generate do
           "properties" => %{
             "key" => %{"type" => "string", "minLength" => 1},
             "location_key" => %{"type" => "string", "minLength" => 1},
+            "title" => %{"type" => "string", "minLength" => 1, "maxLength" => 160},
             "description" => %{"type" => "string"},
             "status" => %{
               "type" => "string",
@@ -353,6 +355,7 @@ defmodule Mix.Tasks.DevSeeds.Generate do
     - issue_categories: include all categories needed for this business (short snake_case keys + nice labels). Issues must reference issue_categories[].key via issue.category_key.
     - issues: 1–3 months of feedback; use days_ago between 1 and 90; variety of statuses (new, acknowledged, in_progress, fixed) and categories.
       Issues reference locations by issue.location_key (must match locations[].key).
+      Each issue must include a short, human-friendly title in issue.title (not the whole description).
     - Each issue must have at least one report; most issues should have 2–4 reports (distinct bodies).
       Some issues can have exactly 1 report, but seeing multiple reports is better.
     - Some issues have updates and/or comments.
@@ -367,6 +370,7 @@ defmodule Mix.Tasks.DevSeeds.Generate do
         {
           "key": "iss_001",
           "location_key": "loc_bar_counter",
+          "title": "Sticky, sour-smelling bar counter",
           "description": "Bar counter is sticky and smells like old beer.",
           "status": "new",
           "category_key": "cleanliness_hygiene",

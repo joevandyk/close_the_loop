@@ -101,6 +101,10 @@ defmodule CloseTheLoopWeb.ActivityFeed do
                   <div class="text-sm leading-6 text-foreground">
                     <.report_move_summary summary={move_summary} />
                   </div>
+                <% {:field_changes, changes} -> %>
+                  <div class="text-sm leading-6 text-foreground">
+                    <.field_changes changes={changes} />
+                  </div>
                 <% summary when is_binary(summary) -> %>
                   <div class="whitespace-pre-wrap text-sm leading-6 text-foreground">{summary}</div>
               <% end %>
@@ -179,16 +183,13 @@ defmodule CloseTheLoopWeb.ActivityFeed do
   end
 
   defp issue_update_title(event) do
-    data = event.data || %{}
+    changes = changes_from_metadata(event)
 
     cond do
       not is_nil(issue_status_change(event)) ->
         "Status changed"
 
-      Map.has_key?(data, "status") ->
-        "Status changed"
-
-      Map.has_key?(data, "title") or Map.has_key?(data, "description") ->
+      Map.has_key?(changes, "title") or Map.has_key?(changes, "description") ->
         "Details updated"
 
       true ->
@@ -197,14 +198,18 @@ defmodule CloseTheLoopWeb.ActivityFeed do
   end
 
   defp report_update_title(event) do
-    changed = event.changed_attributes || %{}
-    issue_change = Map.get(changed, "issue_id")
-    location_change = Map.get(changed, "location_id")
+    meta = event.metadata || %{}
+    changes = changes_from_metadata(event)
 
-    if is_nil(issue_change) and is_nil(location_change) do
-      "Report updated"
-    else
+    move? =
+      (is_binary(meta["from_issue_id"]) and is_binary(meta["to_issue_id"])) or
+        Map.has_key?(changes, "issue_id") or
+        Map.has_key?(changes, "location_id")
+
+    if move? do
       "Report reassigned"
+    else
+      "Report updated"
     end
   end
 
@@ -232,7 +237,7 @@ defmodule CloseTheLoopWeb.ActivityFeed do
   end
 
   defp issue_update_summary(event) do
-    data = event.data || %{}
+    changes = changes_from_metadata(event)
 
     case issue_status_change(event) do
       {from, to} ->
@@ -240,15 +245,8 @@ defmodule CloseTheLoopWeb.ActivityFeed do
 
       nil ->
         cond do
-          status = Map.get(data, "status") ->
-            "Status set to #{issue_status_label(status)}"
-
-          Map.has_key?(data, "title") or Map.has_key?(data, "description") ->
-            fields =
-              ["title", "description"]
-              |> Enum.filter(&Map.has_key?(data, &1))
-
-            "Updated: #{Enum.join(fields, ", ")}"
+          Map.has_key?(changes, "title") or Map.has_key?(changes, "description") ->
+            {:field_changes, build_field_changes(changes, ["title", "description"])}
 
           true ->
             nil
@@ -257,8 +255,7 @@ defmodule CloseTheLoopWeb.ActivityFeed do
   end
 
   defp issue_status_change(event) do
-    metadata = Map.get(event, :metadata) || %{}
-    changes = Map.get(metadata, "changes") || %{}
+    changes = changes_from_metadata(event)
 
     case Map.get(changes, "status") do
       %{"from" => from, "to" => to} -> {from, to}
@@ -281,10 +278,7 @@ defmodule CloseTheLoopWeb.ActivityFeed do
     from_issue_id = meta["from_issue_id"]
     to_issue_id = meta["to_issue_id"]
     move_type = meta["move_type"]
-
-    changed = event.changed_attributes || %{}
-    issue_changed? = Map.has_key?(changed, "issue_id")
-    location_changed? = Map.has_key?(changed, "location_id")
+    changes = changes_from_metadata(event)
 
     cond do
       is_binary(from_issue_id) and is_binary(to_issue_id) ->
@@ -298,14 +292,17 @@ defmodule CloseTheLoopWeb.ActivityFeed do
            to_issue: Map.get(issues_by_id || %{}, to_issue_id)
          }}
 
-      issue_changed? and location_changed? ->
-        "Moved to a different issue (and location)."
-
-      issue_changed? ->
-        "Moved to a different issue."
-
-      location_changed? ->
-        "Location updated."
+      map_size(changes) > 0 ->
+        {:field_changes,
+         build_field_changes(changes, [
+           "body",
+           "reporter_name",
+           "reporter_email",
+           "reporter_phone",
+           "consent",
+           "issue_id",
+           "location_id"
+         ])}
 
       true ->
         nil
@@ -340,4 +337,75 @@ defmodule CloseTheLoopWeb.ActivityFeed do
   defp format_dt(%NaiveDateTime{} = dt), do: Calendar.strftime(dt, "%b %-d, %Y %-I:%M %p")
   defp format_dt(dt) when is_binary(dt), do: dt
   defp format_dt(dt), do: to_string(dt)
+
+  attr :changes, :list, required: true
+
+  defp field_changes(assigns) do
+    ~H"""
+    <div class="space-y-3">
+      <div :for={c <- @changes} class="rounded-xl border border-base bg-base/40 p-3">
+        <div class="text-xs font-semibold text-foreground-soft">{c.label}</div>
+
+        <div class="mt-2 grid gap-3 sm:grid-cols-2">
+          <div class="space-y-1">
+            <div class="text-[11px] font-medium text-foreground-soft">From</div>
+            <div class="max-h-48 overflow-auto rounded-lg border border-base bg-base p-2 whitespace-pre-wrap text-sm leading-6">
+              {display_change_value(c.from)}
+            </div>
+          </div>
+
+          <div class="space-y-1">
+            <div class="text-[11px] font-medium text-foreground-soft">To</div>
+            <div class="max-h-48 overflow-auto rounded-lg border border-base bg-base p-2 whitespace-pre-wrap text-sm leading-6">
+              {display_change_value(c.to)}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    """
+  end
+
+  defp display_change_value(nil), do: "(empty)"
+  defp display_change_value(""), do: "(empty)"
+  defp display_change_value(other), do: other
+
+  defp changes_from_metadata(event) do
+    meta = event.metadata || %{}
+    Map.get(meta, "changes") || %{}
+  end
+
+  defp build_field_changes(changes, ordered_fields) when is_map(changes) do
+    Enum.flat_map(ordered_fields, fn field ->
+      case Map.get(changes, field) do
+        %{"from" => from, "to" => to} ->
+          [
+            %{
+              field: field,
+              label: field_label(field),
+              from: from,
+              to: to
+            }
+          ]
+
+        _ ->
+          []
+      end
+    end)
+  end
+
+  defp field_label(field) when is_binary(field) do
+    case field do
+      "title" -> "Title"
+      "description" -> "Description"
+      "body" -> "Body"
+      "reporter_name" -> "Reporter name"
+      "reporter_email" -> "Reporter email"
+      "reporter_phone" -> "Reporter phone"
+      "consent" -> "SMS consent"
+      "issue_id" -> "Issue"
+      "location_id" -> "Location"
+      other -> other |> String.replace("_", " ") |> String.capitalize()
+    end
+  end
 end

@@ -12,7 +12,8 @@ defmodule CloseTheLoopWeb.IssuesLive.Index do
       |> assign(:issues, [])
       |> assign(:q, nil)
       |> assign(:status, nil)
-      |> assign(:filters_form, to_form(%{"q" => ""}, as: :filters))
+      # Filter-only form: keep query params flat (`?q=...`) across the app.
+      |> assign(:filters_form, to_form(%{"q" => ""}))
       |> assign(:category_labels, %{})
       |> assign(:active_category_labels, %{})
 
@@ -43,7 +44,7 @@ defmodule CloseTheLoopWeb.IssuesLive.Index do
       socket
       |> assign(:status, status)
       |> assign(:q, q)
-      |> assign(:filters_form, to_form(%{"q" => q || ""}, as: :filters))
+      |> assign(:filters_form, to_form(%{"q" => q || ""}))
 
     case list_issues(tenant, status, q) do
       {:ok, issues} ->
@@ -55,7 +56,7 @@ defmodule CloseTheLoopWeb.IssuesLive.Index do
   end
 
   @impl true
-  def handle_event("filters_changed", %{"filters" => %{"q" => q}}, socket) do
+  def handle_event("filters_changed", %{"q" => q}, socket) do
     q = q |> to_string() |> String.trim()
     q = if q == "", do: nil, else: q
 
@@ -87,6 +88,9 @@ defmodule CloseTheLoopWeb.IssuesLive.Index do
 
     query =
       if q do
+        # See ReportsLive.Index for rationale: wrap user input with `Ash.CiString`
+        # so `contains/2` becomes case-insensitive without changing column types.
+        q = Ash.CiString.new(q)
         Ash.Query.filter(query, contains(title, ^q) or contains(description, ^q))
       else
         query
@@ -147,12 +151,19 @@ defmodule CloseTheLoopWeb.IssuesLive.Index do
           </div>
 
           <div class="flex items-center gap-2">
-            <.form for={@filters_form} id="issues-filters-form" phx-change="filters_changed">
+            <.form
+              for={@filters_form}
+              id="issues-filters-form"
+              phx-change="filters_changed"
+              phx-submit="filters_changed"
+            >
               <.input
                 field={@filters_form[:q]}
-                type="search"
+                type="text"
                 placeholder="Search issues..."
                 phx-debounce="300"
+                inputmode="search"
+                enterkeyhint="search"
               >
                 <:inner_prefix>
                   <.icon name="hero-magnifying-glass" class="icon" />

@@ -6,6 +6,7 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
   alias CloseTheLoop.Feedback
   alias CloseTheLoop.Feedback.Text
   alias CloseTheLoop.Events
+  alias CloseTheLoop.Events.ChangeMetadata
   alias CloseTheLoop.Accounts
   alias CloseTheLoopWeb.ActivityFeed
   @impl true
@@ -195,7 +196,6 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
           id="issue-actions-card"
           class="rounded-2xl border border-base bg-base p-6 shadow-base space-y-4"
         >
-
           <div class="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
             <.button
               id="issue-open-add-update"
@@ -768,7 +768,16 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
       tenant = socket.assigns.tenant
       user = socket.assigns.current_user
 
-      case AshPhoenix.Form.submit(socket.assigns.details_form, params: params) do
+      changes =
+        ChangeMetadata.diff(socket.assigns.issue, params,
+          fields: [:title, :description],
+          trim?: true,
+          empty_to_nil?: false
+        )
+
+      context = ChangeMetadata.context_for_changes(changes)
+
+      case AshPhoenix.Form.submit(socket.assigns.details_form, params: params, context: context) do
         {:ok, issue} ->
           {:noreply,
            socket

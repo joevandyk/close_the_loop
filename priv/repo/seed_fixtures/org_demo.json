@@ -5,655 +5,632 @@
     {
       "active": true,
       "ai_exclude_keywords": null,
-      "ai_include_keywords": "spill, leak, wet floor, slippery, puddle, mop, flooding",
-      "description": "Spills, leaks, wet floors, and slip hazards.",
-      "key": "spill_slip_hazard",
-      "label": "Spill / Slip Hazard"
+      "ai_include_keywords": "spill, trash, dirty, smell, odor, sticky, pests, mold, hygiene, cleaning",
+      "description": "Cleaning, spills, odors, waste, and general hygiene concerns.",
+      "key": "cleanliness_hygiene",
+      "label": "Cleanliness & Hygiene"
     },
     {
       "active": true,
       "ai_exclude_keywords": null,
-      "ai_include_keywords": "toilet, urinal, sink, faucet, hand dryer, soap, paper towel, restroom, bathroom",
-      "description": "Restroom fixtures, supplies, and cleanliness issues.",
-      "key": "restroom",
-      "label": "Restroom"
+      "ai_include_keywords": "toilet, sink, soap, paper towel, hand dryer, clogged, leak, restroom",
+      "description": "Restroom fixtures, supplies, plumbing, and cleanliness specific to restrooms.",
+      "key": "restrooms",
+      "label": "Restrooms"
     },
     {
       "active": true,
       "ai_exclude_keywords": null,
-      "ai_include_keywords": "trash, garbage, bin, overflowing, recycling, litter",
-      "description": "Trash, recycling, and waste management issues.",
-      "key": "trash_recycling",
-      "label": "Trash & Recycling"
+      "ai_include_keywords": "light, lighting, bulb, flicker, dark, outlet, power, breaker",
+      "description": "Lighting, outlets, and minor electrical issues.",
+      "key": "electrical_lighting",
+      "label": "Electrical & Lighting"
     },
     {
       "active": true,
       "ai_exclude_keywords": null,
-      "ai_include_keywords": "hvac, air conditioning, ac, heat, heating, thermostat, too hot, too cold, ventilation",
-      "description": "Heating, cooling, and ventilation comfort issues.",
-      "key": "hvac_temperature",
-      "label": "HVAC / Temperature"
+      "ai_include_keywords": "hvac, hot, cold, temperature, thermostat, air, vent, stuffy, humid",
+      "description": "Heating, cooling, ventilation, and comfort issues.",
+      "key": "hvac_thermal_comfort",
+      "label": "HVAC & Thermal Comfort"
     },
     {
       "active": true,
       "ai_exclude_keywords": null,
-      "ai_include_keywords": "light, lighting, bulb, flicker, dark, lamp, emergency light",
-      "description": "Lighting outages, flickering, and visibility issues.",
-      "key": "lighting",
-      "label": "Lighting"
-    },
-    {
-      "active": true,
-      "ai_exclude_keywords": null,
-      "ai_include_keywords": "door, lock, badge, access, keycard, gate, broken latch",
-      "description": "Doors, locks, access control, and entry issues.",
-      "key": "doors_access",
-      "label": "Doors & Access"
-    },
-    {
-      "active": true,
-      "ai_exclude_keywords": null,
-      "ai_include_keywords": "elevator, lift, stuck, out of service, call button",
-      "description": "Elevator availability and safety issues.",
+      "ai_include_keywords": "elevator, lift, stuck, door, call button, floor indicator",
+      "description": "Elevator operation, safety, and reliability.",
       "key": "elevator",
       "label": "Elevator"
     },
     {
       "active": true,
       "ai_exclude_keywords": null,
-      "ai_include_keywords": "stairs, handrail, step, trip, uneven, carpet edge, threshold",
-      "description": "Trip hazards and walking surface issues.",
-      "key": "trip_hazard",
-      "label": "Trip Hazard / Walking Surface"
+      "ai_include_keywords": "door, lock, badge, access, key, handle, latch, security",
+      "description": "Access control, locks, doors, and security-related facility issues.",
+      "key": "access_security",
+      "label": "Access & Security"
     },
     {
       "active": true,
       "ai_exclude_keywords": null,
-      "ai_include_keywords": "noise, loud, music, construction, vibration",
-      "description": "Noise complaints affecting comfort or work.",
-      "key": "noise",
-      "label": "Noise"
+      "ai_include_keywords": "noise, loud, echo, acoustic, vibration",
+      "description": "Noise levels, soundproofing, and acoustic comfort.",
+      "key": "noise_acoustics",
+      "label": "Noise & Acoustics"
     },
     {
       "active": true,
       "ai_exclude_keywords": null,
-      "ai_include_keywords": "wifi, internet, network, printer, kiosk, screen, tablet, qr code",
-      "description": "Connectivity and shared equipment issues (printers, kiosks).",
-      "key": "it_equipment",
-      "label": "IT / Equipment"
+      "ai_include_keywords": "chair, desk, table, wobble, broken, furniture, whiteboard",
+      "description": "Furniture damage, wear, and usability issues.",
+      "key": "furniture_fixtures",
+      "label": "Furniture & Fixtures"
     },
     {
       "active": true,
       "ai_exclude_keywords": null,
-      "ai_include_keywords": "sign, signage, wayfinding, label, map",
-      "description": "Wayfinding and signage issues.",
-      "key": "signage_wayfinding",
-      "label": "Signage / Wayfinding"
+      "ai_include_keywords": "projector, tv, display, hdmi, mic, speaker, zoom room, conference",
+      "description": "Conference room AV and meeting technology issues.",
+      "key": "av_meeting_tech",
+      "label": "AV & Meeting Tech"
     },
     {
       "active": true,
       "ai_exclude_keywords": null,
-      "ai_include_keywords": "parking, garage, lot, pothole, stripe, charging, ev",
-      "description": "Parking areas, markings, and related amenities.",
-      "key": "parking",
-      "label": "Parking"
+      "ai_include_keywords": "coffee, fridge, microwave, dishwasher, kitchenette, breakroom, water",
+      "description": "Kitchenette and breakroom appliances and supplies.",
+      "key": "kitchen_breakroom",
+      "label": "Kitchen & Breakroom"
     },
     {
       "active": true,
       "ai_exclude_keywords": null,
-      "ai_include_keywords": "safety, fire extinguisher, alarm, exit, emergency, first aid",
-      "description": "Safety equipment and emergency readiness issues.",
-      "key": "safety_emergency",
-      "label": "Safety / Emergency"
+      "ai_include_keywords": "parking, garage, gate, pothole, oil, stripe, signage",
+      "description": "Parking areas, garage, and exterior access/conditions.",
+      "key": "parking_exterior",
+      "label": "Parking & Exterior"
     },
     {
       "active": true,
       "ai_exclude_keywords": null,
-      "ai_include_keywords": "clean, dirty, dust, vacuum, stain, odor, smell",
-      "description": "General cleanliness and odor issues outside restrooms.",
-      "key": "cleanliness",
-      "label": "Cleanliness"
+      "ai_include_keywords": "trip, slip, hazard, broken glass, sharp, unsafe, emergency, exit",
+      "description": "Safety hazards and urgent risks.",
+      "key": "safety_hazard",
+      "label": "Safety Hazard"
     },
     {
       "active": true,
       "ai_exclude_keywords": null,
       "ai_include_keywords": null,
-      "description": "Use when no other category fits. (When unsure, choose this and add a short note to internal context.)",
+      "description": "Use when none of the other categories fit. (Internal note: prefer specific categories; use other only when unsure.)",
       "key": "other",
       "label": "Other"
     }
   ],
   "issues": [
     {
-      "category_key": "restroom",
+      "category_key": "elevator",
       "comments": [
         {
-          "author_email": "maria.gomez@demo.org",
-          "body": "Thanks—this is the main restroom for visitors, so quick turnaround would be appreciated.",
-          "days_ago": 11,
-          "key": "cmt_001"
+          "author_email": "facilities@demo.org",
+          "body": "Vendor ticket opened. If it gets stuck again, please note the time and floor so we can pull logs.",
+          "days_ago": 26,
+          "key": "com_001a"
         }
       ],
-      "days_ago": 12,
-      "description": "Women's restroom (1st floor) is out of paper towels; dispenser is empty and the backup stack is gone.",
+      "days_ago": 29,
+      "description": "The elevator doors on the 1st floor hesitate and sometimes reopen 2–3 times before closing. It adds a noticeable delay and feels unreliable.",
       "key": "iss_001",
-      "location_key": "loc_hq_1f_restrooms_womens",
+      "location_key": "loc_hq_1f_elevator_lobby",
       "reports": [
         {
-          "body": "No paper towels in the women's restroom. Hand dryer works but a lot of people prefer towels.",
-          "consent": true,
-          "days_ago": 12,
+          "body": "Elevator doors keep bouncing open on the 1st floor. Took ~30 seconds to finally close.",
+          "consent": false,
+          "days_ago": 29,
           "key": "rep_001a",
           "reporter_phone": null,
           "source": "qr"
         },
         {
-          "body": "No paper towels in the women's restroom. Hand dryer works but a lot of people prefer towels. Also noticed by another guest (separately reported).",
+          "body": "Noticed the elevator door sensor seems overly sensitive—doors reopen even when no one is near.",
           "consent": false,
-          "days_ago": 11,
-          "key": "rep_001a_2",
+          "days_ago": 28,
+          "key": "rep_001b",
           "reporter_phone": null,
-          "source": "qr"
-        }
-      ],
-      "status": "fixed",
-      "updates": [
-        {
-          "days_ago": 12,
-          "key": "upd_001a",
-          "message": "Acknowledged—routing to janitorial restock."
+          "source": "sms"
         },
         {
-          "days_ago": 11,
+          "body": "Happened again this morning around 9:10am. Doors reopened multiple times before moving.",
+          "consent": true,
+          "days_ago": 27,
+          "key": "rep_001c",
+          "reporter_phone": "+15555550112",
+          "source": "sms"
+        }
+      ],
+      "status": "in_progress",
+      "title": "Elevator doors repeatedly reopening on 1st floor",
+      "updates": [
+        {
+          "days_ago": 27,
+          "key": "upd_001a",
+          "message": "Acknowledged. Facilities contacted elevator vendor to inspect door sensor and alignment."
+        },
+        {
+          "days_ago": 25,
           "key": "upd_001b",
-          "message": "Restocked paper towels and added an extra backup pack in the cabinet."
+          "message": "Vendor scheduled for on-site visit; monitoring for additional incidents."
         }
       ]
     },
     {
-      "category_key": "lighting",
-      "comments": [],
-      "days_ago": 27,
-      "description": "Two overhead lights are flickering in the 2nd floor open office near the north windows.",
+      "category_key": "restrooms",
+      "comments": [
+        {
+          "author_email": "ops@demo.org",
+          "body": "Thanks—refill added to the daily checklist for this restroom.",
+          "days_ago": 9,
+          "key": "com_002a"
+        }
+      ],
+      "days_ago": 12,
+      "description": "Women's restroom is frequently out of paper towels; the dispenser is empty and people are leaving with wet hands.",
       "key": "iss_002",
-      "location_key": "loc_hq_2f_open_office_north",
+      "location_key": "loc_hq_1f_restrooms_womens",
       "reports": [
         {
-          "body": "Lights flicker intermittently (especially in the afternoon). It's distracting during calls.",
-          "consent": true,
-          "days_ago": 27,
+          "body": "Paper towel dispenser is empty in the women’s restroom again.",
+          "consent": false,
+          "days_ago": 12,
           "key": "rep_002a",
           "reporter_phone": null,
           "source": "qr"
         },
         {
-          "body": "Same area—noticed one fixture is dim and then flashes bright.",
+          "body": "No paper towels—only the hand dryer, which is super weak.",
           "consent": false,
-          "days_ago": 26,
+          "days_ago": 11,
           "key": "rep_002b",
+          "reporter_phone": null,
+          "source": "manual"
+        },
+        {
+          "body": "Still empty as of this afternoon (around 3pm).",
+          "consent": false,
+          "days_ago": 10,
+          "key": "rep_002c",
+          "reporter_phone": null,
+          "source": "sms"
+        }
+      ],
+      "status": "fixed",
+      "title": "Paper towels frequently empty in women's restroom",
+      "updates": [
+        {
+          "days_ago": 10,
+          "key": "upd_002a",
+          "message": "Restocked paper towels and checked spare inventory in janitorial closet."
+        },
+        {
+          "days_ago": 9,
+          "key": "upd_002b",
+          "message": "Adjusted replenishment schedule to include midday check."
+        }
+      ]
+    },
+    {
+      "category_key": "hvac_thermal_comfort",
+      "comments": [],
+      "days_ago": 44,
+      "description": "The open office on the north side of the 2nd floor feels noticeably warm and stuffy in the afternoons. Airflow from vents seems low.",
+      "key": "iss_003",
+      "location_key": "loc_hq_2f_open_office_north",
+      "reports": [
+        {
+          "body": "It’s been hot in the north open office after lunch for the last few days.",
+          "consent": false,
+          "days_ago": 44,
+          "key": "rep_003a",
+          "reporter_phone": null,
+          "source": "qr"
+        },
+        {
+          "body": "Air feels stale near the windows; vent output seems weak compared to the hallway.",
+          "consent": false,
+          "days_ago": 43,
+          "key": "rep_003b",
+          "reporter_phone": null,
+          "source": "sms"
+        }
+      ],
+      "status": "acknowledged",
+      "title": "Warm, low airflow in 2nd floor north open office",
+      "updates": [
+        {
+          "days_ago": 42,
+          "key": "upd_003a",
+          "message": "Acknowledged. Facilities to check VAV settings and confirm vent airflow readings."
+        }
+      ]
+    },
+    {
+      "category_key": "electrical_lighting",
+      "comments": [],
+      "days_ago": 7,
+      "description": "One of the ceiling lights in the mailroom corridor flickers intermittently, especially in the morning. It’s distracting and makes the area feel dim.",
+      "key": "iss_004",
+      "location_key": "loc_hq_1f_corridor_mailroom",
+      "reports": [
+        {
+          "body": "Light flickering in the corridor by the mailroom—looks like it’s about to go out.",
+          "consent": false,
+          "days_ago": 7,
+          "key": "rep_004a",
+          "reporter_phone": null,
+          "source": "qr"
+        },
+        {
+          "body": "Same flicker is still happening today; it’s the second fixture from the mailroom door.",
+          "consent": false,
+          "days_ago": 6,
+          "key": "rep_004b",
           "reporter_phone": null,
           "source": "manual"
         }
       ],
       "status": "in_progress",
+      "title": "Flickering ceiling light near mailroom corridor",
       "updates": [
         {
-          "days_ago": 26,
-          "key": "upd_002a",
-          "message": "Facilities notified; ordering replacement ballast/LED driver for fixture."
-        },
-        {
-          "days_ago": 23,
-          "key": "upd_002b",
-          "message": "Technician scheduled for this week; may require ladder access after hours."
+          "days_ago": 5,
+          "key": "upd_004a",
+          "message": "Replacement LED driver ordered; temporary check confirmed fixture is intermittently failing."
         }
       ]
     },
     {
-      "category_key": "spill_slip_hazard",
+      "category_key": "cleanliness_hygiene",
       "comments": [
         {
-          "author_email": null,
-          "body": "I put a wet floor sign there but it got moved—please keep one nearby.",
-          "days_ago": 44,
-          "key": "cmt_003"
+          "author_email": "janitorial@demo.org",
+          "body": "We’ll do an extra pass after lunch this week to see if it stays under control.",
+          "days_ago": 18,
+          "key": "com_005a"
         }
       ],
-      "days_ago": 45,
-      "description": "Water pooling near the lobby entrance on rainy days; floor gets slippery by the mat edge.",
-      "key": "iss_003",
+      "days_ago": 21,
+      "description": "Lobby trash can near the seating area is overflowing by mid-day and there’s often coffee cup lids and napkins on the floor.",
+      "key": "iss_005",
       "location_key": "loc_hq_1f_lobby",
       "reports": [
         {
-          "body": "Rainwater is getting past the mat and pooling. Almost slipped walking in.",
-          "consent": true,
-          "days_ago": 45,
-          "key": "rep_003a",
-          "reporter_phone": "+1-555-013-2290",
-          "source": "sms"
-        },
-        {
-          "body": "Rainwater is getting past the mat and pooling. Almost slipped walking in. Also noticed by another guest (separately reported).",
+          "body": "Trash can in the lobby is overflowing again; trash on the floor near the chairs.",
           "consent": false,
-          "days_ago": 44,
-          "key": "rep_003a_2",
-          "reporter_phone": null,
-          "source": "qr"
-        }
-      ],
-      "status": "fixed",
-      "updates": [
-        {
-          "days_ago": 45,
-          "key": "upd_003a",
-          "message": "Acknowledged—placing additional absorbent mats and wet floor signage."
-        },
-        {
-          "days_ago": 43,
-          "key": "upd_003b",
-          "message": "Added a second mat and adjusted door sweep; monitoring during next rain."
-        },
-        {
-          "days_ago": 40,
-          "key": "upd_003c",
-          "message": "No pooling observed after adjustments; closing out."
-        }
-      ]
-    },
-    {
-      "category_key": "hvac_temperature",
-      "comments": [],
-      "days_ago": 8,
-      "description": "Conference Room B runs very cold during meetings; thermostat seems unresponsive.",
-      "key": "iss_004",
-      "location_key": "loc_hq_2f_conf_b",
-      "reports": [
-        {
-          "body": "Room B is freezing even when set to 72. Feels like air is blasting constantly.",
-          "consent": true,
-          "days_ago": 8,
-          "key": "rep_004a",
-          "reporter_phone": null,
-          "source": "qr"
-        }
-      ],
-      "status": "acknowledged",
-      "updates": [
-        {
-          "days_ago": 7,
-          "key": "upd_004a",
-          "message": "Acknowledged—checking VAV box and thermostat calibration."
-        }
-      ]
-    },
-    {
-      "category_key": "trash_recycling",
-      "comments": [],
-      "days_ago": 19,
-      "description": "Recycling bin overflowing in the 3rd floor breakroom; cardboard stacked next to it.",
-      "key": "iss_005",
-      "location_key": "loc_hq_3f_breakroom",
-      "reports": [
-        {
-          "body": "Recycling is full and people are leaving boxes on the floor. Smells a bit too.",
-          "consent": true,
-          "days_ago": 19,
+          "days_ago": 21,
           "key": "rep_005a",
           "reporter_phone": null,
           "source": "qr"
         },
         {
-          "body": "Recycling is full and people are leaving boxes on the floor. Smells a bit too. Also noticed by another guest (separately reported).",
+          "body": "Lobby bin is full by noon most days—maybe needs a larger bin or more frequent pickup.",
           "consent": false,
-          "days_ago": 18,
-          "key": "rep_005a_2",
+          "days_ago": 20,
+          "key": "rep_005b",
           "reporter_phone": null,
           "source": "sms"
+        },
+        {
+          "body": "Noticed ants near the overflow yesterday (probably from food trash).",
+          "consent": false,
+          "days_ago": 19,
+          "key": "rep_005c",
+          "reporter_phone": null,
+          "source": "manual"
         }
       ],
       "status": "fixed",
+      "title": "Lobby trash overflowing by mid-day",
       "updates": [
         {
           "days_ago": 19,
           "key": "upd_005a",
-          "message": "Janitorial notified for immediate pickup; adding extra cardboard pickup on Fridays."
+          "message": "Added an extra trash pickup time (midday) and replaced liner."
         },
         {
           "days_ago": 18,
           "key": "upd_005b",
-          "message": "Cleared overflow and removed cardboard; bin liner replaced."
+          "message": "Swapped to a larger bin and cleaned area around seating to address food residue."
         }
       ]
     },
     {
-      "category_key": "doors_access",
+      "category_key": "av_meeting_tech",
+      "comments": [],
+      "days_ago": 63,
+      "description": "Conference Room B’s HDMI connection is unreliable; the display frequently shows 'No Signal' unless the cable is wiggled. This delays meetings.",
+      "key": "iss_006",
+      "location_key": "loc_hq_2f_conf_room_b",
+      "reports": [
+        {
+          "body": "HDMI in Conf Room B keeps cutting out. Had to reconnect 3 times during a meeting.",
+          "consent": false,
+          "days_ago": 63,
+          "key": "rep_006a",
+          "reporter_phone": null,
+          "source": "qr"
+        },
+        {
+          "body": "The wall plate HDMI seems loose—if you touch the cable the screen goes black.",
+          "consent": false,
+          "days_ago": 62,
+          "key": "rep_006b",
+          "reporter_phone": null,
+          "source": "sms"
+        },
+        {
+          "body": "Still happening. We switched to wireless casting as a workaround.",
+          "consent": false,
+          "days_ago": 60,
+          "key": "rep_006c",
+          "reporter_phone": null,
+          "source": "manual"
+        }
+      ],
+      "status": "fixed",
+      "title": "Conference Room B HDMI 'No Signal' issues",
+      "updates": [
+        {
+          "days_ago": 61,
+          "key": "upd_006a",
+          "message": "Acknowledged. AV team to inspect wall plate and replace cable if needed."
+        },
+        {
+          "days_ago": 58,
+          "key": "upd_006b",
+          "message": "Replaced HDMI cable and tightened wall plate connection; tested with two laptops."
+        }
+      ]
+    },
+    {
+      "category_key": "access_security",
       "comments": [
         {
           "author_email": "security@demo.org",
-          "body": "If this happens again, please note the time so we can pull access logs.",
+          "body": "If you notice it propped open, please let us know the approximate time so we can review camera footage.",
           "days_ago": 33,
-          "key": "cmt_006"
+          "key": "com_007a"
         }
       ],
-      "days_ago": 35,
-      "description": "Badge reader at the side entrance intermittently fails; requires multiple taps to unlock.",
-      "key": "iss_006",
+      "days_ago": 36,
+      "description": "The side entrance door doesn’t always latch fully. It looks closed but can be pushed open without a badge if it doesn’t catch.",
+      "key": "iss_007",
       "location_key": "loc_hq_1f_side_entrance",
       "reports": [
         {
-          "body": "Badge reader flashes red even with valid badge. Took 5 tries this morning.",
-          "consent": true,
-          "days_ago": 35,
-          "key": "rep_006a",
-          "reporter_phone": null,
-          "source": "manual"
-        },
-        {
-          "body": "Same issue at ~8:40am. Eventually worked but seems flaky.",
+          "body": "Side entrance door didn’t latch—was able to push it open after it 'closed'.",
           "consent": false,
-          "days_ago": 34,
-          "key": "rep_006b",
-          "reporter_phone": null,
-          "source": "qr"
-        }
-      ],
-      "status": "in_progress",
-      "updates": [
-        {
-          "days_ago": 34,
-          "key": "upd_006a",
-          "message": "Acknowledged—security vendor contacted to inspect reader and wiring."
-        },
-        {
-          "days_ago": 31,
-          "key": "upd_006b",
-          "message": "Temporary fix applied (cleaned contacts, reseated connector). Monitoring for recurrence."
-        }
-      ]
-    },
-    {
-      "category_key": "it_equipment",
-      "comments": [],
-      "days_ago": 3,
-      "description": "Lobby QR code poster links to an old form; users get a 404 page.",
-      "key": "iss_007",
-      "location_key": "loc_hq_1f_lobby",
-      "reports": [
-        {
-          "body": "Scanned the QR in the lobby and it goes to a dead link (404).",
-          "consent": true,
-          "days_ago": 3,
+          "days_ago": 36,
           "key": "rep_007a",
           "reporter_phone": null,
           "source": "qr"
         },
         {
-          "body": "Scanned the QR in the lobby and it goes to a dead link (404). Also noticed by another guest (separately reported).",
+          "body": "Noticed the latch issue too; seems worse when it’s windy.",
           "consent": false,
-          "days_ago": 2,
-          "key": "rep_007a_2",
+          "days_ago": 35,
+          "key": "rep_007b",
           "reporter_phone": null,
           "source": "sms"
         }
       ],
-      "status": "new",
-      "updates": []
+      "status": "in_progress",
+      "title": "Side entrance door not latching reliably",
+      "updates": [
+        {
+          "days_ago": 35,
+          "key": "upd_007a",
+          "message": "Acknowledged. Submitted work order to adjust strike plate and closer tension."
+        },
+        {
+          "days_ago": 32,
+          "key": "upd_007b",
+          "message": "Temporary adjustment made; monitoring for recurrence before replacing hardware."
+        }
+      ]
     },
     {
-      "category_key": "cleanliness",
+      "category_key": "kitchen_breakroom",
       "comments": [],
-      "days_ago": 61,
-      "description": "Carpet stain in the 2nd floor hallway near Conference Room A; looks like old coffee spill.",
+      "days_ago": 3,
+      "description": "The breakroom fridge on the 3rd floor has a strong sour smell and there’s liquid pooled under the bottom shelf. Might be a spill or a leak.",
       "key": "iss_008",
-      "location_key": "loc_hq_2f_hallway_east",
+      "location_key": "loc_hq_3f_breakroom",
       "reports": [
         {
-          "body": "There’s a noticeable brown stain in the hallway carpet by Conf A. Been there for weeks.",
-          "consent": true,
-          "days_ago": 61,
+          "body": "3rd floor fridge smells awful and there’s a puddle at the bottom.",
+          "consent": false,
+          "days_ago": 3,
           "key": "rep_008a",
           "reporter_phone": null,
           "source": "qr"
         },
         {
-          "body": "There’s a noticeable brown stain in the hallway carpet by Conf A. Been there for weeks. Also noticed by another guest (separately reported).",
+          "body": "I wiped it but it came back—could be leaking from a container or the fridge itself.",
           "consent": false,
-          "days_ago": 60,
-          "key": "rep_008a_2",
+          "days_ago": 2,
+          "key": "rep_008b",
           "reporter_phone": null,
-          "source": "qr"
+          "source": "manual"
         }
       ],
-      "status": "fixed",
-      "updates": [
-        {
-          "days_ago": 60,
-          "key": "upd_008a",
-          "message": "Added to carpet spot-cleaning list for this week."
-        },
-        {
-          "days_ago": 56,
-          "key": "upd_008b",
-          "message": "Spot cleaned; stain significantly reduced. Scheduling deeper extraction next monthly clean."
-        },
-        {
-          "days_ago": 30,
-          "key": "upd_008c",
-          "message": "Deep extraction completed; stain removed."
-        }
-      ]
+      "status": "new",
+      "title": "Sour smell and pooling liquid in 3rd floor fridge",
+      "updates": []
     },
     {
-      "category_key": "elevator",
+      "category_key": "noise_acoustics",
       "comments": [],
-      "days_ago": 22,
-      "description": "Elevator call button on 1st floor is sticky; sometimes doesn't register a press.",
+      "days_ago": 52,
+      "description": "There’s a loud rattling/whirring noise in the west hallway on the 2nd floor, likely from a vent or fan. It’s noticeable during calls.",
       "key": "iss_009",
-      "location_key": "loc_hq_1f_elevator_lobby",
+      "location_key": "loc_hq_2f_hallway_west",
       "reports": [
         {
-          "body": "The up button feels stuck and doesn't always light up when pressed.",
-          "consent": true,
-          "days_ago": 22,
+          "body": "Rattling noise in the west hallway—sounds like a loose vent cover.",
+          "consent": false,
+          "days_ago": 52,
           "key": "rep_009a",
           "reporter_phone": null,
           "source": "qr"
         },
         {
-          "body": "The up button feels stuck and doesn't always light up when pressed. Also noticed by another guest (separately reported).",
+          "body": "It’s loudest near the corner by the conference rooms; happens in bursts.",
           "consent": false,
-          "days_ago": 21,
-          "key": "rep_009a_2",
+          "days_ago": 51,
+          "key": "rep_009b",
           "reporter_phone": null,
           "source": "sms"
-        }
-      ],
-      "status": "acknowledged",
-      "updates": [
+        },
         {
-          "days_ago": 21,
-          "key": "upd_009a",
-          "message": "Acknowledged—submitted service request to elevator maintenance vendor."
-        }
-      ]
-    },
-    {
-      "category_key": "parking",
-      "comments": [],
-      "days_ago": 74,
-      "description": "Pothole forming near the garage exit lane; drivers swerve to avoid it.",
-      "key": "iss_010",
-      "location_key": "loc_parking_garage_level1",
-      "reports": [
-        {
-          "body": "Pothole near the exit is getting bigger. Could damage tires.",
-          "consent": true,
-          "days_ago": 74,
-          "key": "rep_010a",
+          "body": "Still happening today; makes it hard to take calls while walking through.",
+          "consent": false,
+          "days_ago": 49,
+          "key": "rep_009c",
           "reporter_phone": null,
           "source": "manual"
         }
       ],
-      "status": "in_progress",
+      "status": "acknowledged",
+      "title": "Rattling vent/fan noise in 2nd floor west hallway",
       "updates": [
         {
-          "days_ago": 73,
-          "key": "upd_010a",
-          "message": "Acknowledged—getting quote from paving contractor; placed cone as temporary warning."
-        },
-        {
-          "days_ago": 65,
-          "key": "upd_010b",
-          "message": "Contractor scheduled for patch repair next available window (weather dependent)."
+          "days_ago": 50,
+          "key": "upd_009a",
+          "message": "Acknowledged. Facilities to inspect vent covers and nearby fan unit for vibration."
         }
       ]
     },
     {
-      "category_key": "signage_wayfinding",
+      "category_key": "parking_exterior",
       "comments": [],
-      "days_ago": 14,
-      "description": "Wayfinding sign to 'Training Room' points the wrong direction on 2nd floor.",
-      "key": "iss_011",
-      "location_key": "loc_hq_2f_hallway_west",
+      "days_ago": 78,
+      "description": "Oil slick on Garage Level 1 near the ramp is creating a slip hazard. It’s been there for at least a week and looks like it’s spreading.",
+      "key": "iss_010",
+      "location_key": "loc_parking_garage_l1",
       "reports": [
         {
-          "body": "The arrow for Training Room sends people toward the stairwell instead of the west corridor.",
-          "consent": true,
-          "days_ago": 14,
+          "body": "Oil on the garage floor near the ramp—almost slipped getting out of my car.",
+          "consent": false,
+          "days_ago": 78,
+          "key": "rep_010a",
+          "reporter_phone": null,
+          "source": "qr"
+        },
+        {
+          "body": "The oil patch is bigger now and there’s no cone/sign.",
+          "consent": false,
+          "days_ago": 77,
+          "key": "rep_010b",
+          "reporter_phone": null,
+          "source": "sms"
+        }
+      ],
+      "status": "fixed",
+      "title": "Oil slick on Garage Level 1 near ramp",
+      "updates": [
+        {
+          "days_ago": 77,
+          "key": "upd_010a",
+          "message": "Placed caution cones and absorbent pads; requested cleanup service."
+        },
+        {
+          "days_ago": 75,
+          "key": "upd_010b",
+          "message": "Area cleaned and degreased; cones removed after surface dried."
+        }
+      ]
+    },
+    {
+      "category_key": "furniture_fixtures",
+      "comments": [],
+      "days_ago": 16,
+      "description": "One of the chairs in the 2nd floor kitchenette has a loose leg and wobbles significantly. It feels unsafe to sit on.",
+      "key": "iss_011",
+      "location_key": "loc_hq_2f_kitchenette",
+      "reports": [
+        {
+          "body": "Wobbly chair in the kitchenette—front right leg is loose.",
+          "consent": false,
+          "days_ago": 16,
           "key": "rep_011a",
           "reporter_phone": null,
           "source": "qr"
         },
         {
-          "body": "The arrow for Training Room sends people toward the stairwell instead of the west corridor. Also noticed by another guest (separately reported).",
+          "body": "Almost tipped over when I sat down. Please remove it until fixed.",
           "consent": false,
-          "days_ago": 13,
-          "key": "rep_011a_2",
+          "days_ago": 15,
+          "key": "rep_011b",
           "reporter_phone": null,
           "source": "sms"
         }
       ],
       "status": "fixed",
+      "title": "Wobbly chair in 2nd floor kitchenette",
       "updates": [
         {
-          "days_ago": 13,
+          "days_ago": 15,
           "key": "upd_011a",
-          "message": "Confirmed incorrect arrow; ordering replacement insert."
-        },
-        {
-          "days_ago": 9,
-          "key": "upd_011b",
-          "message": "Replaced sign insert; verified direction from both ends of hallway."
+          "message": "Removed chair from service and tightened hardware; tested for stability."
         }
       ]
     },
     {
-      "category_key": "safety_emergency",
-      "comments": [],
-      "days_ago": 6,
-      "description": "Fire extinguisher cabinet in 3rd floor hallway appears empty (no extinguisher visible).",
+      "category_key": "safety_hazard",
+      "comments": [
+        {
+          "author_email": "facilities@demo.org",
+          "body": "If you see any remaining loose edges, please snap a photo and note the exact spot in the hallway.",
+          "days_ago": 40,
+          "key": "com_012a"
+        }
+      ],
+      "days_ago": 41,
+      "description": "Carpet edge in the 3rd floor hallway is lifting near the middle section, creating a trip hazard. Several people have stumbled.",
       "key": "iss_012",
       "location_key": "loc_hq_3f_hallway",
       "reports": [
         {
-          "body": "Cabinet glass shows no extinguisher inside. Not sure if it's missing or relocated.",
-          "consent": true,
-          "days_ago": 6,
+          "body": "Carpet is peeling up in the 3rd floor hallway—tripped a little but caught myself.",
+          "consent": false,
+          "days_ago": 41,
           "key": "rep_012a",
           "reporter_phone": null,
           "source": "qr"
         },
         {
-          "body": "Cabinet glass shows no extinguisher inside. Not sure if it's missing or relocated. Also noticed by another guest (separately reported).",
+          "body": "Same spot is still raised; should be taped down ASAP.",
           "consent": false,
-          "days_ago": 5,
-          "key": "rep_012a_2",
-          "reporter_phone": null,
-          "source": "sms"
-        }
-      ],
-      "status": "acknowledged",
-      "updates": [
-        {
-          "days_ago": 5,
-          "key": "upd_012a",
-          "message": "Acknowledged—checking inspection tags and confirming with safety vendor; will replace immediately if missing."
-        }
-      ]
-    },
-    {
-      "category_key": "noise",
-      "comments": [
-        {
-          "author_email": "facilities@demo.org",
-          "body": "If you can, please share the approximate time window so we can correlate with mechanical cycles.",
-          "days_ago": 50,
-          "key": "cmt_013"
-        }
-      ],
-      "days_ago": 52,
-      "description": "Intermittent loud rattling noise from ceiling vent near the 2nd floor kitchenette.",
-      "key": "iss_013",
-      "location_key": "loc_hq_2f_kitchenette",
-      "reports": [
-        {
-          "body": "Rattling/buzzing from the vent for ~10 minutes at a time. Happens a few times a day.",
-          "consent": true,
-          "days_ago": 52,
-          "key": "rep_013a",
-          "reporter_phone": null,
-          "source": "qr"
-        },
-        {
-          "body": "Rattling/buzzing from the vent for ~10 minutes at a time. Happens a few times a day. Also noticed by another guest (separately reported).",
-          "consent": false,
-          "days_ago": 51,
-          "key": "rep_013a_2",
+          "days_ago": 40,
+          "key": "rep_012b",
           "reporter_phone": null,
           "source": "sms"
         }
       ],
       "status": "fixed",
+      "title": "Lifted carpet edge creating trip hazard on 3rd floor",
       "updates": [
         {
-          "days_ago": 51,
-          "key": "upd_013a",
-          "message": "Inspected vent grille; found loose fastener. Tightened and added foam tape to reduce vibration."
+          "days_ago": 40,
+          "key": "upd_012a",
+          "message": "Applied temporary carpet tape and placed a small caution marker."
         },
         {
-          "days_ago": 47,
-          "key": "upd_013b",
-          "message": "No further noise reported; closing."
+          "days_ago": 38,
+          "key": "upd_012b",
+          "message": "Carpet edge re-secured and trimmed; removed marker after inspection."
         }
       ]
-    },
-    {
-      "category_key": "trip_hazard",
-      "comments": [],
-      "days_ago": 2,
-      "description": "Loose floor transition strip at the 1st floor corridor near the mailroom; edge is lifting.",
-      "key": "iss_014",
-      "location_key": "loc_hq_1f_corridor_mailroom",
-      "reports": [
-        {
-          "body": "Metal strip between tile and carpet is lifting. Caught my shoe on it.",
-          "consent": true,
-          "days_ago": 2,
-          "key": "rep_014a",
-          "reporter_phone": null,
-          "source": "qr"
-        },
-        {
-          "body": "Metal strip between tile and carpet is lifting. Caught my shoe on it. Also noticed by another guest (separately reported).",
-          "consent": false,
-          "days_ago": 1,
-          "key": "rep_014a_2",
-          "reporter_phone": null,
-          "source": "sms"
-        }
-      ],
-      "status": "new",
-      "updates": []
     }
   ],
   "locations": [
@@ -724,12 +701,12 @@
     },
     {
       "full_path": "HQ / 2nd Floor / Conference Rooms",
-      "key": "loc_hq_2f_conf",
+      "key": "loc_hq_2f_conference_rooms",
       "name": "Conference Rooms"
     },
     {
       "full_path": "HQ / 2nd Floor / Conference Rooms / Conference Room B",
-      "key": "loc_hq_2f_conf_b",
+      "key": "loc_hq_2f_conf_room_b",
       "name": "Conference Room B"
     },
     {
@@ -754,7 +731,7 @@
     },
     {
       "full_path": "Parking / Garage (Level 1)",
-      "key": "loc_parking_garage_level1",
+      "key": "loc_parking_garage_l1",
       "name": "Garage (Level 1)"
     }
   ],

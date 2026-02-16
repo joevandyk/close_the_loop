@@ -11,7 +11,8 @@ defmodule CloseTheLoopWeb.ReportsLive.Index do
       socket
       |> assign(:reports, [])
       |> assign(:q, nil)
-      |> assign(:filters_form, to_form(%{"q" => ""}, as: :filters))
+      # Filter-only form: keep query params flat (`?q=...`) across the app.
+      |> assign(:filters_form, to_form(%{"q" => ""}))
 
     {:ok, socket}
   end
@@ -24,7 +25,7 @@ defmodule CloseTheLoopWeb.ReportsLive.Index do
     socket =
       socket
       |> assign(:q, q)
-      |> assign(:filters_form, to_form(%{"q" => q || ""}, as: :filters))
+      |> assign(:filters_form, to_form(%{"q" => q || ""}))
 
     case list_reports(tenant, q) do
       {:ok, reports} ->
@@ -36,7 +37,7 @@ defmodule CloseTheLoopWeb.ReportsLive.Index do
   end
 
   @impl true
-  def handle_event("filters_changed", %{"filters" => %{"q" => q}}, socket) do
+  def handle_event("filters_changed", %{"q" => q}, socket) do
     q = q |> to_string() |> String.trim()
     q = if q == "", do: nil, else: q
 
@@ -59,6 +60,10 @@ defmodule CloseTheLoopWeb.ReportsLive.Index do
 
     query =
       if q do
+        # `contains/2` is case-sensitive for normal strings, but becomes case-insensitive
+        # if either side is an `Ash.CiString`. Wrapping the input keeps URL params as-is
+        # while making search behave the way users expect.
+        q = Ash.CiString.new(q)
         Ash.Query.filter(query, contains(body, ^q))
       else
         query
@@ -120,12 +125,19 @@ defmodule CloseTheLoopWeb.ReportsLive.Index do
           </div>
 
           <div class="flex items-center gap-2">
-            <.form for={@filters_form} id="reports-filters-form" phx-change="filters_changed">
+            <.form
+              for={@filters_form}
+              id="reports-filters-form"
+              phx-change="filters_changed"
+              phx-submit="filters_changed"
+            >
               <.input
                 field={@filters_form[:q]}
-                type="search"
+                type="text"
                 placeholder="Search reports..."
                 phx-debounce="300"
+                inputmode="search"
+                enterkeyhint="search"
               >
                 <:inner_prefix>
                   <.icon name="hero-magnifying-glass" class="icon" />

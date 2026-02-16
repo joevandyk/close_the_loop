@@ -73,9 +73,11 @@ defmodule CloseTheLoopWeb.ReporterLive.New do
             <.form
               for={@report_form}
               id="reporter-intake-form"
+              phx-hook=".RememberReporterInfo"
               phx-change="validate"
               phx-submit="submit"
               class="space-y-4"
+              data-reporter-info-storage-key={"close_the_loop:reporter_info:v1:#{@tenant}"}
             >
               <.textarea
                 field={@report_form[:body]}
@@ -97,27 +99,23 @@ defmodule CloseTheLoopWeb.ReporterLive.New do
                 <.input
                   field={@report_form[:reporter_email]}
                   type="email"
-                  label="Email"
-                  sublabel="Optional"
+                  label="Email (optional)"
                   autocomplete="email"
                   inputmode="email"
-                  help_text="Only used if the business needs to follow up."
                 />
 
                 <.input
                   field={@report_form[:reporter_phone]}
                   type="tel"
-                  label="Phone number"
-                  sublabel="Optional"
+                  label="Phone number (optional)"
                   placeholder="+15555550100"
                   inputmode="tel"
                   autocomplete="tel"
-                  help_text="For international numbers, start with + and country code."
                 />
 
                 <.checkbox
                   field={@report_form[:consent]}
-                  label="I agree to receive text updates about this issue."
+                  label="Send me text updates about this issue."
                 />
               </div>
 
@@ -137,6 +135,141 @@ defmodule CloseTheLoopWeb.ReporterLive.New do
                 Submit
               </.button>
             </.form>
+
+            <script :type={Phoenix.LiveView.ColocatedHook} name=".RememberReporterInfo">
+              export default {
+                mounted() {
+                  this.storageKey =
+                    this.el.dataset.reporterInfoStorageKey ||
+                      "close_the_loop:reporter_info:v1";
+
+                  this.fields = {
+                    name: this.el.querySelector('input[name="report[reporter_name]"]'),
+                    email: this.el.querySelector('input[name="report[reporter_email]"]'),
+                    phone: this.el.querySelector('input[name="report[reporter_phone]"]'),
+                    consent: this.el.querySelector('input[type="checkbox"][name="report[consent]"]'),
+                  };
+
+                  this._listeners = [];
+
+                  this.prefillFromStorage();
+                  this.attachListeners();
+
+                  // Capture any browser autofill that happens at load time.
+                  setTimeout(() => this.persistToStorage(), 0);
+                },
+
+                destroyed() {
+                  this.detachListeners();
+                },
+
+                attachListeners() {
+                  const onInput = () => this.persistToStorage();
+                  const onConsent = () => this.persistToStorage();
+
+                  if (this.fields.name) this.addListener(this.fields.name, "input", onInput);
+                  if (this.fields.email) this.addListener(this.fields.email, "input", onInput);
+                  if (this.fields.phone) this.addListener(this.fields.phone, "input", onInput);
+                  if (this.fields.consent) this.addListener(this.fields.consent, "change", onConsent);
+                },
+
+                detachListeners() {
+                  for (const [el, event, handler] of this._listeners) {
+                    el.removeEventListener(event, handler);
+                  }
+                  this._listeners = [];
+                },
+
+                addListener(el, event, handler) {
+                  el.addEventListener(event, handler);
+                  this._listeners.push([el, event, handler]);
+                },
+
+                safeGet() {
+                  try {
+                    const raw = window.localStorage.getItem(this.storageKey);
+                    if (!raw) return null;
+
+                    const parsed = JSON.parse(raw);
+                    if (!parsed || typeof parsed !== "object") return null;
+
+                    return {
+                      reporter_name: this.safeString(parsed.reporter_name, 100),
+                      reporter_email: this.safeString(parsed.reporter_email, 254),
+                      reporter_phone: this.safeString(parsed.reporter_phone, 50),
+                      consent: parsed.consent === true,
+                    };
+                  } catch (_err) {
+                    return null;
+                  }
+                },
+
+                safeSet(value) {
+                  try {
+                    window.localStorage.setItem(this.storageKey, JSON.stringify(value));
+                  } catch (_err) {
+                    // Ignore: storage might be disabled (private mode, quota, etc.)
+                  }
+                },
+
+                safeRemove() {
+                  try {
+                    window.localStorage.removeItem(this.storageKey);
+                  } catch (_err) {
+                    // Ignore
+                  }
+                },
+
+                safeString(value, maxLen) {
+                  if (typeof value !== "string") return "";
+                  return value.trim().slice(0, maxLen);
+                },
+
+                prefillFromStorage() {
+                  const stored = this.safeGet();
+                  if (!stored) return;
+
+                  if (this.fields.name && !this.fields.name.value && stored.reporter_name) {
+                    this.fields.name.value = stored.reporter_name;
+                  }
+
+                  if (this.fields.email && !this.fields.email.value && stored.reporter_email) {
+                    this.fields.email.value = stored.reporter_email;
+                  }
+
+                  if (this.fields.phone && !this.fields.phone.value && stored.reporter_phone) {
+                    this.fields.phone.value = stored.reporter_phone;
+                  }
+
+                  if (this.fields.consent && stored.consent === true) {
+                    this.fields.consent.checked = true;
+                  }
+                },
+
+                persistToStorage() {
+                  const payload = {
+                    reporter_name: this.safeString(this.fields.name && this.fields.name.value, 100),
+                    reporter_email: this.safeString(this.fields.email && this.fields.email.value, 254),
+                    reporter_phone: this.safeString(this.fields.phone && this.fields.phone.value, 50),
+                    consent: !!(this.fields.consent && this.fields.consent.checked),
+                    updated_at_ms: Date.now(),
+                  };
+
+                  const hasAny =
+                    payload.reporter_name ||
+                    payload.reporter_email ||
+                    payload.reporter_phone ||
+                    payload.consent;
+
+                  if (!hasAny) {
+                    this.safeRemove();
+                    return;
+                  }
+
+                  this.safeSet(payload);
+                },
+              };
+            </script>
           <% end %>
         </div>
       </div>

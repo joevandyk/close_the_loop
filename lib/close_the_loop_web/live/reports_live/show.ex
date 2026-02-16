@@ -3,6 +3,7 @@ defmodule CloseTheLoopWeb.ReportsLive.Show do
   on_mount {CloseTheLoopWeb.LiveUserAuth, :live_org_required}
 
   alias CloseTheLoop.Feedback
+  alias CloseTheLoop.Events.ChangeMetadata
 
   @impl true
   def mount(%{"id" => id}, _session, socket) do
@@ -275,8 +276,8 @@ defmodule CloseTheLoopWeb.ReportsLive.Show do
         <div class="rounded-2xl border border-base bg-base p-6 shadow-base space-y-4">
           <h2 class="text-sm font-semibold">Assignment</h2>
 
-          <.alert color="primary">
-            Currently assigned to:
+          <p class="text-sm text-foreground">
+            Currently assigned to
             <.link
               navigate={~p"/app/#{@current_org.id}/issues/#{@report.issue_id}"}
               class="font-medium underline underline-offset-2"
@@ -285,12 +286,11 @@ defmodule CloseTheLoopWeb.ReportsLive.Show do
             </.link>
             <span class="mx-2">•</span>
             <span class="text-foreground-soft">{@report.issue.status}</span>
-          </.alert>
+          </p>
 
           <div class="flex items-start justify-between gap-4">
             <p class="text-sm text-foreground-soft max-w-prose">
-              If this report was assigned to the wrong issue, you can move it to an existing issue (even at a different
-              location) or create a new issue for it.
+              If this report was assigned to the wrong issue, you can move it to an existing issue or create a new issue for it.
             </p>
 
             <.button
@@ -465,7 +465,16 @@ defmodule CloseTheLoopWeb.ReportsLive.Show do
 
   @impl true
   def handle_event("save_report", %{"report" => params}, socket) do
-    case AshPhoenix.Form.submit(socket.assigns.edit_form, params: params) do
+    changes =
+      ChangeMetadata.diff(socket.assigns.report, params,
+        fields: [:body, :reporter_name, :reporter_email, :reporter_phone, :consent],
+        trim?: true,
+        empty_to_nil?: true
+      )
+
+    context = ChangeMetadata.context_for_changes(changes)
+
+    case AshPhoenix.Form.submit(socket.assigns.edit_form, params: params, context: context) do
       {:ok, _updated} ->
         {:noreply,
          socket
@@ -528,6 +537,37 @@ defmodule CloseTheLoopWeb.ReportsLive.Show do
       }
     }
 
+    tenant = socket.assigns.current_tenant
+    user = socket.assigns.current_user
+
+    changes =
+      report
+      |> ChangeMetadata.diff(%{"issue_id" => to_string(issue_id)},
+        fields: [:issue_id],
+        trim?: true,
+        empty_to_nil?: true
+      )
+      |> then(fn changes ->
+        case Feedback.get_issue_by_id(issue_id, tenant: tenant, actor: user) do
+          {:ok, issue} ->
+            Map.merge(
+              changes,
+              ChangeMetadata.diff(report, %{"location_id" => to_string(issue.location_id)},
+                fields: [:location_id],
+                trim?: true,
+                empty_to_nil?: true
+              )
+            )
+
+          _ ->
+            changes
+        end
+      end)
+
+    context =
+      context
+      |> ChangeMetadata.merge_context(ChangeMetadata.context_for_changes(changes))
+
     case AshPhoenix.Form.submit(socket.assigns.move_form, params: params, context: context) do
       {:ok, _updated} ->
         {:noreply, socket |> refresh("Report moved.") |> reset_move_modal()}
@@ -544,21 +584,43 @@ defmodule CloseTheLoopWeb.ReportsLive.Show do
     user = socket.assigns.current_user
     from_issue = report.issue
 
-    with {:ok, issue} <- AshPhoenix.Form.submit(socket.assigns.new_issue_form, params: params),
-         {:ok, _report} <-
-           Feedback.reassign_report_issue(report, %{issue_id: issue.id},
+    with {:ok, issue} <- AshPhoenix.Form.submit(socket.assigns.new_issue_form, params: params) do
+      base_context = %{
+        ash_events_metadata: %{
+          "move_type" => "new",
+          "from_issue_id" => to_string(from_issue.id),
+          "to_issue_id" => to_string(issue.id)
+        }
+      }
+
+      changes =
+        ChangeMetadata.diff(
+          report,
+          %{
+            "issue_id" => to_string(issue.id),
+            "location_id" => to_string(issue.location_id)
+          },
+          fields: [:issue_id, :location_id],
+          trim?: true,
+          empty_to_nil?: true
+        )
+
+      context =
+        base_context
+        |> ChangeMetadata.merge_context(ChangeMetadata.context_for_changes(changes))
+
+      case Feedback.reassign_report_issue(report, %{issue_id: issue.id},
              tenant: tenant,
              actor: user,
-             context: %{
-               ash_events_metadata: %{
-                 "move_type" => "new",
-                 "from_issue_id" => to_string(from_issue.id),
-                 "to_issue_id" => to_string(issue.id)
-               }
-             }
+             context: context
            ) do
-      {:noreply,
-       socket |> refresh("Created a new issue and moved the report.") |> reset_move_modal()}
+        {:ok, _report} ->
+          {:noreply,
+           socket |> refresh("Created a new issue and moved the report.") |> reset_move_modal()}
+
+        {:error, err} ->
+          {:noreply, put_flash(socket, :error, "Failed to create issue: #{inspect(err)}")}
+      end
     else
       {:error, %Phoenix.HTML.Form{} = form} ->
         {:noreply, assign(socket, :new_issue_form, form)}

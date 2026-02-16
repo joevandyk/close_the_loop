@@ -103,7 +103,9 @@ defmodule CloseTheLoop.Feedback.Report.Changes.ResolveIssueAndLocation do
   defp build_title(body) when is_binary(body) do
     body
     |> String.trim()
-    |> String.slice(0, 80)
+    # Keep the full title content; UI can clamp, but we shouldn't silently
+    # truncate what we persist.
+    |> String.replace(~r/\s+/u, " ")
     |> case do
       "" -> "New report"
       title -> title
