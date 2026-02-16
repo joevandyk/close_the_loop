@@ -1,6 +1,7 @@
 defmodule CloseTheLoop.Tenants do
   use Ash.Domain,
-    otp_app: :close_the_loop
+    otp_app: :close_the_loop,
+    extensions: [AshPhoenix]
 
   resources do
     resource CloseTheLoop.Tenants.Organization do

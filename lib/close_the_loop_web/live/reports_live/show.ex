@@ -6,9 +6,13 @@ defmodule CloseTheLoopWeb.ReportsLive.Show do
 
   @impl true
   def mount(%{"id" => id}, _session, socket) do
+    user = socket.assigns.current_user
+
     socket =
       socket
       |> assign(:report, nil)
+      |> assign(:editing?, false)
+      |> assign(:edit_form, to_form(%{}, as: :report))
       |> assign(:issue_options, [])
       |> assign(:move_form, to_form(%{"issue_id" => ""}, as: :move))
       |> assign(:move_modal_open?, false)
@@ -23,14 +27,10 @@ defmodule CloseTheLoopWeb.ReportsLive.Show do
       {:ok,
        socket
        |> assign(:report, report)
+       |> assign(:edit_form, edit_form(tenant, report, user))
        |> assign(:issue_options, build_issue_options(issues))
-       |> assign(
-         :new_issue_form,
-         to_form(
-           %{"title" => default_issue_title(report.body), "description" => report.body},
-           as: :new_issue
-         )
-       )}
+       |> assign(:move_form, move_form(tenant, report, user))
+       |> assign(:new_issue_form, new_issue_form(tenant, report, user))}
     else
       _ ->
         {:ok,
@@ -65,10 +65,10 @@ defmodule CloseTheLoopWeb.ReportsLive.Show do
 
   defp build_issue_options(issues) do
     Enum.map(issues, fn issue ->
-      location = issue.location && (issue.location.full_path || issue.location.name)
+      location = location_display_name(issue.location)
 
       label =
-        if is_binary(location) and String.trim(location) != "" do
+        if location != "" do
           "#{location} — #{issue.title} (#{issue.status})"
         else
           "#{issue.title} (#{issue.status})"
@@ -76,6 +76,12 @@ defmodule CloseTheLoopWeb.ReportsLive.Show do
 
       {label, issue.id}
     end)
+  end
+
+  defp location_display_name(nil), do: ""
+
+  defp location_display_name(loc) do
+    loc.full_path || loc.name
   end
 
   defp default_issue_title(body) do
@@ -87,6 +93,44 @@ defmodule CloseTheLoopWeb.ReportsLive.Show do
       "" -> "New issue"
       title -> title
     end
+  end
+
+  defp edit_form(tenant, report, user) do
+    AshPhoenix.Form.for_update(report, :edit_details,
+      as: "report",
+      id: "report-edit",
+      tenant: tenant,
+      actor: user
+    )
+    |> to_form()
+  end
+
+  defp move_form(tenant, report, user) do
+    AshPhoenix.Form.for_update(report, :reassign_issue,
+      as: "move",
+      id: "move",
+      tenant: tenant,
+      actor: user,
+      params: %{"issue_id" => ""}
+    )
+    |> to_form()
+  end
+
+  defp new_issue_form(tenant, report, user) do
+    AshPhoenix.Form.for_create(CloseTheLoop.Feedback.Issue, :create,
+      as: "new_issue",
+      id: "new_issue",
+      tenant: tenant,
+      actor: user,
+      params: %{"title" => default_issue_title(report.body), "description" => report.body},
+      prepare_source: fn changeset ->
+        changeset
+        |> Ash.Changeset.change_attribute(:location_id, report.location_id)
+        |> Ash.Changeset.change_attribute(:normalized_description, report.normalized_body)
+        |> Ash.Changeset.change_attribute(:status, :new)
+      end
+    )
+    |> to_form()
   end
 
   defp iso8601(%DateTime{} = dt), do: DateTime.to_iso8601(dt)
@@ -131,6 +175,25 @@ defmodule CloseTheLoopWeb.ReportsLive.Show do
 
           <div class="flex items-center gap-2">
             <.button navigate={~p"/app/#{@current_org.id}/reports"} variant="ghost">Back</.button>
+            <%= if @editing? do %>
+              <.button
+                id="report-cancel-edit"
+                type="button"
+                variant="outline"
+                phx-click="cancel_edit"
+              >
+                Cancel
+              </.button>
+            <% else %>
+              <.button
+                id="report-edit-btn"
+                type="button"
+                variant="outline"
+                phx-click="edit_report"
+              >
+                Edit
+              </.button>
+            <% end %>
             <.button
               navigate={~p"/app/#{@current_org.id}/issues/#{@report.issue_id}"}
               variant="outline"
@@ -140,32 +203,86 @@ defmodule CloseTheLoopWeb.ReportsLive.Show do
           </div>
         </div>
 
-        <div class="rounded-2xl border border-base bg-base p-6 shadow-base">
-          <p class="whitespace-pre-wrap text-sm leading-6">{@report.body}</p>
-        </div>
+        <%= if @editing? do %>
+          <.form
+            for={@edit_form}
+            id="report-edit-form"
+            phx-change="validate_edit"
+            phx-submit="save_report"
+            class="space-y-6"
+          >
+            <div class="rounded-2xl border border-base bg-base p-6 shadow-base space-y-4">
+              <.textarea field={@edit_form[:body]} label="Report text" rows={4} />
+            </div>
 
-        <div class="rounded-2xl border border-base bg-base p-6 shadow-base space-y-3">
-          <h2 class="text-sm font-semibold">Reporter (optional)</h2>
-          <div class="text-sm text-foreground-soft">
-            <span class="font-medium text-foreground">
-              {@report.reporter_name || "Anonymous"}
-            </span>
-            <%= if @report.reporter_email && @report.reporter_email != "" do %>
-              <span class="mx-2">•</span>
-              <span>{@report.reporter_email}</span>
-            <% end %>
-            <%= if @report.reporter_phone && @report.reporter_phone != "" do %>
-              <span class="mx-2">•</span>
-              <span>{@report.reporter_phone}</span>
-            <% end %>
+            <div class="rounded-2xl border border-base bg-base p-6 shadow-base space-y-4">
+              <h2 class="text-sm font-semibold">Reporter (optional)</h2>
+
+              <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <.input field={@edit_form[:reporter_name]} label="Name" />
+                <.input field={@edit_form[:reporter_email]} label="Email" type="email" />
+              </div>
+
+              <.input field={@edit_form[:reporter_phone]} label="Phone" type="tel" />
+
+              <.checkbox
+                field={@edit_form[:consent]}
+                label="Consent to receive SMS updates"
+              />
+            </div>
+
+            <div class="flex items-center justify-end gap-2">
+              <.button
+                type="button"
+                variant="outline"
+                phx-click="cancel_edit"
+              >
+                Cancel
+              </.button>
+              <.button
+                type="submit"
+                variant="solid"
+                color="primary"
+                phx-disable-with="Saving..."
+              >
+                Save changes
+              </.button>
+            </div>
+          </.form>
+        <% else %>
+          <div class="rounded-2xl border border-base bg-base p-6 shadow-base">
+            <p class="whitespace-pre-wrap text-sm leading-6">{@report.body}</p>
           </div>
-        </div>
+
+          <div class="rounded-2xl border border-base bg-base p-6 shadow-base space-y-3">
+            <h2 class="text-sm font-semibold">Reporter (optional)</h2>
+            <div class="text-sm text-foreground-soft">
+              <span class="font-medium text-foreground">
+                {@report.reporter_name || "Anonymous"}
+              </span>
+              <%= if @report.reporter_email do %>
+                <span class="mx-2">•</span>
+                <span>{@report.reporter_email}</span>
+              <% end %>
+              <%= if @report.reporter_phone do %>
+                <span class="mx-2">•</span>
+                <span>{@report.reporter_phone}</span>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
 
         <div class="rounded-2xl border border-base bg-base p-6 shadow-base space-y-4">
           <h2 class="text-sm font-semibold">Assignment</h2>
 
           <.alert color="primary">
-            Currently assigned to: <span class="font-medium">{@report.issue.title}</span>
+            Currently assigned to:
+            <.link
+              navigate={~p"/app/#{@current_org.id}/issues/#{@report.issue_id}"}
+              class="font-medium underline underline-offset-2"
+            >
+              {@report.issue.title}
+            </.link>
             <span class="mx-2">•</span>
             <span class="text-foreground-soft">{@report.issue.status}</span>
           </.alert>
@@ -240,6 +357,7 @@ defmodule CloseTheLoopWeb.ReportsLive.Show do
                     <.form
                       for={@move_form}
                       id="report-move-form"
+                      phx-change="validate"
                       phx-submit="move_report"
                       class="space-y-3"
                     >
@@ -274,6 +392,7 @@ defmodule CloseTheLoopWeb.ReportsLive.Show do
                     <.form
                       for={@new_issue_form}
                       id="report-new-issue-form"
+                      phx-change="validate"
                       phx-submit="create_issue"
                       class="space-y-3"
                     >
@@ -319,7 +438,68 @@ defmodule CloseTheLoopWeb.ReportsLive.Show do
     """
   end
 
+  # --- Edit report events ---
+
   @impl true
+  def handle_event("edit_report", _params, socket) do
+    {:noreply, assign(socket, :editing?, true)}
+  end
+
+  @impl true
+  def handle_event("cancel_edit", _params, socket) do
+    tenant = socket.assigns.current_tenant
+    report = socket.assigns.report
+    user = socket.assigns.current_user
+
+    {:noreply,
+     socket
+     |> assign(:editing?, false)
+     |> assign(:edit_form, edit_form(tenant, report, user))}
+  end
+
+  @impl true
+  def handle_event("validate_edit", %{"report" => params}, socket) do
+    form = AshPhoenix.Form.validate(socket.assigns.edit_form, params)
+    {:noreply, assign(socket, :edit_form, form)}
+  end
+
+  @impl true
+  def handle_event("save_report", %{"report" => params}, socket) do
+    case AshPhoenix.Form.submit(socket.assigns.edit_form, params: params) do
+      {:ok, _updated} ->
+        {:noreply,
+         socket
+         |> refresh("Report updated.")
+         |> assign(:editing?, false)
+         |> then(fn s ->
+           assign(
+             s,
+             :edit_form,
+             edit_form(s.assigns.current_tenant, s.assigns.report, s.assigns.current_user)
+           )
+         end)}
+
+      {:error, form} ->
+        {:noreply, assign(socket, :edit_form, form)}
+    end
+  end
+
+  # --- Move / reassign events ---
+
+  @impl true
+  def handle_event("validate", %{"move" => params}, socket) do
+    params =
+      params |> Map.take(["issue_id"]) |> Map.update("issue_id", "", &String.trim(to_string(&1)))
+
+    form = AshPhoenix.Form.validate(socket.assigns.move_form, params)
+    {:noreply, assign(socket, :move_form, form)}
+  end
+
+  def handle_event("validate", %{"new_issue" => params}, socket) do
+    form = AshPhoenix.Form.validate(socket.assigns.new_issue_form, params)
+    {:noreply, assign(socket, :new_issue_form, form)}
+  end
+
   def handle_event("open_move_modal", _params, socket) do
     tab = if socket.assigns.issue_options == [], do: "new", else: "existing"
     {:noreply, socket |> assign(:move_modal_open?, true) |> assign(:move_modal_tab, tab)}
@@ -336,22 +516,24 @@ defmodule CloseTheLoopWeb.ReportsLive.Show do
   end
 
   @impl true
-  def handle_event("move_report", %{"move" => %{"issue_id" => issue_id}}, socket) do
-    tenant = socket.assigns.current_tenant
+  def handle_event("move_report", %{"move" => %{"issue_id" => issue_id} = params}, socket) do
     report = socket.assigns.report
-    user = socket.assigns.current_user
     from_issue = report.issue
 
-    case Feedback.reassign_report_issue(report, %{issue_id: issue_id},
-           tenant: tenant,
-           actor: user
-         ) do
+    context = %{
+      ash_events_metadata: %{
+        "move_type" => "existing",
+        "from_issue_id" => to_string(from_issue.id),
+        "to_issue_id" => to_string(issue_id)
+      }
+    }
+
+    case AshPhoenix.Form.submit(socket.assigns.move_form, params: params, context: context) do
       {:ok, _updated} ->
-        _ = log_report_move(tenant, user, report.id, from_issue, issue_id)
         {:noreply, socket |> refresh("Report moved.") |> reset_move_modal()}
 
-      {:error, err} ->
-        {:noreply, put_flash(socket, :error, "Failed to move report: #{inspect(err)}")}
+      {:error, form} ->
+        {:noreply, assign(socket, :move_form, form)}
     end
   end
 
@@ -362,35 +544,24 @@ defmodule CloseTheLoopWeb.ReportsLive.Show do
     user = socket.assigns.current_user
     from_issue = report.issue
 
-    title = params |> Map.get("title") |> to_string() |> String.trim()
-    description = params |> Map.get("description") |> to_string() |> String.trim()
-
-    with true <- title != "" || {:error, "Title is required"},
-         true <- description != "" || {:error, "Description is required"},
-         {:ok, issue} <-
-           Feedback.create_issue(
-             %{
-               location_id: report.location_id,
-               title: title,
-               description: description,
-               normalized_description: report.normalized_body,
-               status: :new
-             },
-             tenant: tenant,
-             actor: user
-           ),
+    with {:ok, issue} <- AshPhoenix.Form.submit(socket.assigns.new_issue_form, params: params),
          {:ok, _report} <-
            Feedback.reassign_report_issue(report, %{issue_id: issue.id},
              tenant: tenant,
-             actor: user
+             actor: user,
+             context: %{
+               ash_events_metadata: %{
+                 "move_type" => "new",
+                 "from_issue_id" => to_string(from_issue.id),
+                 "to_issue_id" => to_string(issue.id)
+               }
+             }
            ) do
-      _ = log_report_split(tenant, user, report.id, from_issue, issue)
-
       {:noreply,
        socket |> refresh("Created a new issue and moved the report.") |> reset_move_modal()}
     else
-      {:error, msg} when is_binary(msg) ->
-        {:noreply, put_flash(socket, :error, msg)}
+      {:error, %Phoenix.HTML.Form{} = form} ->
+        {:noreply, assign(socket, :new_issue_form, form)}
 
       {:error, err} ->
         {:noreply, put_flash(socket, :error, "Failed to create issue: #{inspect(err)}")}
@@ -399,18 +570,14 @@ defmodule CloseTheLoopWeb.ReportsLive.Show do
 
   defp reset_move_modal(socket) do
     report = socket.assigns.report
+    tenant = socket.assigns.current_tenant
+    user = socket.assigns.current_user
 
     socket
     |> assign(:move_modal_open?, false)
     |> assign(:move_modal_tab, "existing")
-    |> assign(:move_form, to_form(%{"issue_id" => ""}, as: :move))
-    |> assign(
-      :new_issue_form,
-      to_form(
-        %{"title" => default_issue_title(report.body), "description" => report.body},
-        as: :new_issue
-      )
-    )
+    |> assign(:move_form, move_form(tenant, report, user))
+    |> assign(:new_issue_form, new_issue_form(tenant, report, user))
   end
 
   defp refresh(socket, flash_msg) do
@@ -427,61 +594,5 @@ defmodule CloseTheLoopWeb.ReportsLive.Show do
       _ ->
         socket
     end
-  end
-
-  defp log_report_move(tenant, user, _report_id, from_issue, to_issue_id) do
-    with {:ok, to_issue} <- Feedback.get_issue_by_id(to_issue_id, tenant: tenant) do
-      body =
-        "Moved a report from \"#{from_issue.title}\" to \"#{to_issue.title}\"."
-
-      attrs = %{
-        body: body,
-        author_user_id: user.id,
-        author_email: to_string(user.email)
-      }
-
-      _ =
-        Feedback.create_issue_comment(Map.put(attrs, :issue_id, from_issue.id),
-          tenant: tenant,
-          actor: user
-        )
-
-      _ =
-        Feedback.create_issue_comment(Map.put(attrs, :issue_id, to_issue.id),
-          tenant: tenant,
-          actor: user
-        )
-    end
-
-    :ok
-  end
-
-  defp log_report_split(tenant, user, _report_id, from_issue, new_issue) do
-    attrs = %{
-      author_user_id: user.id,
-      author_email: to_string(user.email)
-    }
-
-    _ =
-      Feedback.create_issue_comment(
-        Map.merge(attrs, %{
-          issue_id: from_issue.id,
-          body: "Moved a report to a new issue: \"#{new_issue.title}\"."
-        }),
-        tenant: tenant,
-        actor: user
-      )
-
-    _ =
-      Feedback.create_issue_comment(
-        Map.merge(attrs, %{
-          issue_id: new_issue.id,
-          body: "Created from a moved report (from \"#{from_issue.title}\")."
-        }),
-        tenant: tenant,
-        actor: user
-      )
-
-    :ok
   end
 end

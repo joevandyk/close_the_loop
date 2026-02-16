@@ -12,10 +12,11 @@ defmodule CloseTheLoopWeb.ActivityFeed do
 
   attr :events, :list, default: []
   attr :users_by_id, :map, default: %{}
+  attr :issues_by_id, :map, default: %{}
   attr :current_user, :any, default: nil
   attr :org, :any, default: nil
 
-  attr :title, :string, default: "Activity"
+  attr :title, :string, default: "Timeline"
   attr :description, :string, default: "Status changes, internal comments, and SMS updates."
 
   def activity_feed(assigns) do
@@ -93,16 +94,55 @@ defmodule CloseTheLoopWeb.ActivityFeed do
               </div>
             <% end %>
 
-            <div
-              :if={summary = event_summary(@org, e)}
-              class="whitespace-pre-wrap text-sm leading-6 text-foreground"
-            >
-              {summary}
-            </div>
+            <% summary = event_summary(@org, @issues_by_id, e) %>
+            <%= if summary do %>
+              <%= case summary do %>
+                <% {:report_move, move_summary} -> %>
+                  <div class="text-sm leading-6 text-foreground">
+                    <.report_move_summary summary={move_summary} />
+                  </div>
+                <% summary when is_binary(summary) -> %>
+                  <div class="whitespace-pre-wrap text-sm leading-6 text-foreground">{summary}</div>
+              <% end %>
+            <% end %>
           </div>
         </li>
       </ul>
     </div>
+    """
+  end
+
+  attr :summary, :map, required: true
+
+  defp report_move_summary(assigns) do
+    ~H"""
+    <span>Moved a report from </span>
+
+    <%= if @summary.org && @summary.from_issue do %>
+      <.link
+        navigate={~p"/app/#{@summary.org.id}/issues/#{@summary.from_issue_id}"}
+        class="font-medium underline hover:no-underline"
+      >
+        {@summary.from_issue.title}
+      </.link>
+    <% else %>
+      <span class="font-medium">{issue_title(@summary.from_issue, @summary.from_issue_id)}</span>
+    <% end %>
+
+    <span> to </span>
+
+    <%= if @summary.org && @summary.to_issue do %>
+      <.link
+        navigate={~p"/app/#{@summary.org.id}/issues/#{@summary.to_issue_id}"}
+        class="font-medium underline hover:no-underline"
+      >
+        {@summary.to_issue.title}
+      </.link>
+    <% else %>
+      <span class="font-medium">{issue_title(@summary.to_issue, @summary.to_issue_id)}</span>
+    <% end %>
+
+    <span>.</span>
     """
   end
 
@@ -168,7 +208,7 @@ defmodule CloseTheLoopWeb.ActivityFeed do
     end
   end
 
-  defp event_summary(_org, event) do
+  defp event_summary(org, issues_by_id, event) do
     resource = event.resource |> to_string() |> String.split(".") |> List.last()
     type = event.action_type |> to_string()
     data = event.data || %{}
@@ -184,7 +224,7 @@ defmodule CloseTheLoopWeb.ActivityFeed do
         issue_update_summary(event)
 
       {"Report", "update"} ->
-        report_update_summary(event)
+        report_update_summary(org, issues_by_id, event)
 
       _ ->
         nil
@@ -236,12 +276,28 @@ defmodule CloseTheLoopWeb.ActivityFeed do
     end
   end
 
-  defp report_update_summary(event) do
+  defp report_update_summary(org, issues_by_id, event) do
+    meta = event.metadata || %{}
+    from_issue_id = meta["from_issue_id"]
+    to_issue_id = meta["to_issue_id"]
+    move_type = meta["move_type"]
+
     changed = event.changed_attributes || %{}
     issue_changed? = Map.has_key?(changed, "issue_id")
     location_changed? = Map.has_key?(changed, "location_id")
 
     cond do
+      is_binary(from_issue_id) and is_binary(to_issue_id) ->
+        {:report_move,
+         %{
+           org: org,
+           move_type: move_type,
+           from_issue_id: from_issue_id,
+           to_issue_id: to_issue_id,
+           from_issue: Map.get(issues_by_id || %{}, from_issue_id),
+           to_issue: Map.get(issues_by_id || %{}, to_issue_id)
+         }}
+
       issue_changed? and location_changed? ->
         "Moved to a different issue (and location)."
 
@@ -255,6 +311,9 @@ defmodule CloseTheLoopWeb.ActivityFeed do
         nil
     end
   end
+
+  defp issue_title(nil, _issue_id), do: "(deleted issue)"
+  defp issue_title(issue, _issue_id), do: issue.title
 
   defp time_link_path(nil, _event), do: nil
 

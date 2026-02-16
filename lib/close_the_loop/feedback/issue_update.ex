@@ -41,6 +41,7 @@ defmodule CloseTheLoop.Feedback.IssueUpdate do
 
     attribute :message, :string do
       allow_nil? false
+      constraints min_length: 1, trim?: true
       public? true
     end
 

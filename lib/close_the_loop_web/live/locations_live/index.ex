@@ -9,6 +9,7 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
   def mount(_params, _session, socket) do
     tenant = socket.assigns.current_tenant
     org = socket.assigns.current_org
+    user = socket.assigns.current_user
 
     with true <- is_binary(tenant) || {:error, :missing_tenant},
          {:ok, locations} <- list_locations(tenant) do
@@ -18,7 +19,7 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
        |> assign(:locations, decorate_locations(tenant, locations))
        |> assign(:location_modal_open?, false)
        |> assign(:editing_id, nil)
-       |> assign(:location_form, to_form(%{"name" => "", "full_path" => ""}, as: :location))
+       |> assign(:location_form, new_location_form(tenant, user))
        |> assign(:error, nil)}
     else
       _ ->
@@ -31,7 +32,8 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
   end
 
   defp decorate_locations(tenant, locations) do
-    Enum.map(locations, fn loc ->
+    locations
+    |> Enum.map(fn loc ->
       reporter_link = CloseTheLoopWeb.Endpoint.url() <> "/r/#{tenant}/#{loc.id}"
 
       %{
@@ -41,6 +43,7 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
         reporter_link: reporter_link
       }
     end)
+    |> Enum.sort_by(fn loc -> loc.full_path || loc.name end)
   end
 
   @impl true
@@ -92,7 +95,13 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
               </p>
             </div>
 
-            <.form for={@location_form} id="location-modal-form" phx-submit="save" class="space-y-4">
+            <.form
+              for={@location_form}
+              id="location-modal-form"
+              phx-change="validate"
+              phx-submit="save"
+              class="space-y-4"
+            >
               <.input
                 id="location-modal-name"
                 field={@location_form[:name]}
@@ -144,104 +153,110 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
           </ul>
         </.alert>
 
-        <div class="space-y-3">
+        <.navlist class="space-y-3 rounded-none border-0 p-0 [&>*]:block">
           <div
             :for={loc <- @locations}
             data-location-card
             id={"location-item-#{loc.id}"}
-            class="rounded-2xl border border-base bg-base p-5 shadow-base"
+            class="rounded-2xl border border-base bg-base p-5 shadow-base grid grid-cols-[1fr_auto] items-center gap-4"
           >
-            <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-              <div class="min-w-0">
-                <div class="text-sm font-semibold text-foreground truncate">
-                  {loc.full_path || loc.name}
-                </div>
-                <div class="mt-1 text-xs text-foreground-soft">
-                  Reporter link + poster for this location
-                </div>
+            <div class="min-w-0">
+              <div
+                class="text-sm font-semibold text-foreground truncate"
+                title={loc.full_path || loc.name}
+              >
+                {loc.full_path || loc.name}
               </div>
-
-              <div class="flex flex-wrap items-center gap-2 sm:justify-end">
-                <.button
-                  href={loc.reporter_link}
-                  target="_blank"
-                  rel="noreferrer"
-                  variant="outline"
-                  size="sm"
-                >
-                  <.icon name="hero-arrow-top-right-on-square" class="size-4" /> Open reporter
-                </.button>
-
-                <.button
-                  href={~p"/app/#{@current_org.id}/settings/locations/#{loc.id}/poster"}
-                  target="_blank"
-                  rel="noreferrer"
-                  variant="outline"
-                  size="sm"
-                >
-                  <.icon name="hero-printer" class="size-4" /> Poster (PDF)
-                </.button>
-
-                <.button
-                  id={"locations-open-edit-#{loc.id}"}
-                  type="button"
-                  size="sm"
-                  variant="solid"
-                  color="primary"
-                  phx-click="edit"
-                  phx-value-id={loc.id}
-                >
-                  <.icon name="hero-pencil-square" class="size-4" /> Edit
-                </.button>
-              </div>
+            </div>
+            <div class="flex items-center justify-end gap-2 flex-nowrap">
+              <.button
+                href={loc.reporter_link}
+                target="_blank"
+                rel="noreferrer"
+                variant="outline"
+                size="sm"
+              >
+                <.icon name="hero-arrow-top-right-on-square" class="size-4" /> Report an issue
+              </.button>
+              <.button
+                href={~p"/app/#{@current_org.id}/settings/locations/#{loc.id}/poster"}
+                target="_blank"
+                rel="noreferrer"
+                variant="outline"
+                size="sm"
+              >
+                <.icon name="hero-printer" class="size-4" /> Poster (PDF)
+              </.button>
+              <.button
+                id={"locations-open-edit-#{loc.id}"}
+                type="button"
+                size="sm"
+                variant="solid"
+                color="primary"
+                phx-click="edit"
+                phx-value-id={loc.id}
+              >
+                <.icon name="hero-pencil-square" class="size-4" /> Edit
+              </.button>
             </div>
           </div>
 
           <div :if={@locations == []} class="py-10 text-center text-sm text-foreground-soft">
             No locations yet.
           </div>
-        </div>
+        </.navlist>
       </div>
     </Layouts.app>
     """
   end
 
   @impl true
+  def handle_event("validate", %{"location" => params}, socket) when is_map(params) do
+    form = AshPhoenix.Form.validate(socket.assigns.location_form, params)
+    {:noreply, socket |> assign(:location_form, form) |> assign(:error, nil)}
+  end
+
   def handle_event("open_new_location_modal", _params, socket) do
+    tenant = socket.assigns.current_tenant
+    user = socket.assigns.current_user
+
     {:noreply,
      socket
      |> assign(:location_modal_open?, true)
      |> assign(:editing_id, nil)
-     |> assign(:location_form, to_form(%{"name" => "", "full_path" => ""}, as: :location))
+     |> assign(:location_form, new_location_form(tenant, user))
      |> assign(:error, nil)}
   end
 
   @impl true
   def handle_event("close_location_modal", _params, socket) do
+    tenant = socket.assigns.current_tenant
+    user = socket.assigns.current_user
+
     {:noreply,
      socket
      |> assign(:location_modal_open?, false)
      |> assign(:editing_id, nil)
-     |> assign(:location_form, to_form(%{"name" => "", "full_path" => ""}, as: :location))
+     |> assign(:location_form, new_location_form(tenant, user))
      |> assign(:error, nil)}
   end
 
   @impl true
   def handle_event("edit", %{"id" => id}, socket) do
-    case Enum.find(socket.assigns.locations, &("#{&1.id}" == to_string(id))) do
-      nil ->
-        {:noreply, put_flash(socket, :error, "Location not found")}
+    tenant = socket.assigns.current_tenant
+    user = socket.assigns.current_user
 
-      loc ->
+    case FeedbackDomain.get_location_by_id(id, tenant: tenant) do
+      {:ok, %Location{} = loc} ->
         {:noreply,
          socket
          |> assign(:location_modal_open?, true)
          |> assign(:editing_id, loc.id)
-         |> assign(
-           :location_form,
-           to_form(%{"name" => loc.name || "", "full_path" => loc.full_path || ""}, as: :location)
-         )
+         |> assign(:location_form, edit_location_form(tenant, loc, user))
          |> assign(:error, nil)}
+
+      _ ->
+        {:noreply, put_flash(socket, :error, "Location not found")}
     end
   end
 
@@ -250,66 +265,52 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
     tenant = socket.assigns.current_tenant
     user = socket.assigns.current_user
 
-    name = params |> Map.get("name", "") |> to_string() |> String.trim()
-    full_path = params |> Map.get("full_path", "") |> to_string() |> String.trim()
+    case AshPhoenix.Form.submit(socket.assigns.location_form, params: params) do
+      {:ok, %Location{}} ->
+        {:ok, locations} = list_locations(tenant)
 
-    socket =
-      assign(
-        socket,
-        :location_form,
-        to_form(%{"name" => name, "full_path" => full_path}, as: :location)
-      )
-
-    full_path =
-      case full_path do
-        "" -> nil
-        v -> v
-      end
-
-    result =
-      case socket.assigns.editing_id do
-        nil ->
-          FeedbackDomain.create_location(%{name: name, full_path: full_path},
-            tenant: tenant,
-            actor: user
-          )
-
-        id ->
-          with {:ok, %Location{} = loc} <- FeedbackDomain.get_location_by_id(id, tenant: tenant) do
-            FeedbackDomain.update_location(loc, %{name: name, full_path: full_path},
-              tenant: tenant,
-              actor: user
-            )
+        flash_msg =
+          if socket.assigns.editing_id do
+            "Location updated."
+          else
+            "Location created."
           end
-      end
 
-    with true <- name != "" || {:error, "Name is required"},
-         {:ok, %Location{}} <- result,
-         {:ok, locations} <- list_locations(tenant) do
-      flash_msg =
-        if socket.assigns.editing_id do
-          "Location updated."
-        else
-          "Location created."
-        end
+        {:noreply,
+         socket
+         |> put_flash(:info, flash_msg)
+         |> assign(:locations, decorate_locations(tenant, locations))
+         |> assign(:location_modal_open?, false)
+         |> assign(:editing_id, nil)
+         |> assign(:location_form, new_location_form(tenant, user))
+         |> assign(:error, nil)}
 
-      {:noreply,
-       socket
-       |> put_flash(:info, flash_msg)
-       |> assign(:locations, decorate_locations(tenant, locations))
-       |> assign(:location_modal_open?, false)
-       |> assign(:editing_id, nil)
-       |> assign(:location_form, to_form(%{"name" => "", "full_path" => ""}, as: :location))
-       |> assign(:error, nil)}
-    else
-      {:error, msg} when is_binary(msg) ->
-        {:noreply, assign(socket, :error, msg)}
+      {:error, %Phoenix.HTML.Form{} = form} ->
+        {:noreply, assign(socket, :location_form, form)}
 
       {:error, err} ->
         {:noreply, assign(socket, :error, Exception.message(err))}
-
-      other ->
-        {:noreply, assign(socket, :error, "Failed to save: #{inspect(other)}")}
     end
+  end
+
+  defp new_location_form(tenant, user) do
+    AshPhoenix.Form.for_create(Location, :create,
+      as: "location",
+      id: "location",
+      tenant: tenant,
+      actor: user,
+      params: %{"name" => "", "full_path" => ""}
+    )
+    |> to_form()
+  end
+
+  defp edit_location_form(tenant, %Location{} = loc, user) do
+    AshPhoenix.Form.for_update(loc, :update,
+      as: "location",
+      id: "location",
+      tenant: tenant,
+      actor: user
+    )
+    |> to_form()
   end
 end

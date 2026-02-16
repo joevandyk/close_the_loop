@@ -62,8 +62,8 @@ defmodule CloseTheLoopWeb.IssueCategoriesLiveTest do
     view
     |> form("#ai-settings-form",
       ai: %{
-        business_context: "We run a gym with saunas and locker rooms.",
-        categorization_instructions: "If it mentions shower water temp then plumbing."
+        ai_business_context: "We run a gym with saunas and locker rooms.",
+        ai_categorization_instructions: "If it mentions shower water temp then plumbing."
       }
     )
     |> render_submit()

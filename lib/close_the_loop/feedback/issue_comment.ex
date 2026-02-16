@@ -47,6 +47,7 @@ defmodule CloseTheLoop.Feedback.IssueComment do
 
     attribute :body, :string do
       allow_nil? false
+      constraints min_length: 1, trim?: true
       public? false
     end
 

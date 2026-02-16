@@ -9,9 +9,11 @@ defmodule CloseTheLoopWeb.OrganizationsLive.New do
 
   @impl true
   def mount(_params, _session, socket) do
+    user = socket.assigns.current_user
+
     {:ok,
      socket
-     |> assign(:form, to_form(%{"org_name" => ""}, as: :org))
+     |> assign(:form, org_form(user))
      |> assign(:error, nil)}
   end
 
@@ -28,9 +30,15 @@ defmodule CloseTheLoopWeb.OrganizationsLive.New do
         </div>
 
         <div class="rounded-2xl border border-base bg-base p-6 shadow-base">
-          <.form for={@form} id="new-org-form" phx-submit="save" class="space-y-4">
+          <.form
+            for={@form}
+            id="new-org-form"
+            phx-change="validate"
+            phx-submit="save"
+            class="space-y-4"
+          >
             <.input
-              field={@form[:org_name]}
+              field={@form[:name]}
               type="text"
               label="Organization name"
               placeholder="Acme Gym"
@@ -57,14 +65,16 @@ defmodule CloseTheLoopWeb.OrganizationsLive.New do
   end
 
   @impl true
-  def handle_event("save", %{"org" => %{"org_name" => name}}, socket) do
-    user = socket.assigns.current_user
-    name = String.trim(name || "")
-    socket = assign(socket, :form, to_form(%{"org_name" => name}, as: :org))
+  def handle_event("validate", %{"org" => params}, socket) when is_map(params) do
+    form = AshPhoenix.Form.validate(socket.assigns.form, params)
+    {:noreply, socket |> assign(:form, form) |> assign(:error, nil)}
+  end
 
-    with true <- name != "" || {:error, "Organization name is required"},
-         {:ok, %Organization{} = org} <-
-           CloseTheLoop.Tenants.create_organization(%{name: name}, actor: user),
+  def handle_event("save", %{"org" => params}, socket) when is_map(params) do
+    user = socket.assigns.current_user
+
+    with {:ok, %Organization{} = org} <-
+           AshPhoenix.Form.submit(socket.assigns.form, params: params),
          {:ok, %Location{} = _location} <-
            CloseTheLoop.Feedback.create_location(%{name: "General", full_path: "General"},
              tenant: org.tenant_schema,
@@ -82,6 +92,9 @@ defmodule CloseTheLoopWeb.OrganizationsLive.New do
        |> put_flash(:info, "Organization created.")
        |> push_navigate(to: ~p"/app/#{org.id}/issues")}
     else
+      {:error, %Phoenix.HTML.Form{} = form} ->
+        {:noreply, assign(socket, :form, form)}
+
       {:error, err} ->
         message =
           if Kernel.is_exception(err) do
@@ -95,5 +108,15 @@ defmodule CloseTheLoopWeb.OrganizationsLive.New do
       other ->
         {:noreply, assign(socket, :error, "Failed to create organization: #{inspect(other)}")}
     end
+  end
+
+  defp org_form(user) do
+    AshPhoenix.Form.for_create(Organization, :create,
+      as: "org",
+      id: "org",
+      actor: user,
+      params: %{"name" => ""}
+    )
+    |> to_form()
   end
 end

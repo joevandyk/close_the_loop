@@ -58,15 +58,7 @@ defmodule CloseTheLoop.Feedback.Issue do
       accept [:title, :description]
       require_atomic? false
 
-      change fn changeset, _ctx ->
-        desc = Ash.Changeset.get_attribute(changeset, :description)
-
-        Ash.Changeset.change_attribute(
-          changeset,
-          :normalized_description,
-          CloseTheLoop.Feedback.Text.normalize_for_dedupe(desc)
-        )
-      end
+      change CloseTheLoop.Feedback.Issue.Changes.NormalizeDescription
     end
   end
 
@@ -85,11 +77,13 @@ defmodule CloseTheLoop.Feedback.Issue do
 
     attribute :title, :string do
       allow_nil? false
+      constraints min_length: 1, trim?: true
       public? true
     end
 
     attribute :description, :string do
       allow_nil? false
+      constraints min_length: 1, trim?: true
       public? true
     end
 

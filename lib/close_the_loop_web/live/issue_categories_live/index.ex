@@ -5,7 +5,6 @@ defmodule CloseTheLoopWeb.IssueCategoriesLive.Index do
   alias CloseTheLoop.Feedback, as: FeedbackDomain
   alias CloseTheLoop.Feedback.Categories
   alias CloseTheLoop.Feedback.IssueCategory
-  alias CloseTheLoop.Tenants
   alias CloseTheLoop.Tenants.Organization
   alias Phoenix.LiveView.JS
 
@@ -13,6 +12,7 @@ defmodule CloseTheLoopWeb.IssueCategoriesLive.Index do
   def mount(_params, _session, socket) do
     org = socket.assigns.current_org
     tenant = socket.assigns.current_tenant
+    user = socket.assigns.current_user
 
     with true <- match?(%Organization{}, org) || {:error, :missing_org},
          true <- is_binary(tenant) || {:error, :missing_tenant},
@@ -23,34 +23,12 @@ defmodule CloseTheLoopWeb.IssueCategoriesLive.Index do
        |> assign(:org, org)
        |> assign(:tenant, tenant)
        |> assign(:categories, categories)
-       |> assign(
-         :ai_form,
-         to_form(
-           %{
-             "business_context" => org.ai_business_context || "",
-             "categorization_instructions" => org.ai_categorization_instructions || ""
-           },
-           as: :ai
-         )
-       )
+       |> assign(:ai_form, ai_form(org, user))
        |> assign(:ai_saved?, false)
        |> assign(:ai_save_error, nil)
        |> assign(:editing_category, nil)
-       |> assign(
-         :edit_form,
-         to_form(
-           %{
-             "label" => "",
-             "description" => "",
-             "ai_guidance" => "",
-             "ai_include_keywords" => "",
-             "ai_exclude_keywords" => "",
-             "ai_examples" => ""
-           },
-           as: :edit
-         )
-       )
-       |> assign(:category_form, to_form(%{"key" => "", "label" => ""}, as: :category))
+       |> assign(:edit_form, to_form(%{}, as: :edit))
+       |> assign(:category_form, category_form(tenant, user))
        |> assign(:error, nil)}
     else
       _ ->
@@ -101,7 +79,7 @@ defmodule CloseTheLoopWeb.IssueCategoriesLive.Index do
           >
             <.textarea
               id="ai_business_context"
-              field={@ai_form[:business_context]}
+              field={@ai_form[:ai_business_context]}
               label="Business context (optional)"
               rows={4}
               placeholder="We run a gym with locker rooms, pool, sauna, and hot tub. Members frequently report issues about showers, HVAC, and cleanliness."
@@ -109,7 +87,7 @@ defmodule CloseTheLoopWeb.IssueCategoriesLive.Index do
 
             <.textarea
               id="ai_categorization_instructions"
-              field={@ai_form[:categorization_instructions]}
+              field={@ai_form[:ai_categorization_instructions]}
               label="Categorization rules (optional)"
               rows={4}
               placeholder="If a report mentions water temperature, leaks, toilets, drains, or showers -> plumbing. If it's about lighting, outlets, breakers -> electrical. If uncertain, choose other."
@@ -153,6 +131,7 @@ defmodule CloseTheLoopWeb.IssueCategoriesLive.Index do
           <.form
             for={@category_form}
             id="category-create-form"
+            phx-change="validate"
             phx-submit="create"
             class="mt-4 grid gap-4 sm:grid-cols-3"
           >
@@ -262,7 +241,12 @@ defmodule CloseTheLoopWeb.IssueCategoriesLive.Index do
 
                   <.dropdown class="md:hidden" placement="bottom-end">
                     <:toggle>
-                      <.button type="button" size="icon-sm" variant="ghost" aria-label="Category actions">
+                      <.button
+                        type="button"
+                        size="icon-sm"
+                        variant="ghost"
+                        aria-label="Category actions"
+                      >
                         <.icon name="hero-ellipsis-horizontal" class="icon" />
                       </.button>
                     </:toggle>
@@ -283,7 +267,11 @@ defmodule CloseTheLoopWeb.IssueCategoriesLive.Index do
                     >
                       {if cat.active, do: "Deactivate", else: "Activate"}
                     </.dropdown_button>
-                    <.dropdown_button id={"category-menu-delete-#{cat.id}"} phx-click="delete" phx-value-id={cat.id}>
+                    <.dropdown_button
+                      id={"category-menu-delete-#{cat.id}"}
+                      phx-click="delete"
+                      phx-value-id={cat.id}
+                    >
                       Delete
                     </.dropdown_button>
                   </.dropdown>
@@ -311,6 +299,7 @@ defmodule CloseTheLoopWeb.IssueCategoriesLive.Index do
             <.form
               for={@edit_form}
               id="edit-category-form"
+              phx-change="validate"
               phx-submit="save_category"
               class="space-y-4"
             >
@@ -391,84 +380,60 @@ defmodule CloseTheLoopWeb.IssueCategoriesLive.Index do
   end
 
   @impl true
-  def handle_event("create", %{"category" => %{"key" => key, "label" => label}}, socket) do
+  def handle_event("validate", %{"category" => params}, socket) when is_map(params) do
+    form = AshPhoenix.Form.validate(socket.assigns.category_form, params)
+    {:noreply, socket |> assign(:category_form, form) |> assign(:error, nil)}
+  end
+
+  def handle_event("validate", %{"edit" => params}, socket) when is_map(params) do
+    form = AshPhoenix.Form.validate(socket.assigns.edit_form, params)
+    {:noreply, assign(socket, :edit_form, form)}
+  end
+
+  def handle_event("create", %{"category" => params}, socket) when is_map(params) do
     tenant = socket.assigns.tenant
     user = socket.assigns.current_user
-    key = key |> to_string() |> String.trim() |> String.downcase()
-    label = label |> to_string() |> String.trim()
 
-    socket =
-      assign(socket, :category_form, to_form(%{"key" => key, "label" => label}, as: :category))
+    case AshPhoenix.Form.submit(socket.assigns.category_form, params: params) do
+      {:ok, _cat} ->
+        {:ok, categories} = list_categories(tenant)
 
-    with true <- key != "" || {:error, "Key is required"},
-         true <-
-           Regex.match?(~r/^[a-z0-9_]+$/, key) || {:error, "Key must be lowercase/underscore"},
-         true <- label != "" || {:error, "Label is required"},
-         {:ok, _cat} <-
-           FeedbackDomain.create_issue_category(%{key: key, label: label, active: true},
-             tenant: tenant,
-             actor: user
-           ),
-         {:ok, categories} <- list_categories(tenant) do
-      {:noreply,
-       socket
-       |> assign(:categories, categories)
-       |> assign(:category_form, to_form(%{"key" => "", "label" => ""}, as: :category))
-       |> assign(:error, nil)
-       |> put_flash(:info, "Category added.")}
-    else
-      {:error, msg} when is_binary(msg) ->
-        {:noreply, assign(socket, :error, msg)}
+        {:noreply,
+         socket
+         |> assign(:categories, categories)
+         |> assign(:category_form, category_form(tenant, user))
+         |> assign(:error, nil)
+         |> put_flash(:info, "Category added.")}
+
+      {:error, %Phoenix.HTML.Form{} = form} ->
+        {:noreply, assign(socket, :category_form, form)}
 
       {:error, err} ->
         {:noreply, assign(socket, :error, Exception.message(err))}
-
-      other ->
-        {:noreply, assign(socket, :error, "Failed to add: #{inspect(other)}")}
     end
   end
 
   @impl true
   def handle_event("save_ai_settings", %{"ai" => params}, socket) when is_map(params) do
-    org = socket.assigns.org
     user = socket.assigns.current_user
-    socket = assign(socket, :ai_form, to_form(params, as: :ai))
+    socket = assign(socket, :ai_form, AshPhoenix.Form.validate(socket.assigns.ai_form, params))
 
-    business =
-      params
-      |> Map.get("business_context")
-      |> to_string()
-      |> String.trim()
-
-    instructions =
-      params
-      |> Map.get("categorization_instructions")
-      |> to_string()
-      |> String.trim()
-
-    attrs = %{
-      ai_business_context: if(business == "", do: nil, else: business),
-      ai_categorization_instructions: if(instructions == "", do: nil, else: instructions)
-    }
-
-    case Tenants.update_organization(org, attrs, actor: user) do
+    case AshPhoenix.Form.submit(socket.assigns.ai_form, params: params) do
       {:ok, %Organization{} = org} ->
         {:noreply,
          socket
          |> assign(:org, org)
-         |> assign(
-           :ai_form,
-           to_form(
-             %{
-               "business_context" => org.ai_business_context || "",
-               "categorization_instructions" => org.ai_categorization_instructions || ""
-             },
-             as: :ai
-           )
-         )
+         |> assign(:ai_form, ai_form(org, user))
          |> assign(:ai_saved?, true)
          |> assign(:ai_save_error, nil)
          |> put_flash(:info, "AI settings saved.")}
+
+      {:error, %Phoenix.HTML.Form{} = form} ->
+        {:noreply,
+         socket
+         |> assign(:ai_form, form)
+         |> assign(:ai_saved?, false)
+         |> assign(:ai_save_error, "Please fix the highlighted fields.")}
 
       {:error, err} ->
         {:noreply,
@@ -482,26 +447,14 @@ defmodule CloseTheLoopWeb.IssueCategoriesLive.Index do
   @impl true
   def handle_event("edit_category", %{"id" => id}, socket) do
     tenant = socket.assigns.tenant
+    user = socket.assigns.current_user
 
     case FeedbackDomain.get_issue_category_by_id(id, tenant: tenant) do
       {:ok, %IssueCategory{} = cat} ->
         {:noreply,
          socket
          |> assign(:editing_category, cat)
-         |> assign(
-           :edit_form,
-           to_form(
-             %{
-               "label" => cat.label || "",
-               "description" => cat.description || "",
-               "ai_guidance" => cat.ai_guidance || "",
-               "ai_include_keywords" => cat.ai_include_keywords || "",
-               "ai_exclude_keywords" => cat.ai_exclude_keywords || "",
-               "ai_examples" => cat.ai_examples || ""
-             },
-             as: :edit
-           )
-         )}
+         |> assign(:edit_form, edit_form(tenant, cat, user))}
 
       _ ->
         {:noreply, put_flash(socket, :error, "Failed to load category")}
@@ -513,63 +466,28 @@ defmodule CloseTheLoopWeb.IssueCategoriesLive.Index do
     {:noreply,
      socket
      |> assign(:editing_category, nil)
-     |> assign(
-       :edit_form,
-       to_form(
-         %{
-           "label" => "",
-           "description" => "",
-           "ai_guidance" => "",
-           "ai_include_keywords" => "",
-           "ai_exclude_keywords" => "",
-           "ai_examples" => ""
-         },
-         as: :edit
-       )
-     )}
+     |> assign(:edit_form, to_form(%{}, as: :edit))}
   end
 
   @impl true
   def handle_event("save_category", %{"edit" => edit_params}, socket) when is_map(edit_params) do
     tenant = socket.assigns.tenant
-    cat = socket.assigns.editing_category
-    user = socket.assigns.current_user
-    socket = assign(socket, :edit_form, to_form(edit_params, as: :edit))
 
-    label = edit_params |> Map.get("label", "") |> to_string() |> String.trim()
-    description = Map.get(edit_params, "description", "")
-    ai_guidance = Map.get(edit_params, "ai_guidance", "")
-    ai_include_keywords = Map.get(edit_params, "ai_include_keywords", "")
-    ai_exclude_keywords = Map.get(edit_params, "ai_exclude_keywords", "")
-    ai_examples = Map.get(edit_params, "ai_examples", "")
+    case AshPhoenix.Form.submit(socket.assigns.edit_form, params: edit_params) do
+      {:ok, %IssueCategory{}} ->
+        {:ok, categories} = list_categories(tenant)
 
-    attrs = %{
-      label: label,
-      description: blank_to_nil(description),
-      ai_guidance: blank_to_nil(ai_guidance),
-      ai_include_keywords: blank_to_nil(ai_include_keywords),
-      ai_exclude_keywords: blank_to_nil(ai_exclude_keywords),
-      ai_examples: blank_to_nil(ai_examples)
-    }
+        {:noreply,
+         socket
+         |> assign(:categories, categories)
+         |> put_flash(:info, "Category updated.")
+         |> Fluxon.close_dialog("edit-category-modal")}
 
-    with true <- label != "" || {:error, "Label is required"},
-         {:ok, %IssueCategory{}} <-
-           FeedbackDomain.update_issue_category(cat, attrs, tenant: tenant, actor: user),
-         {:ok, categories} <- list_categories(tenant) do
-      {:noreply,
-       socket
-       |> assign(:categories, categories)
-       |> put_flash(:info, "Category updated.")
-       |> Fluxon.close_dialog("edit-category-modal")}
-    else
-      {:error, msg} when is_binary(msg) ->
-        {:noreply, put_flash(socket, :error, msg)}
+      {:error, %Phoenix.HTML.Form{} = form} ->
+        {:noreply, assign(socket, :edit_form, form)}
 
       {:error, err} ->
         {:noreply, put_flash(socket, :error, "Failed to save category: #{inspect(err)}")}
-
-      other ->
-        {:noreply, put_flash(socket, :error, "Failed to save category: #{inspect(other)}")}
     end
   end
 
@@ -620,9 +538,41 @@ defmodule CloseTheLoopWeb.IssueCategoriesLive.Index do
     end
   end
 
-  defp blank_to_nil(val) do
-    val = val |> to_string() |> String.trim()
-    if val == "", do: nil, else: val
+  defp ai_form(%Organization{} = org, user) do
+    AshPhoenix.Form.for_update(org, :update,
+      as: "ai",
+      id: "ai",
+      actor: user,
+      params: %{
+        "ai_business_context" => org.ai_business_context,
+        "ai_categorization_instructions" => org.ai_categorization_instructions
+      }
+    )
+    |> to_form()
+  end
+
+  defp category_form(tenant, user) do
+    AshPhoenix.Form.for_create(IssueCategory, :create,
+      as: "category",
+      id: "category",
+      tenant: tenant,
+      actor: user,
+      params: %{"key" => "", "label" => ""},
+      prepare_params: fn params, _phase ->
+        Map.update(params, "key", "", fn k -> k |> to_string() |> String.downcase() end)
+      end
+    )
+    |> to_form()
+  end
+
+  defp edit_form(tenant, %IssueCategory{} = cat, user) do
+    AshPhoenix.Form.for_update(cat, :update,
+      as: "edit",
+      id: "edit",
+      tenant: tenant,
+      actor: user
+    )
+    |> to_form()
   end
 
   defp ai_settings_state(true, _err), do: "saved"

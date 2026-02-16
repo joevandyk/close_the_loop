@@ -8,23 +8,11 @@ defmodule CloseTheLoopWeb.SettingsLive.Account do
   def mount(_params, _session, socket) do
     user = socket.assigns.current_user
 
-    profile_form =
-      to_form(%{"name" => user.name || ""}, as: :profile)
-
-    email_form =
-      to_form(%{"email" => to_string(user.email), "current_password" => ""}, as: :email)
-
-    password_form =
-      to_form(
-        %{"current_password" => "", "password" => "", "password_confirmation" => ""},
-        as: :password
-      )
-
     {:ok,
      socket
-     |> assign(:profile_form, profile_form)
-     |> assign(:email_form, email_form)
-     |> assign(:password_form, password_form)
+     |> assign(:profile_form, profile_form(user))
+     |> assign(:email_form, email_form(user))
+     |> assign(:password_form, password_form(user))
      |> assign(:profile_error, nil)
      |> assign(:email_error, nil)
      |> assign(:password_error, nil)}
@@ -57,7 +45,9 @@ defmodule CloseTheLoopWeb.SettingsLive.Account do
           <dl class="mt-4 space-y-3 text-sm">
             <div class="flex items-center justify-between gap-4">
               <dt class="text-foreground-soft">Name</dt>
-              <dd class="font-medium">{@current_user.name || "—"}</dd>
+              <dd class="font-medium">
+                {@current_user.name || "—"}
+              </dd>
             </div>
             <div class="flex items-center justify-between gap-4">
               <dt class="text-foreground-soft">Email</dt>
@@ -76,6 +66,7 @@ defmodule CloseTheLoopWeb.SettingsLive.Account do
           <.form
             for={@profile_form}
             id="user-profile-form"
+            phx-change="validate"
             phx-submit="save_profile"
             class="mt-4 space-y-3"
           >
@@ -108,6 +99,7 @@ defmodule CloseTheLoopWeb.SettingsLive.Account do
           <.form
             for={@email_form}
             id="user-email-form"
+            phx-change="validate"
             phx-submit="change_email"
             class="mt-4 space-y-3"
           >
@@ -149,6 +141,7 @@ defmodule CloseTheLoopWeb.SettingsLive.Account do
           <.form
             for={@password_form}
             id="user-password-form"
+            phx-change="validate"
             phx-submit="change_password"
             class="mt-4 space-y-3"
           >
@@ -208,114 +201,115 @@ defmodule CloseTheLoopWeb.SettingsLive.Account do
   end
 
   @impl true
-  def handle_event("save_profile", %{"profile" => %{"name" => name}}, socket) do
-    user = socket.assigns.current_user
-    name = name |> to_string() |> String.trim()
+  def handle_event("validate", %{"profile" => params}, socket) when is_map(params) do
+    form = AshPhoenix.Form.validate(socket.assigns.profile_form, params)
+    {:noreply, socket |> assign(:profile_form, form) |> assign(:profile_error, nil)}
+  end
 
-    attrs = %{name: if(name == "", do: nil, else: name)}
-    socket = assign(socket, :profile_form, to_form(%{"name" => name}, as: :profile))
+  def handle_event("validate", %{"email" => params}, socket) when is_map(params) do
+    form = AshPhoenix.Form.validate(socket.assigns.email_form, params)
+    {:noreply, socket |> assign(:email_form, form) |> assign(:email_error, nil)}
+  end
 
-    case CloseTheLoop.Accounts.update_user_profile(user, attrs, actor: user) do
+  def handle_event("validate", %{"password" => params}, socket) when is_map(params) do
+    form = AshPhoenix.Form.validate(socket.assigns.password_form, params)
+    {:noreply, socket |> assign(:password_form, form) |> assign(:password_error, nil)}
+  end
+
+  def handle_event("save_profile", %{"profile" => params}, socket) when is_map(params) do
+    case AshPhoenix.Form.submit(socket.assigns.profile_form, params: params) do
       {:ok, %User{} = user} ->
         {:noreply,
          socket
          |> assign(:current_user, user)
-         |> assign(:profile_form, to_form(%{"name" => user.name || ""}, as: :profile))
+         |> assign(:profile_form, profile_form(user))
          |> assign(:profile_error, nil)
          |> put_flash(:info, "Profile updated.")}
 
+      {:error, %Phoenix.HTML.Form{} = form} ->
+        {:noreply, assign(socket, :profile_form, form)}
+
       {:error, err} ->
-        {:noreply, assign(socket, :profile_error, Exception.message(err))}
+        {:noreply, assign(socket, :profile_error, error_message(err))}
     end
   end
 
   @impl true
   def handle_event(
         "change_email",
-        %{"email" => %{"email" => email, "current_password" => current_password}},
+        %{"email" => params},
         socket
-      ) do
-    user = socket.assigns.current_user
-    email = email |> to_string() |> String.trim()
-
-    socket =
-      assign(
-        socket,
-        :email_form,
-        to_form(%{"email" => email, "current_password" => ""}, as: :email)
       )
+      when is_map(params) do
+    case AshPhoenix.Form.submit(socket.assigns.email_form, params: params) do
+      {:ok, %User{} = user} ->
+        {:noreply,
+         socket
+         |> assign(:current_user, user)
+         |> assign(:email_form, email_form(user))
+         |> assign(:email_error, nil)
+         |> put_flash(:info, "Email updated.")}
 
-    with true <- email != "" || {:error, "Email is required"},
-         {:ok, %User{} = user} <-
-           CloseTheLoop.Accounts.change_user_email(
-             user,
-             %{email: email, current_password: current_password},
-             actor: user
-           ) do
-      {:noreply,
-       socket
-       |> assign(:current_user, user)
-       |> assign(
-         :email_form,
-         to_form(%{"email" => to_string(user.email), "current_password" => ""}, as: :email)
-       )
-       |> assign(:email_error, nil)
-       |> put_flash(:info, "Email updated.")}
-    else
-      {:error, msg} when is_binary(msg) ->
-        {:noreply, assign(socket, :email_error, msg)}
+      {:error, %Phoenix.HTML.Form{} = form} ->
+        {:noreply, assign(socket, :email_form, form)}
 
       {:error, err} ->
         {:noreply, assign(socket, :email_error, error_message(err))}
-
-      other ->
-        {:noreply, assign(socket, :email_error, "Failed to update email: #{inspect(other)}")}
     end
   end
 
   @impl true
   def handle_event(
         "change_password",
-        %{
-          "password" => %{
-            "current_password" => current_password,
-            "password" => password,
-            "password_confirmation" => password_confirmation
-          }
-        },
+        %{"password" => params},
         socket
-      ) do
-    user = socket.assigns.current_user
-
-    socket =
-      assign(
-        socket,
-        :password_form,
-        to_form(
-          %{"current_password" => "", "password" => "", "password_confirmation" => ""},
-          as: :password
-        )
       )
-
-    case CloseTheLoop.Accounts.change_user_password(
-           user,
-           %{
-             current_password: current_password,
-             password: password,
-             password_confirmation: password_confirmation
-           },
-           actor: user
-         ) do
+      when is_map(params) do
+    case AshPhoenix.Form.submit(socket.assigns.password_form, params: params) do
       {:ok, %User{} = user} ->
         {:noreply,
          socket
          |> assign(:current_user, user)
+         |> assign(:password_form, password_form(user))
          |> assign(:password_error, nil)
          |> put_flash(:info, "Password updated.")}
+
+      {:error, %Phoenix.HTML.Form{} = form} ->
+        {:noreply, assign(socket, :password_form, form)}
 
       {:error, err} ->
         {:noreply, assign(socket, :password_error, error_message(err))}
     end
+  end
+
+  defp profile_form(user) do
+    AshPhoenix.Form.for_update(user, :update_profile,
+      as: "profile",
+      id: "profile",
+      actor: user,
+      params: %{"name" => user.name}
+    )
+    |> to_form()
+  end
+
+  defp email_form(user) do
+    AshPhoenix.Form.for_update(user, :change_email,
+      as: "email",
+      id: "email",
+      actor: user,
+      params: %{"email" => to_string(user.email), "current_password" => ""}
+    )
+    |> to_form()
+  end
+
+  defp password_form(user) do
+    AshPhoenix.Form.for_update(user, :change_password,
+      as: "password",
+      id: "password",
+      actor: user,
+      params: %{"current_password" => "", "password" => "", "password_confirmation" => ""}
+    )
+    |> to_form()
   end
 
   defp error_message(%Ash.Error.Invalid{errors: errors}) when is_list(errors) do

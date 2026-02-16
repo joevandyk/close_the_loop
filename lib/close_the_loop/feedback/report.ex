@@ -6,6 +6,8 @@ defmodule CloseTheLoop.Feedback.Report do
     authorizers: [Ash.Policy.Authorizer],
     extensions: [AshEvents.Events]
 
+  alias CloseTheLoop.Feedback.Report.Changes
+
   postgres do
     table "reports"
     repo CloseTheLoop.Repo
@@ -34,6 +36,52 @@ defmodule CloseTheLoop.Feedback.Report do
         :location_id,
         :issue_id
       ]
+
+      change Changes.NormalizeBody
+      change Changes.NormalizeReporterPhone
+      change Changes.ResolveIssueAndLocation
+
+      validate match(:reporter_email, ~r/^[^\s@]+@[^\s@]+\.[^\s@]+$/) do
+        message "Email address looks invalid"
+        where present(:reporter_email)
+      end
+    end
+
+    create :create_manual do
+      accept [
+        :body,
+        :normalized_body,
+        :reporter_name,
+        :reporter_email,
+        :reporter_phone,
+        :consent,
+        :location_id,
+        :issue_id
+      ]
+
+      change set_attribute(:source, :manual)
+      change Changes.NormalizeBody
+      change Changes.NormalizeReporterPhone
+      change Changes.ResolveIssueAndLocation
+
+      validate match(:reporter_email, ~r/^[^\s@]+@[^\s@]+\.[^\s@]+$/) do
+        message "Email address looks invalid"
+        where present(:reporter_email)
+      end
+    end
+
+    update :edit_details do
+      accept [:body, :reporter_name, :reporter_email, :reporter_phone, :consent]
+
+      require_atomic? false
+
+      change Changes.NormalizeBody
+      change Changes.NormalizeReporterPhone
+
+      validate match(:reporter_email, ~r/^[^\s@]+@[^\s@]+\.[^\s@]+$/) do
+        message "Email address looks invalid"
+        where present(:reporter_email)
+      end
     end
 
     update :reassign_issue do
@@ -64,6 +112,7 @@ defmodule CloseTheLoop.Feedback.Report do
 
     attribute :body, :string do
       allow_nil? false
+      constraints min_length: 1, trim?: true
       public? true
     end
 

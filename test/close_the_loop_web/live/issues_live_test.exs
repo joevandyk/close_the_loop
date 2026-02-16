@@ -72,12 +72,16 @@ defmodule CloseTheLoopWeb.IssuesLiveTest do
       |> AshAuthentication.Plug.Helpers.store_in_session(user)
 
     {:ok, view, _html} = live(conn, ~p"/app/#{org.id}/issues/#{issue.id}")
-    assert has_element?(view, "#issue-internal-comment-form")
+    assert has_element?(view, "#issue-open-add-update")
+    refute has_element?(view, "#issue-internal-comment-form")
     assert has_element?(view, "#issue-activity")
 
+    view |> element("#issue-open-add-update") |> render_click()
+    assert has_element?(view, "#issue-add-update-form")
+
     view
-    |> form("#issue-internal-comment-form",
-      comment: %{body: "Called maintenance; plumber Tuesday."}
+    |> form("#issue-add-update-form",
+      issue_update: %{comment_body: "Called maintenance; plumber Tuesday."}
     )
     |> render_submit()
 
@@ -255,8 +259,16 @@ defmodule CloseTheLoopWeb.IssuesLiveTest do
     {:ok, view, _html} = live(conn, ~p"/app/#{org.id}/issues/#{issue.id}")
 
     view
-    |> element("button[phx-value-status='acknowledged']")
+    |> element("#issue-open-add-update")
     |> render_click()
+
+    view
+    |> element("#issue-add-update-form button[phx-value-status='acknowledged']")
+    |> render_click()
+
+    view
+    |> form("#issue-add-update-form", issue_update: %{comment_body: ""})
+    |> render_submit()
 
     activity_html = view |> element("#issue-activity") |> render()
     assert activity_html =~ "Status changed"

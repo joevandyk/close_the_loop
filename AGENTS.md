@@ -5,6 +5,18 @@ This is a web application written using the Phoenix web framework.
 - Use `mix precommit` alias when you are done with all changes and fix any pending issues
 - Use the already included and available `:req` (`Req`) library for HTTP requests, **avoid** `:httpoison`, `:tesla`, and `:httpc`. Req is included by default and is the preferred HTTP client for Phoenix apps
 
+## Ash Framework conventions
+
+- **Always** use `AshPhoenix.Form` (not plain `to_form(%{...})`) for LiveView forms that back an Ash resource action.
+- **Always** validate with `AshPhoenix.Form.validate/2-3` on `phx-change` and submit with `AshPhoenix.Form.submit/2` on `phx-submit`.
+- Keep validation and business rules in Ash resources/actions; avoid duplicating them in LiveView `handle_event/3` (trim/normalization at the boundary is fine).
+- Prefer domain code interfaces with `query: [...]` options for filtering/sorting/loading instead of manual `Ash.Query` building in LiveViews.
+- Define code interfaces on domains for every action invoked from the web layer; avoid direct `Ash.create/read/update/destroy` in LiveViews.
+- Extract non-trivial changes/validations/preparations into dedicated modules (avoid inline anonymous `fn changeset -> ... end` changes in resources).
+- When calling Ash actions, **always** pass `tenant:` and `actor:` (or a single `scope:`) consistently.
+- Avoid N+1 reads; prefer bulk reads like `list_users(query: [filter: [id: [in: ids]]])` over per-id `get_*` loops.
+- Filter-only forms (URL params, local UI state) can use plain `to_form/2` since they don't map to Ash actions.
+
 ### Phoenix v1.8 guidelines
 
 - **Always** begin your LiveView templates with `<Layouts.app flash={@flash} ...>` which wraps all inner content
@@ -43,6 +55,27 @@ custom classes must fully style the input
 - Ensure **clean typography, spacing, and layout balance** for a refined, premium look
 - Focus on **delightful details** like hover effects, loading states, and smooth page transitions
 - **When the UI references another entity** (e.g. an issue, a report, a location, "Created Report", "Currently assigned to: [issue title]"), **link to it** when it makes sense so users can navigate directly. Prefer making the reference text (or an obvious target like the timestamp) a `<.link navigate={...}>` rather than plain text when the target has its own page.
+
+### Activity / audit trail guidelines
+
+- **Never** create fake `IssueComment` (or similar) records for system-generated audit entries. System activity is tracked automatically by AshEvents.
+- When an action needs additional audit context (e.g. "moved from issue A to issue B"), pass **structured metadata** via `ash_events_metadata` in the action context:
+
+      Feedback.reassign_report_issue(report, %{issue_id: new_id},
+        tenant: tenant,
+        actor: user,
+        context: %{
+          ash_events_metadata: %{
+            "move_type" => "existing",
+            "from_issue_id" => old_issue.id,
+            "to_issue_id" => new_id
+          }
+        }
+      )
+
+- The `ActivityFeed` component in `activity_feed.ex` is responsible for rendering structured event data into human-readable, linkable summaries. Keep display logic (titles, summaries, entity links) out of stored strings.
+- When referencing another entity (issue, report, location) in an activity summary, render it as a `<.link navigate={...}>` so users can navigate directly.
+- Handle the case where a referenced entity has been deleted: show a safe fallback (e.g. "(deleted issue)") rather than crashing.
 
 
 <!-- usage-rules-start -->
@@ -991,10 +1024,10 @@ end
 event_log do
   # Make all AshEvents fields public
   public_fields :all
-  
+
   # Or specify only certain fields
   public_fields [:id, :resource, :action, :occurred_at]
-  
+
   # Default: all fields are private
   public_fields []
 end
@@ -1511,7 +1544,7 @@ actions do
     upsert_identity :unique_email
 
     change AshAuthentication.GenerateTokenChange
-    
+
     # If UserIdentity resource is being used
     change AshAuthentication.Strategy.OAuth2.IdentityChange
 
@@ -1680,9 +1713,9 @@ When customizing generated authentication actions (register, sign_in, etc.):
 create :register_with_password do
   argument :password, :string, allow_nil?: false, sensitive?: true
   argument :first_name, :string, allow_nil?: false
-  
+
   accept [:email, :first_name]
-  
+
   change AshAuthentication.GenerateTokenChange
   change AshAuthentication.Strategy.Password.HashPasswordChange
 end
@@ -1953,7 +1986,7 @@ actions do
   create :sign_up do
     validate present([:email, :password])  # Only for this action
   end
-  
+
   read :search do
     argument :email, :string
     validate match(:email, ~r/^[^\s]+@[^\s]+\.[^\s]+$/)  # Validates query arguments
@@ -2870,11 +2903,11 @@ aggregates do
   count :matching_profiles_count, Profile do
     filter expr(name == parent(name))
   end
-  
+
   sum :total_report_score, Report, :score do
     filter expr(author_name == parent(name))
   end
-  
+
   exists :has_reports, Report do
     filter expr(author_name == parent(name))
   end
@@ -2977,8 +3010,8 @@ Ash.Query.filter(User, exists(Profile, name == parent(name)))
 Ash.Query.filter(User, exists(Report, author_name == parent(name)))
 
 # Complex existence checks
-Ash.Query.filter(User, 
-  active == true and 
+Ash.Query.filter(User,
+  active == true and
   exists(Profile, active == true and name == parent(name))
 )
 ```
@@ -3266,8 +3299,8 @@ end
 
 ## Debugging Form Submission
 
-Errors on forms are only shown when they implement the `AshPhoenix.FormData.Error` protocol and have a `field` or `fields` set. 
-Most Phoenix applications are set up to show errors for `<.input`s. This can some times lead to errors happening in the 
+Errors on forms are only shown when they implement the `AshPhoenix.FormData.Error` protocol and have a `field` or `fields` set.
+Most Phoenix applications are set up to show errors for `<.input`s. This can some times lead to errors happening in the
 action that are not displayed because they don't implement the protocol, have field/fields, or for a field that is not shown
 in the form.
 
@@ -3276,7 +3309,7 @@ is going wrong, and potentially add custom error handling, or resolve whatever e
 that can go wrong that aren't tied to fields, you will need to detect those error scenarios and display that with some other UI,
 like a flash message or a notice at the top/bottom of the form, etc.
 
-If you want to see what errors the form will see (that implement the protocl and have fields) use 
+If you want to see what errors the form will see (that implement the protocl and have fields) use
 `AshPhoenix.Form.errors(form, for_path: :all)`.
 
 ## Best Practices
@@ -3317,7 +3350,7 @@ mix usage_rules.docs Enum.zip/1
 
 ## Searching Documentation
 
-You should also consult the documentation of any tools you are using, early and often. The best 
+You should also consult the documentation of any tools you are using, early and often. The best
 way to accomplish this is to use the `usage_rules.search_docs` mix task. Once you have
 found what you are looking for, use the links in the search results to get more detail. For example:
 

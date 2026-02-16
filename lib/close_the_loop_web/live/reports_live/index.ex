@@ -54,7 +54,7 @@ defmodule CloseTheLoopWeb.ReportsLive.Index do
     query =
       CloseTheLoop.Feedback.Report
       |> Ash.Query.for_read(:read, %{})
-      |> Ash.Query.sort(inserted_at: :desc)
+      |> Ash.Query.sort(updated_at: :desc, inserted_at: :desc)
       |> Ash.Query.limit(200)
 
     query =

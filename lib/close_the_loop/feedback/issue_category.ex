@@ -61,12 +61,13 @@ defmodule CloseTheLoop.Feedback.IssueCategory do
     attribute :key, :string do
       allow_nil? false
       public? true
-      constraints match: ~r/^[a-z0-9_]+$/
+      constraints match: ~r/^[a-z0-9_]+$/, trim?: true
     end
 
     # Human-friendly label shown in the UI.
     attribute :label, :string do
       allow_nil? false
+      constraints min_length: 1, trim?: true
       public? true
     end
 

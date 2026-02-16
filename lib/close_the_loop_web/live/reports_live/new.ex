@@ -3,11 +3,7 @@ defmodule CloseTheLoopWeb.ReportsLive.New do
   on_mount {CloseTheLoopWeb.LiveUserAuth, :live_org_required}
 
   alias CloseTheLoop.Feedback, as: FeedbackDomain
-  alias CloseTheLoop.Feedback.{Issue, Location, Report}
-  alias CloseTheLoop.Feedback.Intake
-  alias CloseTheLoop.Feedback.Text
-  alias CloseTheLoop.Messaging.Phone
-
+  alias CloseTheLoop.Feedback.{Location, Report}
   @impl true
   def mount(params, _session, socket) do
     socket =
@@ -18,21 +14,7 @@ defmodule CloseTheLoopWeb.ReportsLive.New do
       |> assign(:selected_location_label, nil)
       |> assign(:issue_options, [])
       |> assign(:error, nil)
-      |> assign(
-        :manual_form,
-        to_form(
-          %{
-            "location_id" => "",
-            "issue_id" => "",
-            "body" => "",
-            "reporter_name" => "",
-            "reporter_email" => "",
-            "reporter_phone" => "",
-            "consent" => "false"
-          },
-          as: :manual
-        )
-      )
+      |> assign(:manual_form, to_form(%{}, as: :manual))
 
     tenant = socket.assigns.current_tenant
 
@@ -46,21 +28,13 @@ defmodule CloseTheLoopWeb.ReportsLive.New do
         |> assign(:locations, locations)
         |> assign(:location_options, build_location_options(locations))
         |> assign(:selected_location_id, selected && selected.id)
-        |> assign(:selected_location_label, selected && (selected.full_path || selected.name))
+        |> assign(
+          :selected_location_label,
+          selected && (selected.full_path || selected.name)
+        )
         |> assign(
           :manual_form,
-          to_form(
-            %{
-              "location_id" => (selected && selected.id) || "",
-              "issue_id" => "",
-              "body" => "",
-              "reporter_name" => "",
-              "reporter_email" => "",
-              "reporter_phone" => "",
-              "consent" => "false"
-            },
-            as: :manual
-          )
+          manual_form(tenant, socket.assigns.current_user, selected && selected.id)
         )
 
       socket =
@@ -122,6 +96,35 @@ defmodule CloseTheLoopWeb.ReportsLive.New do
     Enum.map(issues, fn issue ->
       {"#{issue.title} (#{issue.status})", issue.id}
     end)
+  end
+
+  defp manual_form(tenant, user, selected_location_id) do
+    AshPhoenix.Form.for_create(Report, :create_manual,
+      as: "manual",
+      id: "manual",
+      tenant: tenant,
+      actor: user,
+      params: %{
+        "location_id" => selected_location_id || "",
+        "issue_id" => "",
+        "body" => "",
+        "reporter_name" => "",
+        "reporter_email" => "",
+        "reporter_phone" => "",
+        "consent" => "false"
+      },
+      exclude_fields_if_empty: [:issue_id],
+      post_process_errors: fn _form, _path, {field, message, vars} ->
+        # In this flow, issue selection is optional; the submission path will
+        # auto-group or create an issue when it's omitted.
+        if field in [:issue, :issue_id] do
+          nil
+        else
+          {field, message, vars}
+        end
+      end
+    )
+    |> to_form()
   end
 
   @impl true
@@ -258,7 +261,7 @@ defmodule CloseTheLoopWeb.ReportsLive.New do
                   id="manual-consent"
                   field={@manual_form[:consent]}
                   label="Reporter consented to receive SMS updates."
-                  description="Requires a phone number."
+                  description="SMS updates are only sent when a phone number is provided."
                 />
               </div>
             </div>
@@ -288,14 +291,17 @@ defmodule CloseTheLoopWeb.ReportsLive.New do
 
     socket =
       socket
-      |> assign(:manual_form, to_form(params, as: :manual))
+      |> assign(:manual_form, AshPhoenix.Form.validate(socket.assigns.manual_form, params))
       |> assign(:error, nil)
 
     socket =
       if selected do
         socket
         |> assign(:selected_location_id, selected.id)
-        |> assign(:selected_location_label, selected.full_path || selected.name)
+        |> assign(
+          :selected_location_label,
+          selected.full_path || selected.name
+        )
         |> assign(:issue_options, build_issue_options(list_issues(tenant, selected.id)))
       else
         socket
@@ -308,98 +314,21 @@ defmodule CloseTheLoopWeb.ReportsLive.New do
   end
 
   def handle_event("create", %{"manual" => params}, socket) do
-    tenant = socket.assigns.current_tenant
-    user = socket.assigns.current_user
+    socket =
+      assign(socket, :manual_form, AshPhoenix.Form.validate(socket.assigns.manual_form, params))
 
-    location_id = params |> Map.get("location_id", "") |> to_string() |> String.trim()
-    issue_id = params |> Map.get("issue_id", "") |> to_string() |> String.trim()
-    body = params |> Map.get("body", "") |> to_string() |> String.trim()
+    case AshPhoenix.Form.submit(socket.assigns.manual_form, params: params) do
+      {:ok, %Report{} = report} ->
+        {:noreply,
+         socket
+         |> put_flash(:info, "Report added.")
+         |> push_navigate(to: ~p"/app/#{socket.assigns.current_org.id}/issues/#{report.issue_id}")}
 
-    reporter_name = params |> Map.get("reporter_name", "") |> to_string() |> String.trim()
-    reporter_email = params |> Map.get("reporter_email", "") |> to_string() |> String.trim()
-    reporter_phone_raw = params |> Map.get("reporter_phone", "") |> to_string() |> String.trim()
-    consent = Map.get(params, "consent", "false") in ["true", "on", true]
-
-    socket = assign(socket, :manual_form, to_form(params, as: :manual))
-
-    with true <- location_id != "" || {:error, "Location is required"},
-         true <- body != "" || {:error, "Report text is required"},
-         :ok <- validate_email(blank_to_nil(reporter_email)),
-         {:ok, reporter_phone} <- Phone.normalize_e164(reporter_phone_raw),
-         true <-
-           not (consent and is_nil(reporter_phone)) || {:error, "Consent requires a phone number"},
-         {:ok, %{issue: issue}} <-
-           create_manual_report(
-             tenant,
-             user,
-             location_id,
-             issue_id,
-             %{
-               body: body,
-               reporter_name: blank_to_nil(reporter_name),
-               reporter_email: blank_to_nil(reporter_email),
-               reporter_phone: reporter_phone_raw,
-               consent: consent
-             }
-           ) do
-      {:noreply,
-       socket
-       |> put_flash(:info, "Report added.")
-       |> push_navigate(to: ~p"/app/#{socket.assigns.current_org.id}/issues/#{issue.id}")}
-    else
-      {:error, msg} when is_binary(msg) ->
-        {:noreply, assign(socket, :error, msg)}
+      {:error, %Phoenix.HTML.Form{} = form} ->
+        {:noreply, socket |> assign(:manual_form, form) |> assign(:error, nil)}
 
       {:error, err} ->
-        {:noreply, assign(socket, :error, Exception.message(err))}
-
-      other ->
-        {:noreply, assign(socket, :error, "Failed to add report: #{inspect(other)}")}
-    end
-  end
-
-  defp create_manual_report(tenant, _actor, location_id, "", attrs) do
-    Intake.submit_report(tenant, location_id, Map.put(attrs, :source, :manual))
-  end
-
-  defp create_manual_report(tenant, actor, location_id, issue_id, attrs) do
-    with {:ok, %Issue{} = issue} <- FeedbackDomain.get_issue_by_id(issue_id, tenant: tenant),
-         true <-
-           to_string(issue.location_id) == to_string(location_id) ||
-             {:error, "Selected issue does not match the location"},
-         normalized_body <- Text.normalize_for_dedupe(Map.get(attrs, :body)),
-         {:ok, normalized_phone} <- Phone.normalize_e164(Map.get(attrs, :reporter_phone)),
-         {:ok, %Report{} = report} <-
-           FeedbackDomain.create_report(
-             %{
-               location_id: location_id,
-               issue_id: issue.id,
-               body: Map.get(attrs, :body),
-               normalized_body: normalized_body,
-               source: :manual,
-               reporter_name: Map.get(attrs, :reporter_name),
-               reporter_email: Map.get(attrs, :reporter_email),
-               reporter_phone: normalized_phone,
-               consent: Map.get(attrs, :consent) and not is_nil(normalized_phone)
-             },
-             tenant: tenant,
-             actor: actor
-           ) do
-      {:ok, %{issue: issue, report: report}}
-    end
-  end
-
-  defp blank_to_nil(""), do: nil
-  defp blank_to_nil(nil), do: nil
-  defp blank_to_nil(val), do: val
-
-  defp validate_email(nil), do: :ok
-
-  defp validate_email(email) when is_binary(email) do
-    if Regex.match?(~r/^[^\s@]+@[^\s@]+\.[^\s@]+$/, email) do
-      :ok
-    else
-      {:error, "Email address looks invalid"}
+        {:noreply, assign(socket, :error, "Failed to add report: #{inspect(err)}")}
     end
   end
 end

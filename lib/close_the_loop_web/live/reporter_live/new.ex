@@ -4,9 +4,7 @@ defmodule CloseTheLoopWeb.ReporterLive.New do
   alias CloseTheLoop.Feedback, as: FeedbackDomain
   alias CloseTheLoop.Tenants
   alias CloseTheLoop.Tenants.Organization
-  alias CloseTheLoop.Feedback.{Intake, Location}
-  alias CloseTheLoop.Messaging.Phone
-
+  alias CloseTheLoop.Feedback.Location
   @impl true
   def mount(%{"tenant" => tenant, "location_id" => location_id}, _session, socket) do
     socket =
@@ -18,9 +16,7 @@ defmodule CloseTheLoopWeb.ReporterLive.New do
       |> assign(:org, get_org_by_tenant(tenant))
       |> assign(
         :report_form,
-        to_form(%{"body" => "", "name" => "", "email" => "", "phone" => "", "consent" => "false"},
-          as: :report
-        )
+        report_form(tenant, location_id)
       )
       |> assign(:submitted, false)
       |> assign(:error, nil)
@@ -74,7 +70,13 @@ defmodule CloseTheLoopWeb.ReporterLive.New do
               </.button>
             </div>
           <% else %>
-            <.form for={@report_form} id="reporter-intake-form" phx-submit="submit" class="space-y-4">
+            <.form
+              for={@report_form}
+              id="reporter-intake-form"
+              phx-change="validate"
+              phx-submit="submit"
+              class="space-y-4"
+            >
               <.textarea
                 field={@report_form[:body]}
                 label="What's wrong?"
@@ -85,7 +87,7 @@ defmodule CloseTheLoopWeb.ReporterLive.New do
 
               <div class="space-y-2">
                 <.input
-                  field={@report_form[:name]}
+                  field={@report_form[:reporter_name]}
                   type="text"
                   label="Your name"
                   sublabel="Optional"
@@ -93,7 +95,7 @@ defmodule CloseTheLoopWeb.ReporterLive.New do
                 />
 
                 <.input
-                  field={@report_form[:email]}
+                  field={@report_form[:reporter_email]}
                   type="email"
                   label="Email"
                   sublabel="Optional"
@@ -103,7 +105,7 @@ defmodule CloseTheLoopWeb.ReporterLive.New do
                 />
 
                 <.input
-                  field={@report_form[:phone]}
+                  field={@report_form[:reporter_phone]}
                   type="tel"
                   label="Phone number"
                   sublabel="Optional"
@@ -143,34 +145,54 @@ defmodule CloseTheLoopWeb.ReporterLive.New do
   end
 
   @impl true
-  def handle_event("submit", %{"report" => %{"body" => body} = params}, socket) do
-    tenant = socket.assigns.tenant
-    location_id = socket.assigns.location_id
+  def handle_event("validate", %{"report" => params}, socket) when is_map(params) do
+    form = AshPhoenix.Form.validate(socket.assigns.report_form, params)
+    {:noreply, socket |> assign(:report_form, form) |> assign(:error, nil)}
+  end
 
-    name_raw = Map.get(params, "name", "") |> to_string()
-    email_raw = Map.get(params, "email", "") |> to_string()
-    phone_raw = Map.get(params, "phone", "") |> to_string()
-    wants_updates = Map.get(params, "consent") in ["true", "1", true]
+  def handle_event("submit", %{"report" => params}, socket) when is_map(params) do
+    socket =
+      assign(socket, :report_form, AshPhoenix.Form.validate(socket.assigns.report_form, params))
 
-    socket = assign(socket, :report_form, to_form(params, as: :report))
+    case AshPhoenix.Form.submit(socket.assigns.report_form, params: params) do
+      {:ok, _report} ->
+        {:noreply, assign(socket, :submitted, true)}
 
-    with {:ok, phone} <- Phone.normalize_e164(phone_raw),
-         {:ok, _} <-
-           Intake.submit_report(tenant, location_id, %{
-             body: body,
-             source: :qr,
-             reporter_name: name_raw,
-             reporter_email: email_raw,
-             reporter_phone: phone,
-             consent: wants_updates and not is_nil(phone)
-           }) do
-      {:noreply, assign(socket, :submitted, true)}
-    else
-      {:error, msg} when is_binary(msg) ->
-        {:noreply, assign(socket, :error, msg)}
+      {:error, %Phoenix.HTML.Form{} = form} ->
+        {:noreply, socket |> assign(:report_form, form) |> assign(:error, nil)}
 
       {:error, err} ->
-        {:noreply, assign(socket, :error, inspect(err))}
+        {:noreply, assign(socket, :error, "Failed to submit report: #{inspect(err)}")}
     end
+  end
+
+  defp report_form(tenant, location_id) do
+    AshPhoenix.Form.for_create(CloseTheLoop.Feedback.Report, :create,
+      as: "report",
+      id: "report",
+      tenant: tenant,
+      params: %{
+        "body" => "",
+        "reporter_name" => "",
+        "reporter_email" => "",
+        "reporter_phone" => "",
+        "consent" => "false"
+      },
+      prepare_source: fn changeset ->
+        changeset
+        |> Ash.Changeset.change_attribute(:location_id, location_id)
+        |> Ash.Changeset.change_attribute(:source, :qr)
+      end,
+      post_process_errors: fn _form, _path, {field, message, vars} ->
+        # `issue_id` is resolved server-side during report creation. We still want
+        # field-level validation UX for other fields.
+        if field in [:issue, :issue_id] do
+          nil
+        else
+          {field, message, vars}
+        end
+      end
+    )
+    |> to_form()
   end
 end

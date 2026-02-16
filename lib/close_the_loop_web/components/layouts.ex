@@ -375,8 +375,10 @@ defmodule CloseTheLoopWeb.Layouts do
 
     help_settings_active = String.contains?(assigns.current_view, ".SettingsLive.Help")
     onboarding_active = String.contains?(assigns.current_view, ".OnboardingLive.")
-    organizations_active = String.contains?(assigns.current_view, ".OrgPickerLive.") or
-      String.contains?(assigns.current_view, ".OrganizationsLive.")
+
+    organizations_active =
+      String.contains?(assigns.current_view, ".OrgPickerLive.") or
+        String.contains?(assigns.current_view, ".OrganizationsLive.")
 
     assigns =
       assigns
