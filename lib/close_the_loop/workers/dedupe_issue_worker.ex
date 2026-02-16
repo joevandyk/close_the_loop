@@ -6,6 +6,7 @@ defmodule CloseTheLoop.Workers.DedupeIssueWorker do
   import Ash.Expr
 
   alias CloseTheLoop.AI
+  alias CloseTheLoop.Feedback.AIContext
   alias CloseTheLoop.Feedback.{Issue, Report}
 
   require Ash.Query
@@ -24,21 +25,18 @@ defmodule CloseTheLoop.Workers.DedupeIssueWorker do
       if candidates == [] do
         :ok
       else
+        # Include the issue's own recent reports to make matching more accurate.
+        reports_by_issue_id = AIContext.recent_reports_by_issue_id(tenant, [issue.id], 10, [])
+        self_reports = Map.get(reports_by_issue_id, issue.id, [])
+
         new_issue_text =
           case issue.location do
             nil -> issue.description
             loc -> "Location: #{location_display_name(loc)}\n\n#{issue.description}"
           end
+          |> append_recent_reports(self_reports)
 
-        payload =
-          Enum.map(candidates, fn c ->
-            %{
-              id: c.id,
-              title: c.title,
-              description: c.description,
-              location: location_display_name(c.location)
-            }
-          end)
+        payload = AIContext.candidate_payloads(tenant, candidates)
 
         case AI.match_duplicate_issue(new_issue_text, payload) do
           {:ok, nil} ->
@@ -69,7 +67,7 @@ defmodule CloseTheLoop.Workers.DedupeIssueWorker do
       )
       |> Ash.Query.sort(inserted_at: :desc)
       |> Ash.Query.limit(25)
-      |> Ash.Query.load(location: [:name, :full_path])
+      |> Ash.Query.load([:reporter_count, location: [:name, :full_path]])
 
     case Ash.read(query, tenant: tenant) do
       {:ok, issues} -> issues
@@ -101,6 +99,56 @@ defmodule CloseTheLoop.Workers.DedupeIssueWorker do
   defp location_display_name(loc) do
     loc.full_path || loc.name
   end
+
+  defp append_recent_reports(text, []), do: text
+
+  defp append_recent_reports(text, reports) when is_list(reports) do
+    reports_block =
+      reports
+      |> Enum.map(fn r ->
+        dt = r[:inserted_at] |> iso8601()
+        src = r[:source] |> to_string() |> String.trim()
+        loc = r[:location] |> to_string() |> String.trim()
+
+        meta =
+          [dt, src, loc]
+          |> Enum.reject(&(&1 == ""))
+          |> Enum.join(" | ")
+
+        body = r[:body] |> to_string() |> normalize_whitespace() |> truncate(280)
+
+        if meta == "" do
+          "- #{body}"
+        else
+          "- (#{meta}) #{body}"
+        end
+      end)
+      |> Enum.join("\n")
+
+    String.trim(text) <> "\n\nRECENT REPORTS ON THIS ISSUE:\n" <> reports_block
+  end
+
+  defp normalize_whitespace(text) do
+    text
+    |> to_string()
+    |> String.replace(~r/\s+/, " ")
+    |> String.trim()
+  end
+
+  defp truncate(text, max_chars) when is_integer(max_chars) and max_chars > 0 do
+    text = to_string(text)
+
+    if String.length(text) > max_chars do
+      String.slice(text, 0, max_chars) <> "..."
+    else
+      text
+    end
+  end
+
+  defp iso8601(%DateTime{} = dt), do: DateTime.to_iso8601(dt)
+  defp iso8601(%NaiveDateTime{} = dt), do: NaiveDateTime.to_iso8601(dt)
+  defp iso8601(other) when is_binary(other), do: other
+  defp iso8601(_), do: ""
 
   defp move_reports(tenant, from_issue_id, to_issue_id) do
     query =

@@ -11,6 +11,9 @@ defmodule CloseTheLoop.AI do
 
   require Ash.Query
 
+  @report_excerpt_chars 600
+  @max_reports_per_candidate 10
+
   defp create_chat_completion(openai, opts, limit) do
     # We standardize on max_completion_tokens (newer OpenAI models).
     req = Chat.Completions.new(opts ++ [max_completion_tokens: limit])
@@ -84,8 +87,12 @@ defmodule CloseTheLoop.AI do
         Given a NEW issue and a list of EXISTING open issues in the same organization, decide if the new issue
         is reporting the same underlying problem as one of the existing issues.
 
-        Issues may refer to different locations. Use any provided location context as a hint, but do not require
-        the locations to match if it is clearly the same underlying problem.
+        Each existing issue may include a report count and a sample of recent report texts. Use that context to
+        match issues that look different at the title/description level but are clearly the same underlying problem.
+
+        Location is an important hint (e.g. men's vs women's locker room), but not a hard constraint: reports may be
+        submitted from a generic/front-desk location while describing a more specific location in the text.
+        Use your best judgment.
 
         Return ONLY:
         - the matching issue id (a UUID) if it is clearly the same issue, OR
@@ -174,13 +181,17 @@ defmodule CloseTheLoop.AI do
           Matching rules:
           - Choose at most one existing issue id.
           - Be strict: only match when you're confident it's the same underlying issue.
-          - Location is a hint, but do not require locations to match if it is clearly the same problem.
+          - Location is a strong hint (e.g. men's vs women's locker room), but not a hard constraint:
+            reports may be submitted from a generic/front-desk location while describing a more specific location.
+            Prefer matching the underlying problem, using report text + recent reports as evidence.
+          - Existing issues may include a report count and a sample of recent report texts. Use those reports
+            as primary evidence of similarity when matching.
 
           Title rules:
           - 4-12 words
           - concise, specific, actionable (avoid filler like "issue" or "problem" when possible)
           - no trailing period
-          - do not include a location name unless it's essential
+          - do not include a location name unless it's essential to disambiguate (e.g. men's vs women's)
 
           #{category_rules}
 
@@ -192,7 +203,7 @@ defmodule CloseTheLoop.AI do
           if String.trim(location_context) == "" do
             ""
           else
-            "REPORT LOCATION:\n#{String.trim(location_context)}\n\n"
+            "REPORT CONTEXT:\n#{String.trim(location_context)}\n\n"
           end
 
         user_prompt =
@@ -235,6 +246,12 @@ defmodule CloseTheLoop.AI do
       location = Map.get(c, :location) || Map.get(c, "location")
       title = Map.get(c, :title) || Map.get(c, "title")
       description = Map.get(c, :description) || Map.get(c, "description")
+      status = Map.get(c, :status) || Map.get(c, "status")
+      reporter_count = Map.get(c, :reporter_count) || Map.get(c, "reporter_count")
+
+      reports =
+        Map.get(c, :recent_reports) || Map.get(c, "recent_reports") || Map.get(c, :reports) ||
+          Map.get(c, "reports") || []
 
       location_line =
         if is_binary(location) and String.trim(location) != "" do
@@ -244,13 +261,107 @@ defmodule CloseTheLoop.AI do
           ""
         end
 
+      status_line =
+        if is_nil(status) do
+          ""
+        else
+          "status: #{status}\n        "
+        end
+
+      reporter_count_line =
+        cond do
+          is_integer(reporter_count) and reporter_count >= 0 -> "report_count: #{reporter_count}\n        "
+          is_binary(reporter_count) and String.trim(reporter_count) != "" ->
+            "report_count: #{String.trim(reporter_count)}\n        "
+
+          true ->
+            ""
+        end
+
+      reports_block = encode_recent_reports(reports)
+
       """
       - id: #{id}
-        #{location_line}title: #{title}
+        #{location_line}#{status_line}#{reporter_count_line}title: #{title}
         description: #{description}
+        #{reports_block}
       """
     end)
     |> Enum.join("\n")
+  end
+
+  defp encode_recent_reports(reports) when not is_list(reports), do: ""
+  defp encode_recent_reports([]), do: ""
+
+  defp encode_recent_reports(reports) do
+    reports =
+      reports
+      |> Enum.take(@max_reports_per_candidate)
+      |> Enum.map(fn r ->
+        body = Map.get(r, :body) || Map.get(r, "body") || ""
+        body = sanitize_report_excerpt(body)
+
+        loc = Map.get(r, :location) || Map.get(r, "location") || ""
+        loc = loc |> to_string() |> String.trim()
+
+        src = Map.get(r, :source) || Map.get(r, "source") || ""
+        src = src |> to_string() |> String.trim()
+
+        dt = Map.get(r, :inserted_at) || Map.get(r, "inserted_at") || ""
+        dt = dt |> to_string() |> String.trim()
+
+        meta =
+          [dt, src, loc]
+          |> Enum.reject(&(&1 == ""))
+          |> Enum.join(" | ")
+
+        if meta == "" do
+          "- #{body}"
+        else
+          "- (#{meta}) #{body}"
+        end
+      end)
+      |> Enum.join("\n")
+
+    "recent_reports:\n        " <> String.replace(reports, "\n", "\n        ")
+  end
+
+  defp sanitize_report_excerpt(text) do
+    text
+    |> normalize_whitespace()
+    |> redact_pii()
+    |> truncate(@report_excerpt_chars)
+  end
+
+  defp normalize_whitespace(text) do
+    text
+    |> to_string()
+    |> String.replace(~r/\s+/, " ")
+    |> String.trim()
+  end
+
+  defp truncate(text, max_chars) when is_integer(max_chars) and max_chars > 0 do
+    text = to_string(text)
+
+    if String.length(text) > max_chars do
+      String.slice(text, 0, max_chars) <> "..."
+    else
+      text
+    end
+  end
+
+  # Best-effort redaction: we avoid sending obvious contact info in *candidate* report excerpts.
+  # (The new report text itself is still passed through as-is, since it may contain critical detail.)
+  defp redact_pii(text) do
+    text
+    |> String.replace(
+      ~r/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i,
+      "[redacted email]"
+    )
+    |> String.replace(
+      ~r/\b(?:\+?1[-.\s]?)?(?:\(?\d{3}\)?[-.\s]?)\d{3}[-.\s]?\d{4}\b/,
+      "[redacted phone]"
+    )
   end
 
   defp normalize_duplicate_answer("none", _candidates), do: {:ok, nil}

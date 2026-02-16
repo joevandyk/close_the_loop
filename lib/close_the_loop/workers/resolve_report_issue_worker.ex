@@ -10,6 +10,7 @@ defmodule CloseTheLoop.Workers.ResolveReportIssueWorker do
 
   alias CloseTheLoop.AI
   alias CloseTheLoop.Feedback
+  alias CloseTheLoop.Feedback.AIContext
   alias CloseTheLoop.Feedback.{Issue, Report}
 
   @impl true
@@ -32,21 +33,18 @@ defmodule CloseTheLoop.Workers.ResolveReportIssueWorker do
              load: [location: [:name, :full_path]]
            ),
          true <- is_nil(report.issue_id) do
+      # Location is a strong hint (e.g. men's vs women's locker room), but not a hard constraint:
+      # reports can be submitted from a generic kiosk/front-desk location while describing a more
+      # specific location in the text.
       candidates = list_candidates(tenant)
 
-      location_context = location_display_name(report.location)
+      report_context = report_context(report)
 
-      payload =
-        Enum.map(candidates, fn c ->
-          %{
-            id: c.id,
-            title: c.title,
-            description: c.description,
-            location: location_display_name(c.location)
-          }
-        end)
+      # Give the model a richer view of each candidate issue by including a small
+      # sample of recent reports, plus a couple useful fields (status, report count).
+      payload = AIContext.candidate_payloads(tenant, candidates)
 
-      case AI.resolve_report_issue(report.body, tenant, location_context, payload) do
+      case AI.resolve_report_issue(report.body, tenant, report_context, payload) do
         {:ok, {:match, match_id}} when is_binary(match_id) ->
           assign_report_to_issue(job, tenant, report, match_id)
 
@@ -75,7 +73,7 @@ defmodule CloseTheLoop.Workers.ResolveReportIssueWorker do
       |> Ash.Query.filter(expr(status != :fixed))
       |> Ash.Query.sort(inserted_at: :desc)
       |> Ash.Query.limit(25)
-      |> Ash.Query.load(location: [:name, :full_path])
+      |> Ash.Query.load([:reporter_count, location: [:name, :full_path]])
 
     case Ash.read(query, tenant: tenant) do
       {:ok, issues} -> issues
@@ -126,4 +124,27 @@ defmodule CloseTheLoop.Workers.ResolveReportIssueWorker do
   defp location_display_name(loc) do
     loc.full_path || loc.name
   end
+
+  defp report_context(%Report{} = report) do
+    [
+      location_display_name(report.location) |> line_if_present("Location"),
+      report.source |> to_string() |> String.trim() |> line_if_present("Source"),
+      iso8601(report.inserted_at) |> line_if_present("Reported at")
+    ]
+    |> Enum.reject(&(&1 == ""))
+    |> Enum.join("\n")
+  end
+
+  defp line_if_present("", _label), do: ""
+  defp line_if_present(nil, _label), do: ""
+
+  defp line_if_present(val, label) when is_binary(val) do
+    val = String.trim(val)
+    if val == "", do: "", else: "#{label}: #{val}"
+  end
+
+  defp iso8601(%DateTime{} = dt), do: DateTime.to_iso8601(dt)
+  defp iso8601(%NaiveDateTime{} = dt), do: NaiveDateTime.to_iso8601(dt)
+  defp iso8601(other) when is_binary(other), do: other
+  defp iso8601(_), do: ""
 end
