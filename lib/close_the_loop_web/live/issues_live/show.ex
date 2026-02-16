@@ -157,52 +157,91 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
       org={@current_org}
     >
       <div class="max-w-4xl mx-auto space-y-6">
-        <div class="flex items-start justify-between gap-4">
-          <div>
-            <h1 class="text-2xl font-semibold">{@issue.title}</h1>
-            <div class="text-foreground-soft mt-1 text-sm">
-              <span>Location:</span>
-              <span class="font-medium">{@issue.location.full_path || @issue.location.name}</span>
+        <div class="min-w-0">
+          <h1 class="text-2xl font-semibold">{@issue.title}</h1>
+          <div class="text-foreground-soft mt-1 text-sm">
+            <span>Location:</span>
+            <span class="font-medium">{@issue.location.full_path || @issue.location.name}</span>
+            <span class="mx-2">•</span>
+            <span>{@issue.reporter_count} reporter(s)</span>
+            <%= if @issue.category && @issue.category != "" do %>
               <span class="mx-2">•</span>
-              <span>{@issue.reporter_count} reporter(s)</span>
-              <%= if @issue.category && @issue.category != "" do %>
-                <span class="mx-2">•</span>
-                <% key = @issue.category %>
-                <% label = Map.get(@category_labels, key, key) %>
-                <% active? = Map.has_key?(@active_category_labels, key) %>
+              <% key = @issue.category %>
+              <% label = Map.get(@category_labels, key, key) %>
+              <% active? = Map.has_key?(@active_category_labels, key) %>
 
-                <.badge
-                  variant={if(active?, do: "surface", else: "ghost")}
-                  color={if(active?, do: "primary", else: "warning")}
-                  title={
-                    if(active?,
-                      do: nil,
-                      else: "This category is inactive (kept for existing issues)."
-                    )
-                  }
-                >
-                  {label}
-                  <span :if={!active?} class="ml-1 text-[10px] opacity-80">(inactive)</span>
-                </.badge>
-              <% end %>
-              <span class="mx-2">•</span>
-              <.badge variant="surface" color={status_badge_color(@issue.status)}>
-                {status_label(@issue.status)}
+              <.badge
+                variant={if(active?, do: "surface", else: "ghost")}
+                color={if(active?, do: "primary", else: "warning")}
+                title={
+                  if(active?,
+                    do: nil,
+                    else: "This category is inactive (kept for existing issues)."
+                  )
+                }
+              >
+                {label}
+                <span :if={!active?} class="ml-1 text-[10px] opacity-80">(inactive)</span>
               </.badge>
-            </div>
+            <% end %>
+            <span class="mx-2">•</span>
+            <.badge variant="surface" color={status_badge_color(@issue.status)}>
+              {status_label(@issue.status)}
+            </.badge>
           </div>
+        </div>
 
-          <div class="flex items-center gap-2">
+        <div
+          id="issue-actions-card"
+          class="rounded-2xl border border-base bg-base p-6 shadow-base space-y-4"
+        >
+
+          <div class="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
             <.button
               id="issue-open-add-update"
               type="button"
+              size="sm"
               variant="solid"
               color="primary"
               phx-click="open_add_update_modal"
+              class="col-span-2 w-full sm:w-auto"
             >
               Add update
             </.button>
-            <.button navigate={~p"/app/#{@current_org.id}/issues"} variant="ghost">Back</.button>
+
+            <.button
+              :if={@can_edit_issue? and not @editing_details?}
+              id="issue-edit-details-toggle"
+              type="button"
+              size="sm"
+              variant="outline"
+              phx-click="issue_details_toggle"
+              class="w-full sm:w-auto"
+            >
+              <.icon name="hero-pencil-square" class="size-4" /> Edit details
+            </.button>
+
+            <.button
+              id="issue-open-send-sms"
+              type="button"
+              size="sm"
+              variant="outline"
+              phx-click="open_update_modal"
+              class="w-full sm:w-auto"
+            >
+              Send SMS
+            </.button>
+
+            <.button
+              id="issue-open-add-report"
+              type="button"
+              size="sm"
+              variant="outline"
+              phx-click="open_new_report_modal"
+              class="w-full sm:w-auto"
+            >
+              <.icon name="hero-plus" class="size-4" /> Add report
+            </.button>
           </div>
         </div>
 
@@ -288,35 +327,7 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
         </.modal>
 
         <div id="issue-details-card" class="rounded-2xl border border-base bg-base p-6 shadow-base">
-          <div class="flex items-start justify-between gap-4">
-            <div>
-              <h2 class="text-sm font-semibold">Details</h2>
-            </div>
-
-            <%= if @can_edit_issue? do %>
-              <%= if @editing_details? do %>
-                <.button
-                  id="issue-edit-details-cancel"
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  phx-click="issue_details_cancel"
-                >
-                  Cancel
-                </.button>
-              <% else %>
-                <.button
-                  id="issue-edit-details-toggle"
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  phx-click="issue_details_toggle"
-                >
-                  <.icon name="hero-pencil-square" class="size-4" /> Edit
-                </.button>
-              <% end %>
-            <% end %>
-          </div>
+          <h2 class="text-sm font-semibold">Details</h2>
 
           <%= if @editing_details? do %>
             <.form
@@ -351,6 +362,14 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
               <% end %>
 
               <div class="flex items-center justify-end gap-2">
+                <.button
+                  id="issue-edit-details-cancel"
+                  type="button"
+                  variant="outline"
+                  phx-click="issue_details_cancel"
+                >
+                  Cancel
+                </.button>
                 <.button type="submit" variant="solid" color="primary" phx-disable-with="Saving...">
                   Save changes
                 </.button>
@@ -362,23 +381,11 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
         </div>
 
         <div class="rounded-2xl border border-base bg-base p-6 shadow-base space-y-4">
-          <div class="flex items-start justify-between gap-4">
-            <div>
-              <h2 class="text-sm font-semibold">Send SMS</h2>
-              <p class="mt-1 text-sm text-foreground-soft">
-                Sends to {@issue.reporter_count} reporter(s) associated with this issue.
-              </p>
-            </div>
-
-            <.button
-              id="issue-open-send-sms"
-              type="button"
-              variant="solid"
-              color="primary"
-              phx-click="open_update_modal"
-            >
-              Send SMS
-            </.button>
+          <div>
+            <h2 class="text-sm font-semibold">SMS updates</h2>
+            <p class="mt-1 text-sm text-foreground-soft">
+              Queued updates for {@issue.reporter_count} reporter(s). Use "Send SMS" in Actions to send another.
+            </p>
           </div>
 
           <.modal
@@ -454,21 +461,7 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
         </div>
 
         <div class="rounded-2xl border border-base bg-base p-6 shadow-base space-y-4">
-          <div class="flex items-start justify-between gap-4">
-            <div>
-              <h2 class="text-sm font-semibold">Reports</h2>
-            </div>
-
-            <.button
-              id="issue-open-add-report"
-              type="button"
-              size="sm"
-              variant="outline"
-              phx-click="open_new_report_modal"
-            >
-              <.icon name="hero-plus" class="size-4" /> Add report
-            </.button>
-          </div>
+          <h2 class="text-sm font-semibold">Reports</h2>
 
           <.modal
             id="issue-add-report-modal"
