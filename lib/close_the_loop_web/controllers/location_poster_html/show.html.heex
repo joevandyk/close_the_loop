@@ -17,50 +17,31 @@
     </div>
 
     <div class="mt-10 rounded-2xl border border-base bg-base p-8 shadow-base print:mt-0 print:border-0 print:p-0 print:shadow-none">
-      <div class="flex items-start justify-between gap-6">
-        <div class="min-w-0">
-          <div class="text-xs text-foreground-soft">Location</div>
-          <div class="mt-1 text-2xl font-semibold tracking-tight">{@poster.location_name}</div>
-          <div class="mt-1 text-sm text-foreground-soft">{@poster.org_name}</div>
-        </div>
-
+      <div class="flex flex-col items-center text-center">
         <div class="shrink-0">
           <img
             :if={@poster.qr_svg_data_uri}
             src={@poster.qr_svg_data_uri}
             alt="QR code"
-            width="180"
-            height="180"
+            width="400"
+            height="400"
+            class="w-64 h-64 sm:w-80 sm:h-80 print:w-[400px] print:h-[400px]"
           />
         </div>
-      </div>
 
-      <div class="mt-8 space-y-4">
-        <h2 class="text-base font-semibold">Report an issue in seconds</h2>
+        <h2 class="mt-6 text-lg font-semibold">Suggestions & feedback in seconds</h2>
 
-        <ol class="list-decimal pl-5 space-y-2 text-sm leading-6">
+        <ol class="mt-3 list-decimal pl-5 space-y-1.5 text-sm leading-6 text-left max-w-sm mx-auto">
           <li>Scan the QR code with your phone camera.</li>
-          <li>Describe what's wrong (one sentence is fine).</li>
-          <li>
-            Optional: add your phone number to get text updates when it's fixed.
-          </li>
+          <li>Share a suggestion, comment, or issue (one sentence is fine).</li>
+          <li>Optional: add your phone number to get text updates.</li>
           <li>Tap Submit.</li>
         </ol>
-
-        <div class="rounded-xl border border-base bg-accent p-4">
-          <div class="text-sm font-semibold">Can't scan the QR code?</div>
-          <div class="mt-2 text-sm text-foreground-soft break-all">
-            Visit:
-            <a class="underline underline-offset-2" href={@poster.reporter_link}>
-              {@poster.reporter_link}
-            </a>
-          </div>
-        </div>
       </div>
 
-      <div class="mt-10 flex items-center justify-between gap-4 border-t border-base pt-6 text-xs text-foreground-soft">
-        <span>Powered by CloseTheLoop</span>
-        <a class="underline underline-offset-2" href={~p"/"}>closetheloop.app</a>
+      <div class="mt-10 flex flex-col sm:flex-row items-center justify-between gap-2 pt-6 text-xs text-foreground-soft print:mt-auto print:pt-8">
+        <span class="order-2 sm:order-1">{@poster.location_name}<%= if @poster.org_name do %> · {@poster.org_name}<% end %></span>
+        <span class="order-1 sm:order-2">Powered by CloseTheLoop · <a class="underline underline-offset-2" href={~p"/"}>closetheloop.app</a></span>
       </div>
     </div>
   </div>

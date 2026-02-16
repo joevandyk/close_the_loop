@@ -1,68 +1,116 @@
+<% current_view =
+  assigns[:live_module] ||
+    (assigns[:socket] && Map.get(assigns.socket, :view))
+
+current_view = if is_atom(current_view), do: Atom.to_string(current_view), else: "" %>
+
 <div class="min-h-screen bg-accent text-foreground">
-  <header class="border-b border-base bg-base/90 backdrop-blur">
-    <div class="mx-auto max-w-6xl px-6 py-4">
-      <nav class="flex items-center justify-between gap-4">
+  <CloseTheLoopWeb.Layouts.flash_group flash={@flash} />
+
+  <%!-- Mobile navigation drawer --%>
+  <.sheet id="app-nav-sheet" placement="left" class="w-80 h-full p-0">
+    <div class="flex h-full flex-col bg-overlay">
+      <div class="border-b border-base px-5 py-4">
         <a href={~p"/"} class="flex items-center gap-2">
           <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-zinc-900 text-white text-sm font-semibold">
             CTL
           </span>
           <span class="text-sm font-semibold tracking-tight">CloseTheLoop</span>
         </a>
+      </div>
 
-        <div class="flex flex-wrap items-center gap-2">
-          <.link
-            navigate={~p"/app/issues"}
-            class="rounded-lg px-3 py-2 text-sm font-medium text-zinc-700 hover:text-zinc-900 hover:bg-zinc-50 transition"
-          >
-            Inbox
-          </.link>
-          <.link
-            navigate={~p"/app/reports"}
-            class="rounded-lg px-3 py-2 text-sm font-medium text-zinc-700 hover:text-zinc-900 hover:bg-zinc-50 transition"
-          >
-            Reports
-          </.link>
-          <.link
-            navigate={~p"/app/locations"}
-            class="rounded-lg px-3 py-2 text-sm font-medium text-zinc-700 hover:text-zinc-900 hover:bg-zinc-50 transition"
-          >
-            Locations
-          </.link>
-          <.link
-            navigate={~p"/app/settings"}
-            class="rounded-lg px-3 py-2 text-sm font-medium text-zinc-700 hover:text-zinc-900 hover:bg-zinc-50 transition"
-          >
-            Settings
-          </.link>
-        </div>
+      <div class="flex-1 overflow-y-auto px-5 py-4">
+        <.app_nav current_view={current_view} />
+      </div>
 
-        <div class="flex items-center gap-2">
+      <div class="border-t border-base px-5 py-4">
+        <div class="flex items-center justify-between gap-3">
+          <div class="min-w-0">
+            <p class="truncate text-sm font-medium text-foreground">
+              {if assigns[:current_user], do: @current_user.email, else: "Signed out"}
+            </p>
+          </div>
+
           <%= if assigns[:current_user] do %>
-            <span class="hidden text-sm text-zinc-600 sm:inline">
-              {@current_user.email}
-            </span>
-            <a
-              href={~p"/sign-out"}
-              class="rounded-lg border border-base bg-base px-3 py-2 text-sm font-semibold text-foreground hover:bg-accent transition"
-            >
-              Sign out
-            </a>
+            <.button href={~p"/sign-out"} variant="ghost" size="sm">Sign out</.button>
           <% else %>
-            <a
-              href={~p"/sign-in"}
-              class="rounded-lg px-3 py-2 text-sm font-medium text-zinc-700 hover:text-zinc-900 hover:bg-zinc-50 transition"
-            >
-              Sign in
-            </a>
+            <.button href={~p"/sign-in"} variant="ghost" size="sm">Sign in</.button>
           <% end %>
         </div>
-      </nav>
+      </div>
     </div>
-  </header>
+  </.sheet>
 
-  <CloseTheLoopWeb.Layouts.flash_group flash={@flash} />
+  <div class="mx-auto max-w-7xl">
+    <div class="flex">
+      <%!-- Desktop sidebar --%>
+      <aside class="hidden md:sticky md:top-0 md:flex md:h-screen md:w-64 md:flex-col md:border-r md:border-base md:bg-base/90 md:backdrop-blur">
+        <div class="px-6 py-5">
+          <a href={~p"/"} class="flex items-center gap-2">
+            <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-zinc-900 text-white text-sm font-semibold">
+              CTL
+            </span>
+            <span class="text-sm font-semibold tracking-tight">CloseTheLoop</span>
+          </a>
+        </div>
 
-  <main class="mx-auto max-w-6xl px-6 py-10">
-    {@inner_content}
-  </main>
+        <div class="flex-1 overflow-y-auto px-6 pb-6">
+          <.app_nav current_view={current_view} />
+        </div>
+
+        <div class="border-t border-base px-6 py-4">
+          <div class="flex items-center justify-between gap-3">
+            <div class="min-w-0">
+              <p :if={assigns[:current_user]} class="truncate text-sm font-medium text-foreground">
+                {@current_user.email}
+              </p>
+              <p :if={!assigns[:current_user]} class="text-sm text-foreground-soft">Signed out</p>
+            </div>
+
+            <%= if assigns[:current_user] do %>
+              <.button href={~p"/sign-out"} variant="ghost" size="sm">Sign out</.button>
+            <% else %>
+              <.button href={~p"/sign-in"} variant="ghost" size="sm">Sign in</.button>
+            <% end %>
+          </div>
+        </div>
+      </aside>
+
+      <div class="min-w-0 flex-1">
+        <%!-- Mobile topbar --%>
+        <header class="sticky top-0 z-40 border-b border-base bg-base/90 backdrop-blur md:hidden">
+          <div class="flex items-center gap-3 px-4 py-3">
+            <.button
+              type="button"
+              variant="ghost"
+              size="sm"
+              aria-label="Open navigation"
+              phx-click={Fluxon.open_dialog("app-nav-sheet")}
+            >
+              <.icon name="hero-bars-3" />
+            </.button>
+
+            <a href={~p"/"} class="flex items-center gap-2">
+              <span class="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-zinc-900 text-white text-xs font-semibold">
+                CTL
+              </span>
+              <span class="text-sm font-semibold tracking-tight">CloseTheLoop</span>
+            </a>
+
+            <div class="flex-1" />
+
+            <%= if assigns[:current_user] do %>
+              <.button href={~p"/sign-out"} variant="ghost" size="sm">Sign out</.button>
+            <% else %>
+              <.button href={~p"/sign-in"} variant="ghost" size="sm">Sign in</.button>
+            <% end %>
+          </div>
+        </header>
+
+        <main class="mx-auto max-w-6xl px-6 py-10">
+          {@inner_content}
+        </main>
+      </div>
+    </div>
+  </div>
 </div>

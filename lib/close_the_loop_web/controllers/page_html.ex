@@ -30,19 +30,8 @@ defmodule CloseTheLoopWeb.PageHTML do
         "Get started"
       end
 
-    secondary_href =
-      if signed_in? do
-        ~p"/app/issues"
-      else
-        ~p"/sign-in"
-      end
-
-    secondary_label =
-      if signed_in? do
-        "Go to app"
-      else
-        "Sign in"
-      end
+    secondary_href = ~p"/sign-in"
+    secondary_label = "Sign in"
 
     assigns =
       assigns
@@ -50,6 +39,7 @@ defmodule CloseTheLoopWeb.PageHTML do
       |> assign(:primary_label, primary_label)
       |> assign(:secondary_href, secondary_href)
       |> assign(:secondary_label, secondary_label)
+      |> assign(:signed_in?, signed_in?)
 
     ~H"""
     <Layouts.flash_group flash={@flash} />
@@ -75,9 +65,11 @@ defmodule CloseTheLoopWeb.PageHTML do
           </div>
 
           <div class="flex items-center gap-2">
-            <.button href={@secondary_href} variant="ghost" size="sm">
-              {@secondary_label}
-            </.button>
+            <%= if !@signed_in? do %>
+              <.button href={@secondary_href} variant="ghost" size="sm">
+                {@secondary_label}
+              </.button>
+            <% end %>
             <.button href={@primary_href} variant="solid" color="primary" size="sm">
               {@primary_label}
             </.button>

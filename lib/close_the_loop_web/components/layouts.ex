@@ -12,6 +12,63 @@ defmodule CloseTheLoopWeb.Layouts do
   embed_templates "layouts/*"
 
   @doc """
+  Fluxon-based navigation used across the authenticated app shell.
+
+  We pass `current_view` as a string to avoid compile-time deps on LiveView modules
+  (which can introduce cyclic compilation).
+  """
+  attr :current_view, :string, default: ""
+
+  def app_nav(assigns) do
+    inbox_active = String.contains?(assigns.current_view, ".IssuesLive.")
+    reports_active = String.contains?(assigns.current_view, ".ReportsLive.")
+    locations_active = String.contains?(assigns.current_view, ".LocationsLive.")
+
+    settings_active =
+      String.contains?(assigns.current_view, ".SettingsLive.") or
+        String.contains?(assigns.current_view, ".IssueCategoriesLive.")
+
+    onboarding_active = String.contains?(assigns.current_view, ".OnboardingLive.")
+
+    assigns =
+      assigns
+      |> assign(:inbox_active, inbox_active)
+      |> assign(:reports_active, reports_active)
+      |> assign(:locations_active, locations_active)
+      |> assign(:settings_active, settings_active)
+      |> assign(:onboarding_active, onboarding_active)
+
+    ~H"""
+    <.navlist heading="Main">
+      <.navlink navigate={~p"/app/issues"} active={@inbox_active}>
+        <.icon name="hero-inbox" class="size-5" /> Inbox
+      </.navlink>
+      <.navlink navigate={~p"/app/reports"} active={@reports_active}>
+        <.icon name="hero-document-text" class="size-5" /> Reports
+      </.navlink>
+      <.navlink navigate={~p"/app/locations"} active={@locations_active}>
+        <.icon name="hero-map-pin" class="size-5" /> Locations
+      </.navlink>
+    </.navlist>
+
+    <.navlist heading="Admin">
+      <.navlink navigate={~p"/app/settings"} active={@settings_active}>
+        <.icon name="hero-cog-6-tooth" class="size-5" /> Settings
+      </.navlink>
+      <.navlink navigate={~p"/app/settings/issue-categories"} active={@settings_active}>
+        <.icon name="hero-tag" class="size-5" /> Issue categories
+      </.navlink>
+      <.navlink href={~p"/app/oban"}>
+        <.icon name="hero-queue-list" class="size-5" /> Jobs
+      </.navlink>
+      <.navlink :if={@onboarding_active} navigate={~p"/app/onboarding"} active>
+        <.icon name="hero-sparkles" class="size-5" /> Onboarding
+      </.navlink>
+    </.navlist>
+    """
+  end
+
+  @doc """
   Renders your app layout.
 
   This function is typically invoked from every template,

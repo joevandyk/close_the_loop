@@ -36,15 +36,11 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
     Enum.map(locations, fn loc ->
       reporter_link = CloseTheLoopWeb.Endpoint.url() <> "/r/#{tenant}/#{loc.id}"
 
-      reporter_qr =
-        CloseTheLoopWeb.QRCode.svg_data_uri(reporter_link)
-
       %{
         id: loc.id,
         name: loc.name,
         full_path: loc.full_path,
-        reporter_link: reporter_link,
-        reporter_qr: reporter_qr
+        reporter_link: reporter_link
       }
     end)
   end
@@ -129,7 +125,6 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
             <:col>Reporter</:col>
             <:col>Poster</:col>
             <:col class="text-right"><span class="sr-only">Actions</span></:col>
-            <:col class="text-right">QR</:col>
           </.table_head>
           <.table_body>
             <.table_row :for={loc <- @locations}>
@@ -168,14 +163,6 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
                     Edit
                   </.button>
                 </.button_group>
-              </:cell>
-              <:cell class="text-right">
-                <img
-                  src={loc.reporter_qr}
-                  alt={"QR code for " <> (loc.full_path || loc.name)}
-                  width="96"
-                  height="96"
-                />
               </:cell>
             </.table_row>
           </.table_body>

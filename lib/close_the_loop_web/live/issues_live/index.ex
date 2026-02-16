@@ -55,66 +55,90 @@ defmodule CloseTheLoopWeb.IssuesLive.Index do
         <h1 class="text-2xl font-semibold">Inbox</h1>
       </div>
 
-      <div class="mt-6 overflow-x-auto">
-        <.table>
-          <.table_head>
-            <:col>Issue</:col>
-            <:col>Location</:col>
-            <:col>Category</:col>
-            <:col>Status</:col>
-            <:col class="text-right">Reporters</:col>
-            <:col class="text-right"><span class="sr-only">Actions</span></:col>
-          </.table_head>
+      <%!-- Card list (no tables, no horizontal scrolling) --%>
+      <div class="mt-6 rounded-2xl border border-base bg-base shadow-base overflow-hidden">
+        <div :if={@issues == []} class="py-12 text-center text-sm text-foreground-soft">
+          No issues yet.
+        </div>
 
-          <.table_body>
-            <.table_row :for={issue <- @issues}>
-              <:cell class="font-medium">{issue.title}</:cell>
-              <:cell>{issue.location.full_path || issue.location.name}</:cell>
-              <:cell>
-                <%= if issue.category && issue.category != "" do %>
-                  <% key = issue.category %>
-                  <% label = Map.get(@category_labels, key, key) %>
-                  <% active? = Map.has_key?(@active_category_labels, key) %>
-
-                  <.badge
-                    variant={if(active?, do: "surface", else: "ghost")}
-                    color={if(active?, do: "primary", else: "warning")}
-                    title={
-                      if(active?,
-                        do: nil,
-                        else: "This category is inactive (kept for existing issues)."
-                      )
-                    }
-                  >
-                    {label}
-                    <span :if={!active?} class="ml-1 text-[10px] opacity-80">(inactive)</span>
+        <div :if={@issues != []} class="divide-y divide-base">
+          <div
+            :for={issue <- @issues}
+            id={"issue-#{issue.id}"}
+            class={[
+              "p-4 sm:p-5 transition",
+              "hover:bg-accent"
+            ]}
+          >
+            <div class="flex items-start gap-4">
+              <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-center gap-2">
+                  <.badge variant="soft" color={status_color(issue.status)}>
+                    {status_label(issue.status)}
                   </.badge>
-                <% else %>
-                  <span class="text-sm text-foreground-soft">—</span>
-                <% end %>
-              </:cell>
-              <:cell>
-                <.badge variant="soft" color={status_color(issue.status)}>
-                  {issue.status}
-                </.badge>
-              </:cell>
-              <:cell class="text-right">{issue.reporter_count}</:cell>
-              <:cell class="text-right">
+
+                  <%= if issue.category && issue.category != "" do %>
+                    <% key = issue.category %>
+                    <% label = Map.get(@category_labels, key, key) %>
+                    <% active? = Map.has_key?(@active_category_labels, key) %>
+
+                    <.badge
+                      variant={if(active?, do: "surface", else: "ghost")}
+                      color={if(active?, do: "primary", else: "warning")}
+                      title={
+                        if(active?,
+                          do: nil,
+                          else: "This category is inactive (kept for existing issues)."
+                        )
+                      }
+                    >
+                      {label}
+                      <span :if={!active?} class="ml-1 text-[10px] opacity-80">(inactive)</span>
+                    </.badge>
+                  <% else %>
+                    <.badge variant="ghost" color="info">Uncategorized</.badge>
+                  <% end %>
+
+                  <span class="ml-auto inline-flex items-center gap-1 text-xs text-foreground-soft whitespace-nowrap">
+                    <.icon name="hero-users" class="size-4" />
+                    {issue.reporter_count}
+                  </span>
+                </div>
+
+                <p class="mt-2 text-sm font-medium text-foreground break-words">
+                  {issue.title}
+                </p>
+
+                <div class="mt-3 flex items-start gap-2 text-xs text-foreground-soft min-w-0">
+                  <.icon name="hero-map-pin" class="mt-0.5 size-4 shrink-0" />
+                  <span class="truncate" title={issue.location.full_path || issue.location.name}>
+                    {issue.location.full_path || issue.location.name}
+                  </span>
+                </div>
+              </div>
+
+              <div class="shrink-0">
                 <.button size="sm" variant="outline" navigate={~p"/app/issues/#{issue.id}"}>
                   View
                 </.button>
-              </:cell>
-            </.table_row>
-          </.table_body>
-        </.table>
-
-        <div :if={@issues == []} class="py-10 text-center text-sm text-foreground-soft">
-          No issues yet.
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
     """
   end
+
+  defp status_label(status) when is_atom(status) do
+    status
+    |> Atom.to_string()
+    |> String.replace("_", " ")
+    |> String.split(" ", trim: true)
+    |> Enum.map_join(" ", &String.capitalize/1)
+  end
+
+  defp status_label(other), do: other |> to_string() |> String.capitalize()
 
   defp status_color(:new), do: "info"
   defp status_color(:acknowledged), do: "warning"

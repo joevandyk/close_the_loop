@@ -17,8 +17,8 @@ defmodule CloseTheLoop.DevSeeds do
 
   @default_tenant_schema "org_demo"
   @default_org_name "Demo Organization"
-  @dev_user_email "demo_owner@example.com"
-  @dev_user_password "password1234"
+  @dev_user_email "asdf@asdf.com"
+  @dev_user_password "asdfasdf"
 
   @doc """
   Seeds a demo organization (public schema) and demo tenant data.
@@ -94,15 +94,34 @@ defmodule CloseTheLoop.DevSeeds do
         {:ok, %User{} = existing} ->
           existing
           |> Ash.update!(%{confirmed_at: now}, action: :set_confirmed_at, authorize?: false)
-          |> then(&Ash.update!(&1, %{organization_id: org.id, role: :owner}, action: :set_organization, authorize?: false))
-          |> then(&Ash.update!(&1, %{name: "Demo Owner"}, action: :update_profile, authorize?: false))
+          |> then(
+            &Ash.update!(&1, %{organization_id: org.id, role: :owner},
+              action: :set_organization,
+              authorize?: false
+            )
+          )
+          |> then(
+            &Ash.update!(&1, %{name: "Demo Owner"}, action: :update_profile, authorize?: false)
+          )
 
         {:ok, nil} ->
           User
-          |> Ash.create!(%{email: email, password: password, password_confirmation: password}, action: :register_with_password, authorize?: false)
-          |> then(&Ash.update!(&1, %{confirmed_at: now}, action: :set_confirmed_at, authorize?: false))
-          |> then(&Ash.update!(&1, %{organization_id: org.id, role: :owner}, action: :set_organization, authorize?: false))
-          |> then(&Ash.update!(&1, %{name: "Demo Owner"}, action: :update_profile, authorize?: false))
+          |> Ash.create!(%{email: email, password: password, password_confirmation: password},
+            action: :register_with_password,
+            authorize?: false
+          )
+          |> then(
+            &Ash.update!(&1, %{confirmed_at: now}, action: :set_confirmed_at, authorize?: false)
+          )
+          |> then(
+            &Ash.update!(&1, %{organization_id: org.id, role: :owner},
+              action: :set_organization,
+              authorize?: false
+            )
+          )
+          |> then(
+            &Ash.update!(&1, %{name: "Demo Owner"}, action: :update_profile, authorize?: false)
+          )
 
         {:error, error} ->
           raise "Failed to ensure dev user: #{inspect(error)}"

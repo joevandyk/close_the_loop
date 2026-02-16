@@ -34,6 +34,18 @@ defmodule CloseTheLoopWeb.ReportsLive.Index do
     Ash.read(query, tenant: tenant)
   end
 
+  defp report_excerpt(body) do
+    body
+    |> to_string()
+    |> String.replace(~r/\s+/, " ")
+    |> String.trim()
+    |> String.slice(0, 120)
+  end
+
+  defp format_dt(%DateTime{} = dt), do: Calendar.strftime(dt, "%b %d, %Y %I:%M %p")
+  defp format_dt(%NaiveDateTime{} = dt), do: Calendar.strftime(dt, "%b %d, %Y %I:%M %p")
+  defp format_dt(other), do: to_string(other)
+
   @impl true
   def render(assigns) do
     ~H"""
@@ -43,44 +55,68 @@ defmodule CloseTheLoopWeb.ReportsLive.Index do
         <.button navigate={~p"/app/reports/new"} variant="outline">New report</.button>
       </div>
 
-      <div class="mt-6 overflow-x-auto">
-        <.table>
-          <.table_head>
-            <:col>Report</:col>
-            <:col>Location</:col>
-            <:col>Issue</:col>
-            <:col>Source</:col>
-            <:col class="text-right">Received</:col>
-            <:col class="text-right"><span class="sr-only">Actions</span></:col>
-          </.table_head>
+      <%!-- Card list (no tables, no horizontal scrolling) --%>
+      <div class="mt-6 rounded-2xl border border-base bg-base shadow-base overflow-hidden">
+        <div :if={@reports == []} class="py-12 text-center text-sm text-foreground-soft">
+          No reports yet.
+        </div>
 
-          <.table_body>
-            <.table_row :for={r <- @reports}>
-              <:cell>{String.slice(to_string(r.body), 0, 80)}</:cell>
-              <:cell>{r.location.full_path || r.location.name}</:cell>
-              <:cell>
-                <.button navigate={~p"/app/issues/#{r.issue_id}"} variant="ghost" size="sm">
-                  {r.issue.title}
-                </.button>
-              </:cell>
-              <:cell>
-                <.badge variant="soft" color="primary">{r.source}</.badge>
-              </:cell>
-              <:cell class="text-right text-sm text-foreground-soft">{r.inserted_at}</:cell>
-              <:cell class="text-right">
+        <div :if={@reports != []} class="divide-y divide-base">
+          <div
+            :for={r <- @reports}
+            id={"report-#{r.id}"}
+            class={[
+              "p-4 sm:p-5 transition",
+              "hover:bg-accent"
+            ]}
+          >
+            <div class="flex items-start gap-4">
+              <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-center gap-2">
+                  <.badge variant="soft" color="primary">{format_source(r.source)}</.badge>
+                  <span class="text-xs text-foreground-soft whitespace-nowrap">
+                    {format_dt(r.inserted_at)}
+                  </span>
+                </div>
+
+                <p class="mt-2 text-sm font-medium text-foreground break-words">
+                  {report_excerpt(r.body)}
+                </p>
+
+                <div class="mt-3 grid gap-1 text-xs text-foreground-soft">
+                  <div class="flex items-start gap-2 min-w-0">
+                    <.icon name="hero-map-pin" class="mt-0.5 size-4 shrink-0" />
+                    <span class="truncate" title={r.location.full_path || r.location.name}>
+                      {r.location.full_path || r.location.name}
+                    </span>
+                  </div>
+                  <div class="flex items-start gap-2 min-w-0">
+                    <.icon name="hero-inbox" class="mt-0.5 size-4 shrink-0" />
+                    <span class="truncate" title={r.issue.title}>
+                      {r.issue.title}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="shrink-0 flex flex-col items-end gap-2">
                 <.button size="sm" variant="outline" navigate={~p"/app/reports/#{r.id}"}>
                   View
                 </.button>
-              </:cell>
-            </.table_row>
-          </.table_body>
-        </.table>
-
-        <div :if={@reports == []} class="py-10 text-center text-sm text-foreground-soft">
-          No reports yet.
+                <.button size="sm" variant="ghost" navigate={~p"/app/issues/#{r.issue_id}"}>
+                  Issue
+                </.button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
     """
   end
+
+  defp format_source(source) when is_atom(source),
+    do: source |> Atom.to_string() |> String.upcase()
+
+  defp format_source(source), do: source |> to_string() |> String.upcase()
 end
