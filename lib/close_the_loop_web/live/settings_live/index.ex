@@ -10,7 +10,12 @@ defmodule CloseTheLoopWeb.SettingsLive.Index do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} current_user={@current_user} current_scope={@current_scope}>
+    <Layouts.app
+      flash={@flash}
+      current_user={@current_user}
+      current_scope={@current_scope}
+      org={@current_org}
+    >
       <div class="max-w-4xl mx-auto space-y-8">
         <div>
           <h1 class="text-2xl font-semibold">Settings</h1>
@@ -21,7 +26,7 @@ defmodule CloseTheLoopWeb.SettingsLive.Index do
 
         <div class="grid gap-6 lg:grid-cols-3">
           <.link
-            navigate={~p"/app/settings/organization"}
+            navigate={~p"/app/#{@current_org.id}/settings/organization"}
             class={[
               "block rounded-2xl border border-base bg-base p-6 shadow-base",
               "transition hover:bg-accent hover:shadow-lg hover:-translate-y-[1px]"
@@ -39,7 +44,7 @@ defmodule CloseTheLoopWeb.SettingsLive.Index do
           </.link>
 
           <.link
-            navigate={~p"/app/settings/account"}
+            navigate={~p"/app/#{@current_org.id}/settings/account"}
             class={[
               "block rounded-2xl border border-base bg-base p-6 shadow-base",
               "transition hover:bg-accent hover:shadow-lg hover:-translate-y-[1px]"
@@ -57,7 +62,7 @@ defmodule CloseTheLoopWeb.SettingsLive.Index do
           </.link>
 
           <.link
-            navigate={~p"/app/settings/inbox"}
+            navigate={~p"/app/#{@current_org.id}/settings/inbox"}
             class={[
               "block rounded-2xl border border-base bg-base p-6 shadow-base",
               "transition hover:bg-accent hover:shadow-lg hover:-translate-y-[1px]"

@@ -10,7 +10,12 @@ defmodule CloseTheLoopWeb.SettingsLive.Inbox do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} current_user={@current_user} current_scope={@current_scope}>
+    <Layouts.app
+      flash={@flash}
+      current_user={@current_user}
+      current_scope={@current_scope}
+      org={@current_org}
+    >
       <div class="max-w-4xl mx-auto space-y-8">
         <div class="flex items-start justify-between gap-4">
           <div>
@@ -20,7 +25,7 @@ defmodule CloseTheLoopWeb.SettingsLive.Inbox do
             </p>
           </div>
 
-          <.button navigate={~p"/app/settings"} variant="ghost">Back</.button>
+          <.button navigate={~p"/app/#{@current_org.id}/settings"} variant="ghost">Back</.button>
         </div>
 
         <div class="rounded-2xl border border-base bg-base p-6 shadow-base">
@@ -30,7 +35,10 @@ defmodule CloseTheLoopWeb.SettingsLive.Inbox do
           </p>
 
           <div class="mt-4">
-            <.button navigate={~p"/app/settings/issue-categories"} variant="outline">
+            <.button
+              navigate={~p"/app/#{@current_org.id}/settings/issue-categories"}
+              variant="outline"
+            >
               Manage issue categories
             </.button>
           </div>

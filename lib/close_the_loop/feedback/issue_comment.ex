@@ -3,11 +3,18 @@ defmodule CloseTheLoop.Feedback.IssueComment do
     otp_app: :close_the_loop,
     domain: CloseTheLoop.Feedback,
     data_layer: AshPostgres.DataLayer,
-    authorizers: [Ash.Policy.Authorizer]
+    authorizers: [Ash.Policy.Authorizer],
+    extensions: [AshEvents.Events]
 
   postgres do
     table "issue_comments"
     repo CloseTheLoop.Repo
+  end
+
+  events do
+    event_log(CloseTheLoop.Events.Event)
+    create_timestamp :inserted_at
+    update_timestamp :updated_at
   end
 
   actions do

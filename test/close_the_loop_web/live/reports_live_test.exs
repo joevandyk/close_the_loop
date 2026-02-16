@@ -2,48 +2,19 @@ defmodule CloseTheLoopWeb.ReportsLiveTest do
   use CloseTheLoopWeb.ConnCase, async: true
 
   import Phoenix.LiveViewTest
-  import CloseTheLoop.TestHelpers, only: [unique_email: 1]
 
-  alias CloseTheLoop.Accounts.User
+  import CloseTheLoop.TestHelpers,
+    only: [create_membership!: 3, insert_org!: 1, register_user!: 1, unique_email: 1]
+
   alias CloseTheLoop.Feedback.{Issue, Location, Report}
 
   test "business can move a report to a different issue", %{conn: conn} do
     tenant = "public"
     email = unique_email("owner")
 
-    # Avoid triggering `manage_tenant` in tests (it would rerun tenant migrations).
-    org_id = Ash.UUID.generate()
-    org_id_bin = Ecto.UUID.dump!(org_id)
-    now = DateTime.utc_now()
-
-    {1, _} =
-      CloseTheLoop.Repo.insert_all("organizations", [
-        %{
-          id: org_id_bin,
-          name: "Test Org",
-          tenant_schema: tenant,
-          inserted_at: now,
-          updated_at: now
-        }
-      ])
-
-    {:ok, user} =
-      Ash.create(
-        User,
-        %{
-          email: email,
-          password: "password1234",
-          password_confirmation: "password1234"
-        },
-        action: :register_with_password,
-        context: %{private: %{ash_authentication?: true}}
-      )
-
-    {:ok, user} =
-      Ash.update(user, %{organization_id: org_id, role: :owner},
-        action: :set_organization,
-        actor: user
-      )
+    org = insert_org!(tenant)
+    user = register_user!(email)
+    _membership = create_membership!(user, org.id, :owner)
 
     {:ok, location} =
       Ash.create(Location, %{name: "General", full_path: "General"}, tenant: tenant)
@@ -94,7 +65,7 @@ defmodule CloseTheLoopWeb.ReportsLiveTest do
       |> init_test_session(%{})
       |> AshAuthentication.Plug.Helpers.store_in_session(user)
 
-    {:ok, view, _html} = live(conn, ~p"/app/reports/#{report.id}")
+    {:ok, view, _html} = live(conn, ~p"/app/#{org.id}/reports/#{report.id}")
     assert has_element?(view, "#report-move-form")
 
     view
@@ -103,7 +74,7 @@ defmodule CloseTheLoopWeb.ReportsLiveTest do
 
     assert render(view) =~ "Broken faucet"
 
-    {:ok, _issue_view, issue_html} = live(conn, ~p"/app/issues/#{issue_b.id}")
+    {:ok, _issue_view, issue_html} = live(conn, ~p"/app/#{org.id}/issues/#{issue_b.id}")
     assert issue_html =~ "This is actually about the faucet"
   end
 
@@ -111,39 +82,9 @@ defmodule CloseTheLoopWeb.ReportsLiveTest do
     tenant = "public"
     email = unique_email("owner")
 
-    # Avoid triggering `manage_tenant` in tests (it would rerun tenant migrations).
-    org_id = Ash.UUID.generate()
-    org_id_bin = Ecto.UUID.dump!(org_id)
-    now = DateTime.utc_now()
-
-    {1, _} =
-      CloseTheLoop.Repo.insert_all("organizations", [
-        %{
-          id: org_id_bin,
-          name: "Test Org",
-          tenant_schema: tenant,
-          inserted_at: now,
-          updated_at: now
-        }
-      ])
-
-    {:ok, user} =
-      Ash.create(
-        User,
-        %{
-          email: email,
-          password: "password1234",
-          password_confirmation: "password1234"
-        },
-        action: :register_with_password,
-        context: %{private: %{ash_authentication?: true}}
-      )
-
-    {:ok, user} =
-      Ash.update(user, %{organization_id: org_id, role: :owner},
-        action: :set_organization,
-        actor: user
-      )
+    org = insert_org!(tenant)
+    user = register_user!(email)
+    _membership = create_membership!(user, org.id, :owner)
 
     {:ok, location} =
       Ash.create(Location, %{name: "General", full_path: "General"}, tenant: tenant)
@@ -153,7 +94,7 @@ defmodule CloseTheLoopWeb.ReportsLiveTest do
       |> init_test_session(%{})
       |> AshAuthentication.Plug.Helpers.store_in_session(user)
 
-    {:ok, view, _html} = live(conn, ~p"/app/reports/new?location_id=#{location.id}")
+    {:ok, view, _html} = live(conn, ~p"/app/#{org.id}/reports/new?location_id=#{location.id}")
 
     body = "Front desk: cold water in showers"
 
@@ -175,7 +116,7 @@ defmodule CloseTheLoopWeb.ReportsLiveTest do
     issue = Enum.find(issues, fn i -> i.description == body end)
     assert issue
 
-    assert_redirect(view, ~p"/app/issues/#{issue.id}")
+    assert_redirect(view, ~p"/app/#{org.id}/issues/#{issue.id}")
 
     {:ok, reports} = Ash.read(Report, tenant: tenant)
     assert Enum.any?(reports, fn r -> r.source == :manual end)
@@ -185,39 +126,9 @@ defmodule CloseTheLoopWeb.ReportsLiveTest do
     tenant = "public"
     email = unique_email("owner")
 
-    # Avoid triggering `manage_tenant` in tests (it would rerun tenant migrations).
-    org_id = Ash.UUID.generate()
-    org_id_bin = Ecto.UUID.dump!(org_id)
-    now = DateTime.utc_now()
-
-    {1, _} =
-      CloseTheLoop.Repo.insert_all("organizations", [
-        %{
-          id: org_id_bin,
-          name: "Test Org",
-          tenant_schema: tenant,
-          inserted_at: now,
-          updated_at: now
-        }
-      ])
-
-    {:ok, user} =
-      Ash.create(
-        User,
-        %{
-          email: email,
-          password: "password1234",
-          password_confirmation: "password1234"
-        },
-        action: :register_with_password,
-        context: %{private: %{ash_authentication?: true}}
-      )
-
-    {:ok, user} =
-      Ash.update(user, %{organization_id: org_id, role: :owner},
-        action: :set_organization,
-        actor: user
-      )
+    org = insert_org!(tenant)
+    user = register_user!(email)
+    _membership = create_membership!(user, org.id, :owner)
 
     {:ok, location} =
       Ash.create(Location, %{name: "General", full_path: "General"}, tenant: tenant)
@@ -240,7 +151,7 @@ defmodule CloseTheLoopWeb.ReportsLiveTest do
       |> init_test_session(%{})
       |> AshAuthentication.Plug.Helpers.store_in_session(user)
 
-    {:ok, view, _html} = live(conn, ~p"/app/reports/new?location_id=#{location.id}")
+    {:ok, view, _html} = live(conn, ~p"/app/#{org.id}/reports/new?location_id=#{location.id}")
 
     view
     |> form("#manual-report-form",

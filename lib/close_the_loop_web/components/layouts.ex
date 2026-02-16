@@ -95,7 +95,7 @@ defmodule CloseTheLoopWeb.Layouts do
               </div>
 
               <div class="flex-1 overflow-y-auto px-5 py-4">
-                <.app_nav current_view={@current_view} />
+                <.app_nav current_view={@current_view} org={@org} />
               </div>
 
               <div class="border-t border-base px-5 py-4">
@@ -129,7 +129,7 @@ defmodule CloseTheLoopWeb.Layouts do
               </div>
 
               <div class="flex-1 overflow-y-auto px-6 pb-6">
-                <.app_nav current_view={@current_view} />
+                <.app_nav current_view={@current_view} org={@org} />
               </div>
 
               <div class="border-t border-base px-6 py-4">
@@ -204,13 +204,11 @@ defmodule CloseTheLoopWeb.Layouts do
 
   def marketing_layout(assigns) do
     signed_in? = !!assigns[:current_user]
-    org_id = assigns[:current_user] && Map.get(assigns[:current_user], :organization_id)
 
     primary_href =
       cond do
         !signed_in? -> ~p"/register"
-        org_id -> ~p"/app"
-        true -> ~p"/app/onboarding"
+        true -> ~p"/app"
       end
 
     primary_label =
@@ -360,6 +358,7 @@ defmodule CloseTheLoopWeb.Layouts do
   (which can introduce cyclic compilation).
   """
   attr :current_view, :string, default: ""
+  attr :org, :any, default: nil
 
   def app_nav(assigns) do
     dashboard_active = String.contains?(assigns.current_view, ".DashboardLive.")
@@ -378,6 +377,7 @@ defmodule CloseTheLoopWeb.Layouts do
 
     assigns =
       assigns
+      |> assign(:org_id, assigns.org && Map.get(assigns.org, :id))
       |> assign(:dashboard_active, dashboard_active)
       |> assign(:inbox_active, inbox_active)
       |> assign(:reports_active, reports_active)
@@ -389,30 +389,37 @@ defmodule CloseTheLoopWeb.Layouts do
 
     ~H"""
     <.navlist heading="Main">
-      <.navlink navigate={~p"/app"} active={@dashboard_active}>
+      <.navlink
+        navigate={if(@org_id, do: ~p"/app/#{@org_id}", else: ~p"/app")}
+        active={@dashboard_active}
+      >
         <.icon name="hero-squares-2x2" class="size-5" /> Dashboard
       </.navlink>
-      <.navlink navigate={~p"/app/issues"} active={@inbox_active}>
-        <.icon name="hero-inbox" class="size-5" /> Issues
-      </.navlink>
-      <.navlink navigate={~p"/app/reports"} active={@reports_active}>
-        <.icon name="hero-document-text" class="size-5" /> Reports
-      </.navlink>
+      <%= if @org_id do %>
+        <.navlink navigate={~p"/app/#{@org_id}/issues"} active={@inbox_active}>
+          <.icon name="hero-inbox" class="size-5" /> Issues
+        </.navlink>
+        <.navlink navigate={~p"/app/#{@org_id}/reports"} active={@reports_active}>
+          <.icon name="hero-document-text" class="size-5" /> Reports
+        </.navlink>
+      <% end %>
     </.navlist>
 
     <.navlist heading="Admin">
-      <.navlink navigate={~p"/app/settings/organization"} active={@org_settings_active}>
-        <.icon name="hero-building-office-2" class="size-5" /> Organization
-      </.navlink>
-      <.navlink navigate={~p"/app/settings/account"} active={@account_settings_active}>
-        <.icon name="hero-user-circle" class="size-5" /> Account
-      </.navlink>
-      <.navlink navigate={~p"/app/settings/inbox"} active={@inbox_settings_active}>
-        <.icon name="hero-adjustments-horizontal" class="size-5" /> Issues configuration
-      </.navlink>
-      <.navlink navigate={~p"/app/settings/locations"} active={@locations_active}>
-        <.icon name="hero-map-pin" class="size-5" /> Locations
-      </.navlink>
+      <%= if @org_id do %>
+        <.navlink navigate={~p"/app/#{@org_id}/settings/organization"} active={@org_settings_active}>
+          <.icon name="hero-building-office-2" class="size-5" /> Organization
+        </.navlink>
+        <.navlink navigate={~p"/app/#{@org_id}/settings/account"} active={@account_settings_active}>
+          <.icon name="hero-user-circle" class="size-5" /> Account
+        </.navlink>
+        <.navlink navigate={~p"/app/#{@org_id}/settings/inbox"} active={@inbox_settings_active}>
+          <.icon name="hero-adjustments-horizontal" class="size-5" /> Issues configuration
+        </.navlink>
+        <.navlink navigate={~p"/app/#{@org_id}/settings/locations"} active={@locations_active}>
+          <.icon name="hero-map-pin" class="size-5" /> Locations
+        </.navlink>
+      <% end %>
       <.navlink href={~p"/app/oban"}>
         <.icon name="hero-queue-list" class="size-5" /> Jobs
       </.navlink>

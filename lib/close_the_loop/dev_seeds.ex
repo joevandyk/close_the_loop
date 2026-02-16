@@ -237,11 +237,13 @@ defmodule CloseTheLoop.DevSeeds do
           authorize?: false
         )
         |> Ash.update!(%{confirmed_at: now}, action: :set_confirmed_at, authorize?: false)
-        |> Ash.update!(%{organization_id: org.id, role: :owner},
-          action: :set_organization,
+        |> Ash.update!(%{name: config.name}, action: :update_profile, authorize?: false)
+
+      _ =
+        CloseTheLoop.Accounts.create_user_organization!(
+          %{user_id: user.id, organization_id: org.id, role: :owner},
           authorize?: false
         )
-        |> Ash.update!(%{name: config.name}, action: :update_profile, authorize?: false)
 
       %{
         org_name: org.name,

@@ -146,6 +146,14 @@
           "key": "rep_001a",
           "reporter_phone": "+15551230011",
           "source": "qr"
+        },
+        {
+          "body": "No paper towels in the women’s bathroom and the soap barely comes out. Also noticed by another guest (separately reported).",
+          "consent": false,
+          "days_ago": 11,
+          "key": "rep_001a_2",
+          "reporter_phone": null,
+          "source": "sms"
         }
       ],
       "status": "fixed",
@@ -239,6 +247,14 @@
           "key": "rep_004a",
           "reporter_phone": null,
           "source": "qr"
+        },
+        {
+          "body": "It was chilly by the front door—drafty enough that we kept our jackets on. Also noticed by another guest (separately reported).",
+          "consent": false,
+          "days_ago": 17,
+          "key": "rep_004a_2",
+          "reporter_phone": null,
+          "source": "sms"
         }
       ],
       "status": "acknowledged",
@@ -291,6 +307,14 @@
           "key": "rep_006a",
           "reporter_phone": null,
           "source": "qr"
+        },
+        {
+          "body": "One of the pendant lights over the bar kept flickering—kind of distracting. Also noticed by another guest (separately reported).",
+          "consent": false,
+          "days_ago": 8,
+          "key": "rep_006a_2",
+          "reporter_phone": null,
+          "source": "sms"
         }
       ],
       "status": "new",
@@ -318,6 +342,14 @@
           "key": "rep_007a",
           "reporter_phone": "+15551230033",
           "source": "manual"
+        },
+        {
+          "body": "There’s water pooling under the bar sink again. Floor gets slick behind the bar. Also noticed by another guest (separately reported).",
+          "consent": false,
+          "days_ago": 21,
+          "key": "rep_007a_2",
+          "reporter_phone": null,
+          "source": "sms"
         }
       ],
       "status": "acknowledged",
@@ -342,6 +374,14 @@
           "consent": true,
           "days_ago": 58,
           "key": "rep_008a",
+          "reporter_phone": null,
+          "source": "qr"
+        },
+        {
+          "body": "Asked for medium, it was closer to rare. Server fixed it, but wanted to mention. Also noticed by another guest (separately reported).",
+          "consent": false,
+          "days_ago": 57,
+          "key": "rep_008a_2",
           "reporter_phone": null,
           "source": "qr"
         }
@@ -404,6 +444,14 @@
           "key": "rep_010a",
           "reporter_phone": null,
           "source": "qr"
+        },
+        {
+          "body": "Patio table near the string lights wobbles a lot—spilled my drink a bit. Also noticed by another guest (separately reported).",
+          "consent": false,
+          "days_ago": 5,
+          "key": "rep_010a_2",
+          "reporter_phone": null,
+          "source": "sms"
         }
       ],
       "status": "acknowledged",
@@ -482,6 +530,14 @@
           "key": "rep_013a",
           "reporter_phone": null,
           "source": "qr"
+        },
+        {
+          "body": "Almost slipped by the soda/ice area—there was a puddle and no wet floor sign. Also noticed by another guest (separately reported).",
+          "consent": false,
+          "days_ago": 35,
+          "key": "rep_013a_2",
+          "reporter_phone": null,
+          "source": "qr"
         }
       ],
       "status": "fixed",
@@ -534,6 +590,14 @@
           "key": "rep_015a",
           "reporter_phone": "+15551230044",
           "source": "sms"
+        },
+        {
+          "body": "We stood at the host stand for about 7 minutes before anyone acknowledged us. There were empty tables. Also noticed by another guest (separately reported).",
+          "consent": false,
+          "days_ago": 2,
+          "key": "rep_015a_2",
+          "reporter_phone": null,
+          "source": "sms"
         }
       ],
       "status": "new",
@@ -554,6 +618,14 @@
           "key": "rep_016a",
           "reporter_phone": null,
           "source": "qr"
+        },
+        {
+          "body": "Would love small hooks under the bar stools for purses—nowhere to put a bag except the floor. Also noticed by another guest (separately reported).",
+          "consent": false,
+          "days_ago": 51,
+          "key": "rep_016a_2",
+          "reporter_phone": null,
+          "source": "sms"
         }
       ],
       "status": "acknowledged",
@@ -568,102 +640,97 @@
   ],
   "locations": [
     {
-      "full_path": "The Spot",
-      "key": "loc_root",
-      "name": "The Spot"
-    },
-    {
-      "full_path": "The Spot / Entrance",
+      "full_path": "Entrance",
       "key": "loc_entrance",
       "name": "Entrance"
     },
     {
-      "full_path": "The Spot / Entrance / Host Stand",
+      "full_path": "Entrance / Host Stand",
       "key": "loc_entry_host_stand",
       "name": "Host Stand"
     },
     {
-      "full_path": "The Spot / Dining Room",
+      "full_path": "Dining Room",
       "key": "loc_dining",
       "name": "Dining Room"
     },
     {
-      "full_path": "The Spot / Dining Room / Main Floor",
+      "full_path": "Dining Room / Main Floor",
       "key": "loc_dining_main",
       "name": "Main Floor"
     },
     {
-      "full_path": "The Spot / Dining Room / Window Seating",
+      "full_path": "Dining Room / Window Seating",
       "key": "loc_dining_window",
       "name": "Window Seating"
     },
     {
-      "full_path": "The Spot / Dining Room / Soda Station",
+      "full_path": "Dining Room / Soda Station",
       "key": "loc_dining_soda_station",
       "name": "Soda Station"
     },
     {
-      "full_path": "The Spot / Bar",
+      "full_path": "Bar",
       "key": "loc_bar",
       "name": "Bar"
     },
     {
-      "full_path": "The Spot / Bar / Bar Counter",
+      "full_path": "Bar / Bar Counter",
       "key": "loc_bar_counter",
       "name": "Bar Counter"
     },
     {
-      "full_path": "The Spot / Bar / Service Station",
+      "full_path": "Bar / Service Station",
       "key": "loc_bar_service_station",
       "name": "Service Station"
     },
     {
-      "full_path": "The Spot / Kitchen",
+      "full_path": "Kitchen",
       "key": "loc_kitchen",
       "name": "Kitchen"
     },
     {
-      "full_path": "The Spot / Kitchen / Line",
+      "full_path": "Kitchen / Line",
       "key": "loc_kitchen_line",
       "name": "Line"
     },
     {
-      "full_path": "The Spot / Kitchen / Dish Pit",
+      "full_path": "Kitchen / Dish Pit",
       "key": "loc_kitchen_dish",
       "name": "Dish Pit"
     },
     {
-      "full_path": "The Spot / Restrooms",
+      "full_path": "Restrooms",
       "key": "loc_restrooms",
       "name": "Restrooms"
     },
     {
-      "full_path": "The Spot / Restrooms / Women's Restroom",
+      "full_path": "Restrooms / Women's Restroom",
       "key": "loc_restrooms_womens",
       "name": "Women's Restroom"
     },
     {
-      "full_path": "The Spot / Restrooms / Men's Restroom",
+      "full_path": "Restrooms / Men's Restroom",
       "key": "loc_restrooms_mens",
       "name": "Men's Restroom"
     },
     {
-      "full_path": "The Spot / Patio",
+      "full_path": "Patio",
       "key": "loc_patio",
       "name": "Patio"
     },
     {
-      "full_path": "The Spot / Patio / Seating Area",
+      "full_path": "Patio / Seating Area",
       "key": "loc_patio_seating",
       "name": "Seating Area"
     },
     {
-      "full_path": "The Spot / Patio / Patio Door",
+      "full_path": "Patio / Patio Door",
       "key": "loc_patio_door",
       "name": "Patio Door"
     },
     {
-      "full_path": "The Spot / Patio / Trash & Bus Station",
+      "full_path": "Patio / Trash & Bus Station",
       "key": "loc_patio_trash",
       "name": "Trash & Bus Station"
     }

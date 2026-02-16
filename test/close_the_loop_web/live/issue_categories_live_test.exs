@@ -2,55 +2,26 @@ defmodule CloseTheLoopWeb.IssueCategoriesLiveTest do
   use CloseTheLoopWeb.ConnCase, async: true
 
   import Phoenix.LiveViewTest
-  import CloseTheLoop.TestHelpers, only: [unique_email: 1]
 
-  alias CloseTheLoop.Accounts.User
+  import CloseTheLoop.TestHelpers,
+    only: [create_membership!: 3, insert_org!: 1, register_user!: 1, unique_email: 1]
+
   alias CloseTheLoop.Feedback.IssueCategory
 
   test "owner can deactivate and reactivate a category", %{conn: conn} do
     tenant = "public"
     email = unique_email("owner-cats")
 
-    # Avoid triggering `manage_tenant` in tests (it would rerun tenant migrations).
-    org_id = Ash.UUID.generate()
-    org_id_bin = Ecto.UUID.dump!(org_id)
-    now = DateTime.utc_now()
-
-    {1, _} =
-      CloseTheLoop.Repo.insert_all("organizations", [
-        %{
-          id: org_id_bin,
-          name: "Test Org",
-          tenant_schema: tenant,
-          inserted_at: now,
-          updated_at: now
-        }
-      ])
-
-    {:ok, user} =
-      Ash.create(
-        User,
-        %{
-          email: email,
-          password: "password1234",
-          password_confirmation: "password1234"
-        },
-        action: :register_with_password,
-        context: %{private: %{ash_authentication?: true}}
-      )
-
-    {:ok, user} =
-      Ash.update(user, %{organization_id: org_id, role: :owner},
-        action: :set_organization,
-        actor: user
-      )
+    org = insert_org!(tenant)
+    user = register_user!(email)
+    _membership = create_membership!(user, org.id, :owner)
 
     conn =
       conn
       |> init_test_session(%{})
       |> AshAuthentication.Plug.Helpers.store_in_session(user)
 
-    {:ok, view, _html} = live(conn, ~p"/app/settings/issue-categories")
+    {:ok, view, _html} = live(conn, ~p"/app/#{org.id}/settings/issue-categories")
 
     {:ok, cats} = Ash.read(IssueCategory, tenant: tenant)
     cat = Enum.find(cats, fn c -> c.key == "plumbing" end) || hd(cats)
@@ -76,46 +47,16 @@ defmodule CloseTheLoopWeb.IssueCategoriesLiveTest do
     tenant = "public"
     email = unique_email("owner-ai-settings")
 
-    # Avoid triggering `manage_tenant` in tests (it would rerun tenant migrations).
-    org_id = Ash.UUID.generate()
-    org_id_bin = Ecto.UUID.dump!(org_id)
-    now = DateTime.utc_now()
-
-    {1, _} =
-      CloseTheLoop.Repo.insert_all("organizations", [
-        %{
-          id: org_id_bin,
-          name: "Test Org",
-          tenant_schema: tenant,
-          inserted_at: now,
-          updated_at: now
-        }
-      ])
-
-    {:ok, user} =
-      Ash.create(
-        User,
-        %{
-          email: email,
-          password: "password1234",
-          password_confirmation: "password1234"
-        },
-        action: :register_with_password,
-        context: %{private: %{ash_authentication?: true}}
-      )
-
-    {:ok, user} =
-      Ash.update(user, %{organization_id: org_id, role: :owner},
-        action: :set_organization,
-        actor: user
-      )
+    org = insert_org!(tenant)
+    user = register_user!(email)
+    _membership = create_membership!(user, org.id, :owner)
 
     conn =
       conn
       |> init_test_session(%{})
       |> AshAuthentication.Plug.Helpers.store_in_session(user)
 
-    {:ok, view, _html} = live(conn, ~p"/app/settings/issue-categories")
+    {:ok, view, _html} = live(conn, ~p"/app/#{org.id}/settings/issue-categories")
     assert has_element?(view, "#ai-settings-form")
 
     view

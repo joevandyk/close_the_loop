@@ -33,7 +33,12 @@ defmodule CloseTheLoopWeb.SettingsLive.Account do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} current_user={@current_user} current_scope={@current_scope}>
+    <Layouts.app
+      flash={@flash}
+      current_user={@current_user}
+      current_scope={@current_scope}
+      org={@current_org}
+    >
       <div class="max-w-4xl mx-auto space-y-8">
         <div class="flex items-start justify-between gap-4">
           <div>
@@ -60,7 +65,7 @@ defmodule CloseTheLoopWeb.SettingsLive.Account do
             </div>
             <div class="flex items-center justify-between gap-4">
               <dt class="text-foreground-soft">Role</dt>
-              <dd class="font-medium">{@current_user.role || :staff}</dd>
+              <dd class="font-medium">{@current_role || :staff}</dd>
             </div>
           </dl>
         </div>

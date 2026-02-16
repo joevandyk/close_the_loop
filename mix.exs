@@ -63,6 +63,7 @@ defmodule CloseTheLoop.MixProject do
       {:ash_authentication, "~> 4.0"},
       {:ash_phoenix, "~> 2.0"},
       {:ash_postgres, "~> 2.0"},
+      {:ash_events, "~> 0.6.0"},
       {:ash, "~> 3.0"},
       {:phoenix, "~> 1.8.3"},
       {:phoenix_ecto, "~> 4.5"},

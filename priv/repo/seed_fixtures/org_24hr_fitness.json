@@ -146,6 +146,14 @@
           "key": "rpt_treadmill_12_1",
           "reporter_phone": "+1-415-555-0138",
           "source": "qr"
+        },
+        {
+          "body": "Treadmill #12 on the cardio floor keeps stopping with an error (E-07) and the belt jerks. Happened twice today. Also noticed by another guest (separately reported).",
+          "consent": false,
+          "days_ago": 43,
+          "key": "rpt_treadmill_12_1_2",
+          "reporter_phone": null,
+          "source": "qr"
         }
       ],
       "status": "in_progress",
@@ -177,6 +185,14 @@
           "key": "rpt_cable_crossover_1",
           "reporter_phone": null,
           "source": "qr"
+        },
+        {
+          "body": "Functional trainer/cable crossover: left side pulley makes a grinding noise and the cable feels rough. Please check before it snaps. Also noticed by another guest (separately reported).",
+          "consent": false,
+          "days_ago": 17,
+          "key": "rpt_cable_crossover_1_2",
+          "reporter_phone": null,
+          "source": "sms"
         }
       ],
       "status": "acknowledged",
@@ -209,6 +225,14 @@
           "days_ago": 12,
           "key": "rpt_wipes_empty_1",
           "reporter_phone": "+1-510-555-0199",
+          "source": "sms"
+        },
+        {
+          "body": "Wipes station by the dumbbells has been empty the last 3 nights and the trash is overflowing. Hard to clean equipment. Also noticed by another guest (separately reported).",
+          "consent": false,
+          "days_ago": 11,
+          "key": "rpt_wipes_empty_1_2",
+          "reporter_phone": null,
           "source": "sms"
         }
       ],
@@ -279,6 +303,14 @@
           "key": "rpt_womens_locker_hinge_1",
           "reporter_phone": null,
           "source": "manual"
+        },
+        {
+          "body": "In the women’s locker room, one of the lockers has a loose hinge and won’t close. I’m worried it’ll break off. Also noticed by another guest (separately reported).",
+          "consent": false,
+          "days_ago": 28,
+          "key": "rpt_womens_locker_hinge_1_2",
+          "reporter_phone": null,
+          "source": "sms"
         }
       ],
       "status": "in_progress",
@@ -305,6 +337,14 @@
           "key": "rpt_pool_cloudy_1",
           "reporter_phone": "+1-650-555-0144",
           "source": "qr"
+        },
+        {
+          "body": "Pool is cloudy today and the chlorine smell is really strong. My eyes started burning after 10 minutes. Also noticed by another guest (separately reported).",
+          "consent": false,
+          "days_ago": 6,
+          "key": "rpt_pool_cloudy_1_2",
+          "reporter_phone": null,
+          "source": "sms"
         }
       ],
       "status": "acknowledged",
@@ -407,6 +447,14 @@
           "key": "rpt_steam_room_1",
           "reporter_phone": "+1-408-555-0172",
           "source": "sms"
+        },
+        {
+          "body": "Steam room barely has any steam and the floor is super slick. Smells like mildew too. Also noticed by another guest (separately reported).",
+          "consent": false,
+          "days_ago": 34,
+          "key": "rpt_steam_room_1_2",
+          "reporter_phone": null,
+          "source": "sms"
         }
       ],
       "status": "acknowledged",
@@ -431,6 +479,14 @@
           "consent": true,
           "days_ago": 5,
           "key": "rpt_studio_hvac_1",
+          "reporter_phone": null,
+          "source": "qr"
+        },
+        {
+          "body": "Studio A gets really hot during the 6pm class. Air feels stagnant and it’s hard to breathe when it’s full. Also noticed by another guest (separately reported).",
+          "consent": false,
+          "days_ago": 4,
+          "key": "rpt_studio_hvac_1_2",
           "reporter_phone": null,
           "source": "qr"
         }
@@ -491,6 +547,14 @@
           "key": "rpt_pool_tile_1",
           "reporter_phone": null,
           "source": "qr"
+        },
+        {
+          "body": "There’s a tile sticking up by the pool ladder (near lane 1). Almost tripped getting out. Also noticed by another guest (separately reported).",
+          "consent": false,
+          "days_ago": 15,
+          "key": "rpt_pool_tile_1_2",
+          "reporter_phone": null,
+          "source": "sms"
         }
       ],
       "status": "in_progress",
@@ -543,6 +607,14 @@
           "key": "rpt_front_restroom_1",
           "reporter_phone": "+1-415-555-0106",
           "source": "sms"
+        },
+        {
+          "body": "Front restroom sink barely has any water pressure and the soap dispenser is empty. Also noticed by another guest (separately reported).",
+          "consent": false,
+          "days_ago": 2,
+          "key": "rpt_front_restroom_1_2",
+          "reporter_phone": null,
+          "source": "sms"
         }
       ],
       "status": "acknowledged",
@@ -577,112 +649,107 @@
   ],
   "locations": [
     {
-      "full_path": "24 Hour Fitness",
-      "key": "loc_root",
-      "name": "24 Hour Fitness"
-    },
-    {
-      "full_path": "24 Hour Fitness / Front Desk & Lobby",
+      "full_path": "Front Desk & Lobby",
       "key": "loc_front_desk",
       "name": "Front Desk & Lobby"
     },
     {
-      "full_path": "24 Hour Fitness / Front Desk & Lobby / Front Restrooms",
+      "full_path": "Front Desk & Lobby / Front Restrooms",
       "key": "loc_front_restrooms",
       "name": "Front Restrooms"
     },
     {
-      "full_path": "24 Hour Fitness / Main Workout Floor",
+      "full_path": "Main Workout Floor",
       "key": "loc_main_workout_floor",
       "name": "Main Workout Floor"
     },
     {
-      "full_path": "24 Hour Fitness / Main Workout Floor / Cardio Floor",
+      "full_path": "Main Workout Floor / Cardio Floor",
       "key": "loc_cardio_floor",
       "name": "Cardio Floor"
     },
     {
-      "full_path": "24 Hour Fitness / Main Workout Floor / Strength Floor",
+      "full_path": "Main Workout Floor / Strength Floor",
       "key": "loc_strength_floor",
       "name": "Strength Floor"
     },
     {
-      "full_path": "24 Hour Fitness / Main Workout Floor / Free Weights Area",
+      "full_path": "Main Workout Floor / Free Weights Area",
       "key": "loc_free_weights",
       "name": "Free Weights Area"
     },
     {
-      "full_path": "24 Hour Fitness / Main Workout Floor / Stretching Area",
+      "full_path": "Main Workout Floor / Stretching Area",
       "key": "loc_stretching_area",
       "name": "Stretching Area"
     },
     {
-      "full_path": "24 Hour Fitness / Group Fitness",
+      "full_path": "Group Fitness",
       "key": "loc_group_fitness",
       "name": "Group Fitness"
     },
     {
-      "full_path": "24 Hour Fitness / Group Fitness / Studio A",
+      "full_path": "Group Fitness / Studio A",
       "key": "loc_group_fitness_studio_a",
       "name": "Studio A"
     },
     {
-      "full_path": "24 Hour Fitness / Locker Rooms",
+      "full_path": "Locker Rooms",
       "key": "loc_locker_rooms",
       "name": "Locker Rooms"
     },
     {
-      "full_path": "24 Hour Fitness / Locker Rooms / Hallway to Locker Rooms",
+      "full_path": "Locker Rooms / Hallway to Locker Rooms",
       "key": "loc_hallway_to_lockers",
       "name": "Hallway to Locker Rooms"
     },
     {
-      "full_path": "24 Hour Fitness / Locker Rooms / Men's Locker Room",
+      "full_path": "Locker Rooms / Men's Locker Room",
       "key": "loc_mens_locker_room",
       "name": "Men's Locker Room"
     },
     {
-      "full_path": "24 Hour Fitness / Locker Rooms / Men's Locker Room / Showers",
+      "full_path": "Locker Rooms / Men's Locker Room / Showers",
       "key": "loc_mens_showers",
       "name": "Showers"
     },
     {
-      "full_path": "24 Hour Fitness / Locker Rooms / Women's Locker Room",
+      "full_path": "Locker Rooms / Women's Locker Room",
       "key": "loc_womens_locker_room",
       "name": "Women's Locker Room"
     },
     {
-      "full_path": "24 Hour Fitness / Locker Rooms / Women's Locker Room / Lockers Area",
+      "full_path": "Locker Rooms / Women's Locker Room / Lockers Area",
       "key": "loc_womens_lockers",
       "name": "Lockers Area"
     },
     {
-      "full_path": "24 Hour Fitness / Aquatics",
+      "full_path": "Aquatics",
       "key": "loc_aquatics",
       "name": "Aquatics"
     },
     {
-      "full_path": "24 Hour Fitness / Aquatics / Pool Deck",
+      "full_path": "Aquatics / Pool Deck",
       "key": "loc_pool_deck",
       "name": "Pool Deck"
     },
     {
-      "full_path": "24 Hour Fitness / Aquatics / Hot Tub / Spa",
+      "full_path": "Aquatics / Hot Tub / Spa",
       "key": "loc_hot_tub",
       "name": "Hot Tub / Spa"
     },
     {
-      "full_path": "24 Hour Fitness / Recovery Area",
+      "full_path": "Recovery Area",
       "key": "loc_recovery_area",
       "name": "Recovery Area"
     },
     {
-      "full_path": "24 Hour Fitness / Recovery Area / Sauna",
+      "full_path": "Recovery Area / Sauna",
       "key": "loc_sauna",
       "name": "Sauna"
     },
     {
-      "full_path": "24 Hour Fitness / Recovery Area / Steam Room",
+      "full_path": "Recovery Area / Steam Room",
       "key": "loc_steam_room",
       "name": "Steam Room"
     }

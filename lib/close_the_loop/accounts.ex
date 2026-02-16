@@ -12,7 +12,19 @@ defmodule CloseTheLoop.Accounts do
       define :update_user_profile, action: :update_profile
       define :change_user_email, action: :change_email
       define :change_user_password, action: :change_password
-      define :set_user_organization, action: :set_organization
+    end
+
+    resource CloseTheLoop.Accounts.UserOrganization do
+      define :get_user_organization_by_id, action: :read, get_by: [:id]
+
+      define :get_user_organization_by_user_org,
+        action: :read,
+        get_by: [:user_id, :organization_id]
+
+      define :list_user_organizations, action: :read
+      define :create_user_organization, action: :create
+      define :update_user_organization, action: :update
+      define :destroy_user_organization, action: :destroy
     end
   end
 end

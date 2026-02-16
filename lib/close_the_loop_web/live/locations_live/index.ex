@@ -45,7 +45,12 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} current_user={@current_user} current_scope={@current_scope}>
+    <Layouts.app
+      flash={@flash}
+      current_user={@current_user}
+      current_scope={@current_scope}
+      org={@current_org}
+    >
       <div class="max-w-5xl mx-auto space-y-8">
         <div>
           <h1 class="text-2xl font-semibold">Locations</h1>
@@ -136,7 +141,7 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
                 </:cell>
                 <:cell>
                   <.button
-                    href={~p"/app/settings/locations/#{loc.id}/poster"}
+                    href={~p"/app/#{@current_org.id}/settings/locations/#{loc.id}/poster"}
                     target="_blank"
                     rel="noreferrer"
                     variant="ghost"

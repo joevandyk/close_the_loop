@@ -2,48 +2,19 @@ defmodule CloseTheLoopWeb.IssuesLiveTest do
   use CloseTheLoopWeb.ConnCase, async: true
 
   import Phoenix.LiveViewTest
-  import CloseTheLoop.TestHelpers, only: [unique_email: 1]
 
-  alias CloseTheLoop.Accounts.User
+  import CloseTheLoop.TestHelpers,
+    only: [create_membership!: 3, insert_org!: 1, register_user!: 1, unique_email: 1]
+
   alias CloseTheLoop.Feedback.{Issue, Location}
 
   test "authenticated user with org can view issues inbox", %{conn: conn} do
     tenant = "public"
     email = unique_email("owner")
 
-    # Avoid triggering `manage_tenant` in tests (it would rerun tenant migrations).
-    org_id = Ash.UUID.generate()
-    org_id_bin = Ecto.UUID.dump!(org_id)
-    now = DateTime.utc_now()
-
-    {1, _} =
-      CloseTheLoop.Repo.insert_all("organizations", [
-        %{
-          id: org_id_bin,
-          name: "Test Org",
-          tenant_schema: tenant,
-          inserted_at: now,
-          updated_at: now
-        }
-      ])
-
-    {:ok, user} =
-      Ash.create(
-        User,
-        %{
-          email: email,
-          password: "password1234",
-          password_confirmation: "password1234"
-        },
-        action: :register_with_password,
-        context: %{private: %{ash_authentication?: true}}
-      )
-
-    {:ok, user} =
-      Ash.update(user, %{organization_id: org_id, role: :owner},
-        action: :set_organization,
-        actor: user
-      )
+    org = insert_org!(tenant)
+    user = register_user!(email)
+    _membership = create_membership!(user, org.id, :owner)
 
     {:ok, location} =
       Ash.create(Location, %{name: "General", full_path: "General"}, tenant: tenant)
@@ -66,7 +37,7 @@ defmodule CloseTheLoopWeb.IssuesLiveTest do
       |> init_test_session(%{})
       |> AshAuthentication.Plug.Helpers.store_in_session(user)
 
-    {:ok, _view, html} = live(conn, ~p"/app/issues")
+    {:ok, _view, html} = live(conn, ~p"/app/#{org.id}/issues")
     assert html =~ "Issues"
     assert html =~ "Cold shower"
   end
@@ -75,39 +46,9 @@ defmodule CloseTheLoopWeb.IssuesLiveTest do
     tenant = "public"
     email = unique_email("owner")
 
-    # Avoid triggering `manage_tenant` in tests (it would rerun tenant migrations).
-    org_id = Ash.UUID.generate()
-    org_id_bin = Ecto.UUID.dump!(org_id)
-    now = DateTime.utc_now()
-
-    {1, _} =
-      CloseTheLoop.Repo.insert_all("organizations", [
-        %{
-          id: org_id_bin,
-          name: "Test Org",
-          tenant_schema: tenant,
-          inserted_at: now,
-          updated_at: now
-        }
-      ])
-
-    {:ok, user} =
-      Ash.create(
-        User,
-        %{
-          email: email,
-          password: "password1234",
-          password_confirmation: "password1234"
-        },
-        action: :register_with_password,
-        context: %{private: %{ash_authentication?: true}}
-      )
-
-    {:ok, user} =
-      Ash.update(user, %{organization_id: org_id, role: :owner},
-        action: :set_organization,
-        actor: user
-      )
+    org = insert_org!(tenant)
+    user = register_user!(email)
+    _membership = create_membership!(user, org.id, :owner)
 
     {:ok, location} =
       Ash.create(Location, %{name: "General", full_path: "General"}, tenant: tenant)
@@ -130,8 +71,9 @@ defmodule CloseTheLoopWeb.IssuesLiveTest do
       |> init_test_session(%{})
       |> AshAuthentication.Plug.Helpers.store_in_session(user)
 
-    {:ok, view, _html} = live(conn, ~p"/app/issues/#{issue.id}")
+    {:ok, view, _html} = live(conn, ~p"/app/#{org.id}/issues/#{issue.id}")
     assert has_element?(view, "#issue-internal-comment-form")
+    assert has_element?(view, "#issue-activity")
 
     view
     |> form("#issue-internal-comment-form",
@@ -142,77 +84,13 @@ defmodule CloseTheLoopWeb.IssuesLiveTest do
     assert render(view) =~ "Called maintenance; plumber Tuesday."
   end
 
-  test "dangling org_id does not crash issues page", %{conn: conn} do
-    email = unique_email("dangling")
-
-    {:ok, user} =
-      Ash.create(
-        User,
-        %{
-          email: email,
-          password: "password1234",
-          password_confirmation: "password1234"
-        },
-        action: :register_with_password,
-        context: %{private: %{ash_authentication?: true}}
-      )
-
-    # Point at a non-existent org (this can happen in dev if org rows are removed).
-    org_id = Ash.UUID.generate()
-
-    {:ok, user} =
-      Ash.update(user, %{organization_id: org_id, role: :owner},
-        action: :set_organization,
-        actor: user
-      )
-
-    conn =
-      conn
-      |> init_test_session(%{})
-      |> AshAuthentication.Plug.Helpers.store_in_session(user)
-
-    {:ok, _view, html} = live(conn, ~p"/app/issues")
-    assert html =~ "Issues"
-    assert html =~ "No issues yet."
-  end
-
-  test "owner can edit an issue title and description", %{conn: conn} do
+  test "issue send sms uses a modal and requires confirmation", %{conn: conn} do
     tenant = "public"
-    email = unique_email("owner")
+    email = unique_email("owner-sms")
 
-    # Avoid triggering `manage_tenant` in tests (it would rerun tenant migrations).
-    org_id = Ash.UUID.generate()
-    org_id_bin = Ecto.UUID.dump!(org_id)
-    now = DateTime.utc_now()
-
-    {1, _} =
-      CloseTheLoop.Repo.insert_all("organizations", [
-        %{
-          id: org_id_bin,
-          name: "Test Org",
-          tenant_schema: tenant,
-          inserted_at: now,
-          updated_at: now
-        }
-      ])
-
-    {:ok, user} =
-      Ash.create(
-        User,
-        %{
-          email: email,
-          password: "password1234",
-          password_confirmation: "password1234"
-        },
-        action: :register_with_password,
-        context: %{private: %{ash_authentication?: true}}
-      )
-
-    {:ok, user} =
-      Ash.update(user, %{organization_id: org_id, role: :owner},
-        action: :set_organization,
-        actor: user
-      )
+    org = insert_org!(tenant)
+    user = register_user!(email)
+    _membership = create_membership!(user, org.id, :owner)
 
     {:ok, location} =
       Ash.create(Location, %{name: "General", full_path: "General"}, tenant: tenant)
@@ -235,7 +113,108 @@ defmodule CloseTheLoopWeb.IssuesLiveTest do
       |> init_test_session(%{})
       |> AshAuthentication.Plug.Helpers.store_in_session(user)
 
-    {:ok, view, _html} = live(conn, ~p"/app/issues/#{issue.id}")
+    {:ok, view, _html} = live(conn, ~p"/app/#{org.id}/issues/#{issue.id}")
+    assert has_element?(view, "#issue-open-send-sms")
+    refute has_element?(view, "#issue-update-form")
+
+    view |> element("#issue-open-send-sms") |> render_click()
+    assert has_element?(view, "#issue-send-sms-form")
+
+    view
+    |> form("#issue-send-sms-form", update: %{message: "Hello everyone"})
+    |> render_submit()
+
+    assert render(view) =~ "Please confirm before sending."
+  end
+
+  test "owner can add a manual report from issue page", %{conn: conn} do
+    tenant = "public"
+    email = unique_email("owner-add-report")
+
+    org = insert_org!(tenant)
+    user = register_user!(email)
+    _membership = create_membership!(user, org.id, :owner)
+
+    {:ok, location} =
+      Ash.create(Location, %{name: "General", full_path: "General"}, tenant: tenant)
+
+    {:ok, issue} =
+      Ash.create(
+        Issue,
+        %{
+          location_id: location.id,
+          title: "Cold shower",
+          description: "Cold shower",
+          normalized_description: "cold shower",
+          status: :new
+        },
+        tenant: tenant
+      )
+
+    conn =
+      conn
+      |> init_test_session(%{})
+      |> AshAuthentication.Plug.Helpers.store_in_session(user)
+
+    {:ok, view, _html} = live(conn, ~p"/app/#{org.id}/issues/#{issue.id}")
+    assert has_element?(view, "#issue-open-add-report")
+
+    view |> element("#issue-open-add-report") |> render_click()
+    assert has_element?(view, "#issue-add-report-form")
+
+    view
+    |> form("#issue-add-report-form", new_report: %{body: "Saw standing water near the drain."})
+    |> render_submit()
+
+    assert render(view) =~ "Saw standing water near the drain."
+  end
+
+  test "dangling org_id does not crash issues page", %{conn: conn} do
+    email = unique_email("dangling")
+    user = register_user!(email)
+
+    # Point at a non-existent org. With org-in-URL and membership checks,
+    # the app should safely redirect the signed-in user.
+    org_id = Ash.UUID.generate()
+
+    conn =
+      conn
+      |> init_test_session(%{})
+      |> AshAuthentication.Plug.Helpers.store_in_session(user)
+
+    assert {:error, {:redirect, %{to: "/app/onboarding"}}} = live(conn, ~p"/app/#{org_id}/issues")
+  end
+
+  test "owner can edit an issue title and description", %{conn: conn} do
+    tenant = "public"
+    email = unique_email("owner")
+
+    org = insert_org!(tenant)
+    user = register_user!(email)
+    _membership = create_membership!(user, org.id, :owner)
+
+    {:ok, location} =
+      Ash.create(Location, %{name: "General", full_path: "General"}, tenant: tenant)
+
+    {:ok, issue} =
+      Ash.create(
+        Issue,
+        %{
+          location_id: location.id,
+          title: "Cold shower",
+          description: "Cold shower",
+          normalized_description: "cold shower",
+          status: :new
+        },
+        tenant: tenant
+      )
+
+    conn =
+      conn
+      |> init_test_session(%{})
+      |> AshAuthentication.Plug.Helpers.store_in_session(user)
+
+    {:ok, view, _html} = live(conn, ~p"/app/#{org.id}/issues/#{issue.id}")
     assert has_element?(view, "#issue-edit-details-toggle")
 
     view |> element("#issue-edit-details-toggle") |> render_click()
@@ -259,39 +238,9 @@ defmodule CloseTheLoopWeb.IssuesLiveTest do
     tenant = "public"
     email = unique_email("staff")
 
-    # Avoid triggering `manage_tenant` in tests (it would rerun tenant migrations).
-    org_id = Ash.UUID.generate()
-    org_id_bin = Ecto.UUID.dump!(org_id)
-    now = DateTime.utc_now()
-
-    {1, _} =
-      CloseTheLoop.Repo.insert_all("organizations", [
-        %{
-          id: org_id_bin,
-          name: "Test Org",
-          tenant_schema: tenant,
-          inserted_at: now,
-          updated_at: now
-        }
-      ])
-
-    {:ok, user} =
-      Ash.create(
-        User,
-        %{
-          email: email,
-          password: "password1234",
-          password_confirmation: "password1234"
-        },
-        action: :register_with_password,
-        context: %{private: %{ash_authentication?: true}}
-      )
-
-    {:ok, user} =
-      Ash.update(user, %{organization_id: org_id, role: :staff},
-        action: :set_organization,
-        actor: user
-      )
+    org = insert_org!(tenant)
+    user = register_user!(email)
+    _membership = create_membership!(user, org.id, :staff)
 
     {:ok, location} =
       Ash.create(Location, %{name: "General", full_path: "General"}, tenant: tenant)
@@ -314,7 +263,97 @@ defmodule CloseTheLoopWeb.IssuesLiveTest do
       |> init_test_session(%{})
       |> AshAuthentication.Plug.Helpers.store_in_session(user)
 
-    {:ok, view, _html} = live(conn, ~p"/app/issues/#{issue.id}")
+    {:ok, view, _html} = live(conn, ~p"/app/#{org.id}/issues/#{issue.id}")
     refute has_element?(view, "#issue-edit-details-toggle")
+  end
+
+  test "issues inbox supports status filter via query params", %{conn: conn} do
+    tenant = "public"
+    org = insert_org!(tenant)
+    user = register_user!(unique_email("owner-status-filter"))
+    _membership = create_membership!(user, org.id, :owner)
+
+    {:ok, location} =
+      Ash.create(Location, %{name: "General", full_path: "General"}, tenant: tenant)
+
+    {:ok, _new_issue} =
+      Ash.create(
+        Issue,
+        %{
+          location_id: location.id,
+          title: "New issue",
+          description: "New issue",
+          normalized_description: "new issue",
+          status: :new
+        },
+        tenant: tenant
+      )
+
+    {:ok, _in_progress_issue} =
+      Ash.create(
+        Issue,
+        %{
+          location_id: location.id,
+          title: "In progress issue",
+          description: "In progress issue",
+          normalized_description: "in progress issue",
+          status: :in_progress
+        },
+        tenant: tenant
+      )
+
+    conn =
+      conn
+      |> init_test_session(%{})
+      |> AshAuthentication.Plug.Helpers.store_in_session(user)
+
+    {:ok, _view, html} = live(conn, ~p"/app/#{org.id}/issues?status=in_progress")
+    assert html =~ "In progress issue"
+    refute html =~ "New issue"
+  end
+
+  test "issues inbox supports search via q query param", %{conn: conn} do
+    tenant = "public"
+    org = insert_org!(tenant)
+    user = register_user!(unique_email("owner-search"))
+    _membership = create_membership!(user, org.id, :owner)
+
+    {:ok, location} =
+      Ash.create(Location, %{name: "General", full_path: "General"}, tenant: tenant)
+
+    {:ok, _a} =
+      Ash.create(
+        Issue,
+        %{
+          location_id: location.id,
+          title: "Cold shower",
+          description: "Cold shower",
+          normalized_description: "cold shower",
+          status: :new
+        },
+        tenant: tenant
+      )
+
+    {:ok, _b} =
+      Ash.create(
+        Issue,
+        %{
+          location_id: location.id,
+          title: "Broken faucet",
+          description: "Broken faucet",
+          normalized_description: "broken faucet",
+          status: :new
+        },
+        tenant: tenant
+      )
+
+    conn =
+      conn
+      |> init_test_session(%{})
+      |> AshAuthentication.Plug.Helpers.store_in_session(user)
+
+    {:ok, _view, html} = live(conn, ~p"/app/#{org.id}/issues?q=faucet")
+    assert html =~ "Broken faucet"
+    refute html =~ "Cold shower"
   end
 end

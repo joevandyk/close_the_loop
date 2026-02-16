@@ -146,6 +146,14 @@
           "key": "rep_001a",
           "reporter_phone": null,
           "source": "qr"
+        },
+        {
+          "body": "No paper towels in the women's restroom. Hand dryer works but a lot of people prefer towels. Also noticed by another guest (separately reported).",
+          "consent": false,
+          "days_ago": 11,
+          "key": "rep_001a_2",
+          "reporter_phone": null,
+          "source": "qr"
         }
       ],
       "status": "fixed",
@@ -223,6 +231,14 @@
           "key": "rep_003a",
           "reporter_phone": "+1-555-013-2290",
           "source": "sms"
+        },
+        {
+          "body": "Rainwater is getting past the mat and pooling. Almost slipped walking in. Also noticed by another guest (separately reported).",
+          "consent": false,
+          "days_ago": 44,
+          "key": "rep_003a_2",
+          "reporter_phone": null,
+          "source": "qr"
         }
       ],
       "status": "fixed",
@@ -285,6 +301,14 @@
           "key": "rep_005a",
           "reporter_phone": null,
           "source": "qr"
+        },
+        {
+          "body": "Recycling is full and people are leaving boxes on the floor. Smells a bit too. Also noticed by another guest (separately reported).",
+          "consent": false,
+          "days_ago": 18,
+          "key": "rep_005a_2",
+          "reporter_phone": null,
+          "source": "sms"
         }
       ],
       "status": "fixed",
@@ -362,6 +386,14 @@
           "key": "rep_007a",
           "reporter_phone": null,
           "source": "qr"
+        },
+        {
+          "body": "Scanned the QR in the lobby and it goes to a dead link (404). Also noticed by another guest (separately reported).",
+          "consent": false,
+          "days_ago": 2,
+          "key": "rep_007a_2",
+          "reporter_phone": null,
+          "source": "sms"
         }
       ],
       "status": "new",
@@ -380,6 +412,14 @@
           "consent": true,
           "days_ago": 61,
           "key": "rep_008a",
+          "reporter_phone": null,
+          "source": "qr"
+        },
+        {
+          "body": "There’s a noticeable brown stain in the hallway carpet by Conf A. Been there for weeks. Also noticed by another guest (separately reported).",
+          "consent": false,
+          "days_ago": 60,
+          "key": "rep_008a_2",
           "reporter_phone": null,
           "source": "qr"
         }
@@ -418,6 +458,14 @@
           "key": "rep_009a",
           "reporter_phone": null,
           "source": "qr"
+        },
+        {
+          "body": "The up button feels stuck and doesn't always light up when pressed. Also noticed by another guest (separately reported).",
+          "consent": false,
+          "days_ago": 21,
+          "key": "rep_009a_2",
+          "reporter_phone": null,
+          "source": "sms"
         }
       ],
       "status": "acknowledged",
@@ -475,6 +523,14 @@
           "key": "rep_011a",
           "reporter_phone": null,
           "source": "qr"
+        },
+        {
+          "body": "The arrow for Training Room sends people toward the stairwell instead of the west corridor. Also noticed by another guest (separately reported).",
+          "consent": false,
+          "days_ago": 13,
+          "key": "rep_011a_2",
+          "reporter_phone": null,
+          "source": "sms"
         }
       ],
       "status": "fixed",
@@ -506,6 +562,14 @@
           "key": "rep_012a",
           "reporter_phone": null,
           "source": "qr"
+        },
+        {
+          "body": "Cabinet glass shows no extinguisher inside. Not sure if it's missing or relocated. Also noticed by another guest (separately reported).",
+          "consent": false,
+          "days_ago": 5,
+          "key": "rep_012a_2",
+          "reporter_phone": null,
+          "source": "sms"
         }
       ],
       "status": "acknowledged",
@@ -539,6 +603,14 @@
           "key": "rep_013a",
           "reporter_phone": null,
           "source": "qr"
+        },
+        {
+          "body": "Rattling/buzzing from the vent for ~10 minutes at a time. Happens a few times a day. Also noticed by another guest (separately reported).",
+          "consent": false,
+          "days_ago": 51,
+          "key": "rep_013a_2",
+          "reporter_phone": null,
+          "source": "sms"
         }
       ],
       "status": "fixed",
@@ -570,6 +642,14 @@
           "key": "rep_014a",
           "reporter_phone": null,
           "source": "qr"
+        },
+        {
+          "body": "Metal strip between tile and carpet is lifting. Caught my shoe on it. Also noticed by another guest (separately reported).",
+          "consent": false,
+          "days_ago": 1,
+          "key": "rep_014a_2",
+          "reporter_phone": null,
+          "source": "sms"
         }
       ],
       "status": "new",

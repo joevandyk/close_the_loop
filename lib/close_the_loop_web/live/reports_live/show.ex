@@ -33,7 +33,8 @@ defmodule CloseTheLoopWeb.ReportsLive.Show do
     else
       _ ->
         {:ok,
-         put_flash(socket, :error, "Report not found") |> push_navigate(to: ~p"/app/reports")}
+         put_flash(socket, :error, "Report not found")
+         |> push_navigate(to: ~p"/app/#{socket.assigns.current_org.id}/reports")}
     end
   end
 
@@ -78,10 +79,24 @@ defmodule CloseTheLoopWeb.ReportsLive.Show do
     end
   end
 
+  defp iso8601(%DateTime{} = dt), do: DateTime.to_iso8601(dt)
+  defp iso8601(%NaiveDateTime{} = dt), do: NaiveDateTime.to_iso8601(dt)
+  defp iso8601(other) when is_binary(other), do: other
+  defp iso8601(other), do: to_string(other)
+
+  defp format_dt(%DateTime{} = dt), do: Calendar.strftime(dt, "%b %d, %Y %I:%M %p")
+  defp format_dt(%NaiveDateTime{} = dt), do: Calendar.strftime(dt, "%b %d, %Y %I:%M %p")
+  defp format_dt(other), do: to_string(other)
+
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} current_user={@current_user} current_scope={@current_scope}>
+    <Layouts.app
+      flash={@flash}
+      current_user={@current_user}
+      current_scope={@current_scope}
+      org={@current_org}
+    >
       <div class="max-w-4xl mx-auto space-y-6">
         <div class="flex items-start justify-between gap-4">
           <div>
@@ -94,13 +109,22 @@ defmodule CloseTheLoopWeb.ReportsLive.Show do
               <span class="mx-2">•</span>
               <span>Source: {@report.source}</span>
               <span class="mx-2">•</span>
-              <span>{@report.inserted_at}</span>
+              <time
+                id={"report-show-time-#{@report.id}"}
+                phx-hook="LocalTime"
+                data-iso={iso8601(@report.inserted_at)}
+              >
+                {format_dt(@report.inserted_at)}
+              </time>
             </div>
           </div>
 
           <div class="flex items-center gap-2">
-            <.button navigate={~p"/app/reports"} variant="ghost">Back</.button>
-            <.button navigate={~p"/app/issues/#{@report.issue_id}"} variant="outline">
+            <.button navigate={~p"/app/#{@current_org.id}/reports"} variant="ghost">Back</.button>
+            <.button
+              navigate={~p"/app/#{@current_org.id}/issues/#{@report.issue_id}"}
+              variant="outline"
+            >
               View issue
             </.button>
           </div>

@@ -3,35 +3,75 @@ defmodule CloseTheLoopWeb.ReportsLive.Index do
   on_mount {CloseTheLoopWeb.LiveUserAuth, :live_org_required}
 
   alias CloseTheLoop.Feedback
+  require Ash.Query
 
   @impl true
   def mount(_params, _session, socket) do
     socket =
       socket
       |> assign(:reports, [])
+      |> assign(:q, nil)
+      |> assign(:filters_form, to_form(%{"q" => ""}, as: :filters))
 
+    {:ok, socket}
+  end
+
+  @impl true
+  def handle_params(params, _uri, socket) do
     tenant = socket.assigns.current_tenant
+    q = parse_q(params["q"])
 
-    if is_binary(tenant) do
-      case list_reports(tenant) do
-        {:ok, reports} ->
-          {:ok, socket |> assign(:reports, reports)}
+    socket =
+      socket
+      |> assign(:q, q)
+      |> assign(:filters_form, to_form(%{"q" => q || ""}, as: :filters))
 
-        _ ->
-          {:ok, put_flash(socket, :error, "Failed to load reports")}
-      end
-    else
-      {:ok, put_flash(socket, :error, "Failed to load reports")}
+    case list_reports(tenant, q) do
+      {:ok, reports} ->
+        {:noreply, assign(socket, :reports, reports)}
+
+      _ ->
+        {:noreply, put_flash(socket, :error, "Failed to load reports")}
     end
   end
 
-  defp list_reports(tenant) do
+  @impl true
+  def handle_event("filters_changed", %{"filters" => %{"q" => q}}, socket) do
+    q = q |> to_string() |> String.trim()
+    q = if q == "", do: nil, else: q
+
+    {:noreply,
+     push_patch(socket,
+       to: reports_index_path(socket.assigns.current_org.id, q)
+     )}
+  end
+
+  def handle_event("clear_search", _params, socket) do
+    {:noreply, push_patch(socket, to: reports_index_path(socket.assigns.current_org.id, nil))}
+  end
+
+  defp list_reports(tenant, q) when is_binary(tenant) do
+    query =
+      CloseTheLoop.Feedback.Report
+      |> Ash.Query.for_read(:read, %{})
+      |> Ash.Query.sort(inserted_at: :desc)
+      |> Ash.Query.limit(200)
+
+    query =
+      if q do
+        Ash.Query.filter(query, contains(body, ^q))
+      else
+        query
+      end
+
     Feedback.list_reports(
       tenant: tenant,
-      query: [sort: [inserted_at: :desc], limit: 200],
+      query: query,
       load: [issue: [:title], location: [:name, :full_path]]
     )
   end
+
+  defp list_reports(_tenant, _q), do: {:ok, []}
 
   defp report_excerpt(body) do
     body
@@ -45,14 +85,70 @@ defmodule CloseTheLoopWeb.ReportsLive.Index do
   defp format_dt(%NaiveDateTime{} = dt), do: Calendar.strftime(dt, "%b %d, %Y %I:%M %p")
   defp format_dt(other), do: to_string(other)
 
+  defp iso8601(%DateTime{} = dt), do: DateTime.to_iso8601(dt)
+  defp iso8601(%NaiveDateTime{} = dt), do: NaiveDateTime.to_iso8601(dt)
+  defp iso8601(other) when is_binary(other), do: other
+  defp iso8601(other), do: to_string(other)
+
+  defp reports_index_path(org_id, q) do
+    params = if q, do: %{q: q}, else: %{}
+    ~p"/app/#{org_id}/reports?#{params}"
+  end
+
+  defp parse_q(nil), do: nil
+
+  defp parse_q(q) do
+    q = q |> to_string() |> String.trim()
+    if q == "", do: nil, else: q
+  end
+
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} current_user={@current_user} current_scope={@current_scope}>
+    <Layouts.app
+      flash={@flash}
+      current_user={@current_user}
+      current_scope={@current_scope}
+      org={@current_org}
+    >
       <div class="max-w-5xl mx-auto">
-        <div class="flex items-center justify-between gap-4">
-          <h1 class="text-2xl font-semibold">Reports</h1>
-          <.button navigate={~p"/app/reports/new"} variant="outline">New report</.button>
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 class="text-2xl font-semibold">Reports</h1>
+            <p class="mt-2 text-sm text-foreground-soft">
+              Search and click any report to view details.
+            </p>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <.form for={@filters_form} id="reports-filters-form" phx-change="filters_changed">
+              <.input
+                field={@filters_form[:q]}
+                type="search"
+                placeholder="Search reports..."
+                phx-debounce="300"
+              >
+                <:inner_prefix>
+                  <.icon name="hero-magnifying-glass" class="icon" />
+                </:inner_prefix>
+                <:inner_suffix :if={@q}>
+                  <.button
+                    type="button"
+                    size="icon-sm"
+                    variant="ghost"
+                    phx-click="clear_search"
+                    aria-label="Clear search"
+                  >
+                    <.icon name="hero-x-mark" class="icon" />
+                  </.button>
+                </:inner_suffix>
+              </.input>
+            </.form>
+
+            <.button navigate={~p"/app/#{@current_org.id}/reports/new"} variant="outline">
+              New report
+            </.button>
+          </div>
         </div>
 
         <%!-- Card list (no tables, no horizontal scrolling) --%>
@@ -62,11 +158,12 @@ defmodule CloseTheLoopWeb.ReportsLive.Index do
           </div>
 
           <div :if={@reports != []} class="divide-y divide-base">
-            <div
+            <.link
               :for={r <- @reports}
               id={"report-#{r.id}"}
+              navigate={~p"/app/#{@current_org.id}/reports/#{r.id}"}
               class={[
-                "p-4 sm:p-5 transition",
+                "block p-4 sm:p-5 transition cursor-pointer",
                 "hover:bg-accent"
               ]}
             >
@@ -74,9 +171,15 @@ defmodule CloseTheLoopWeb.ReportsLive.Index do
                 <div class="min-w-0 flex-1">
                   <div class="flex flex-wrap items-center gap-2">
                     <.badge variant="soft" color="primary">{format_source(r.source)}</.badge>
-                    <span class="text-xs text-foreground-soft whitespace-nowrap">
+                    <time
+                      id={"reports-index-time-#{r.id}"}
+                      phx-hook="LocalTime"
+                      data-iso={iso8601(r.inserted_at)}
+                      class="text-xs text-foreground-soft whitespace-nowrap"
+                    >
                       {format_dt(r.inserted_at)}
-                    </span>
+                    </time>
+                    <.icon name="hero-arrow-right" class="ml-auto size-4 text-foreground-soft" />
                   </div>
 
                   <p class="mt-2 text-sm font-medium text-foreground break-words">
@@ -98,17 +201,8 @@ defmodule CloseTheLoopWeb.ReportsLive.Index do
                     </div>
                   </div>
                 </div>
-
-                <div class="shrink-0 flex flex-col items-end gap-2">
-                  <.button size="sm" variant="outline" navigate={~p"/app/reports/#{r.id}"}>
-                    View
-                  </.button>
-                  <.button size="sm" variant="ghost" navigate={~p"/app/issues/#{r.issue_id}"}>
-                    Issue
-                  </.button>
-                </div>
               </div>
-            </div>
+            </.link>
           </div>
         </div>
       </div>

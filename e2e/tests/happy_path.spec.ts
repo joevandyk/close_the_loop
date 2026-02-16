@@ -3,6 +3,7 @@ import { test, expect } from "@playwright/test";
 test("business can onboard, receive a report, and view it", async ({ page }) => {
   const email = "e2e_owner@example.com";
   const password = "password1234";
+  let orgId: string | null = null;
 
   // Sign in via password (avoid /dev/mailbox).
   await page.goto("/sign-in");
@@ -24,7 +25,7 @@ test("business can onboard, receive a report, and view it", async ({ page }) => 
   ]);
 
   // After auth, go to the app. Without an org, we should be redirected to onboarding.
-  await page.goto("/app/issues");
+  await page.goto("/app");
   await expect(page).toHaveURL(/\/app\/onboarding/);
 
   await page.waitForFunction(() => (window as any).liveSocket?.isConnected?.(), { timeout: 20_000 });
@@ -32,10 +33,18 @@ test("business can onboard, receive a report, and view it", async ({ page }) => 
   const orgName = `[E2E] Org ${Date.now()}`;
   await page.getByRole("textbox", { name: /organization name/i }).fill(orgName);
   await page.getByRole("button", { name: /create organization/i }).click();
-  await expect(page).toHaveURL(/\/app\/issues/);
+  await expect(page).toHaveURL(/\/app\/[^/]+\/issues/);
+
+  {
+    const url = new URL(page.url());
+    const parts = url.pathname.split("/");
+    // /app/:org_id/issues
+    orgId = parts[2] ?? null;
+    expect(orgId).toBeTruthy();
+  }
 
   // Save AI settings (regression: button must be clickable and submit successfully).
-  await page.goto("/app/settings/issue-categories");
+  await page.goto(`/app/${orgId}/settings/issue-categories`);
   await page.waitForFunction(() => (window as any).liveSocket?.isConnected?.(), { timeout: 20_000 });
 
   // Wait for LiveView to fully hydrate the page (data-phx-id appears after join).
@@ -69,10 +78,10 @@ test("business can onboard, receive a report, and view it", async ({ page }) => 
   );
 
   // Create a new location and use its reporter link.
-  await page.goto("/app/settings/locations");
+  await page.goto(`/app/${orgId}/settings/locations`);
   // Ensure LiveView JS is loaded + connected before interacting.
   await page.waitForFunction(() => (window as any).liveSocket?.isConnected?.(), { timeout: 20_000 });
-  await expect(page).toHaveURL(/\/app\/settings\/locations/);
+  await expect(page).toHaveURL(/\/app\/[^/]+\/settings\/locations/);
   const locationName = `Locker room ${Date.now()}`;
   const nameInput = page.getByRole("textbox", { name: /^name$/i });
   await expect(nameInput).toBeVisible();
@@ -91,7 +100,7 @@ test("business can onboard, receive a report, and view it", async ({ page }) => 
   const locationId = reporterLink!.split("/").pop();
   expect(locationId).toBeTruthy();
 
-  await page.goto(`/app/reports/new?location_id=${locationId}`);
+  await page.goto(`/app/${orgId}/reports/new?location_id=${locationId}`);
   await page.waitForFunction(() => (window as any).liveSocket?.isConnected?.(), { timeout: 20_000 });
   await expect(page.locator("#manual-report-form")).toBeVisible();
 
@@ -99,7 +108,7 @@ test("business can onboard, receive a report, and view it", async ({ page }) => 
   await page.locator("#manual-body").fill(reportBody);
   await expect(page.locator("#manual-body")).toHaveValue(reportBody);
   await page.getByRole("button", { name: /add report/i }).click();
-  await page.waitForURL(/\/app\/issues\/.+/, { timeout: 20_000 });
+  await page.waitForURL(/\/app\/[^/]+\/issues\/.+/, { timeout: 20_000 });
   await expect(page.getByRole("heading", { name: /cold water/i })).toBeVisible({ timeout: 20_000 });
 
   await page.goto(reporterLink!);
@@ -113,7 +122,7 @@ test("business can onboard, receive a report, and view it", async ({ page }) => 
   await expect(page.getByText(/got it/i)).toBeVisible({ timeout: 20_000 });
 
   // Back on the issues list, verify we can see and open the issue + report.
-  await page.goto("/app/issues");
+  await page.goto(`/app/${orgId}/issues`);
   await expect(page.locator("#issues-list")).toBeVisible({ timeout: 20_000 });
   await expect(page.getByText(/cold water/i).first()).toBeVisible({ timeout: 20_000 });
 
@@ -124,8 +133,12 @@ test("business can onboard, receive a report, and view it", async ({ page }) => 
   await expect(page.getByText(reportBody).first()).toBeVisible();
 
   // Send an update (we don't validate SMS delivery, just that the action succeeds).
-  await page.locator("#issue-update-form textarea").fill("Thanks - we are on it.");
-  await page.locator("#issue-update-form").getByRole("button", { name: /send update/i }).click();
-  await expect(page.getByText(/update queued/i)).toBeVisible();
+  await page.locator("#issue-open-send-sms").click();
+  await expect(page.locator("#issue-send-sms-form")).toBeVisible({ timeout: 20_000 });
+
+  await page.locator("#issue-send-sms-form textarea").fill("Thanks - we are on it.");
+  await page.getByRole("checkbox", { name: /i understand this will send an sms/i }).check();
+  await page.locator("#issue-send-sms-form").getByRole("button", { name: /^send sms$/i }).click();
+  await expect(page.locator("#flash-info").getByText(/update queued/i)).toBeVisible();
 });
 

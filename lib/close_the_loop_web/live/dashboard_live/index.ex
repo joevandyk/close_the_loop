@@ -34,10 +34,20 @@ defmodule CloseTheLoopWeb.DashboardLive.Index do
   defp format_dt(%NaiveDateTime{} = dt), do: Calendar.strftime(dt, "%b %d, %Y %I:%M %p")
   defp format_dt(other), do: to_string(other)
 
+  defp iso8601(%DateTime{} = dt), do: DateTime.to_iso8601(dt)
+  defp iso8601(%NaiveDateTime{} = dt), do: NaiveDateTime.to_iso8601(dt)
+  defp iso8601(other) when is_binary(other), do: other
+  defp iso8601(other), do: to_string(other)
+
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} current_user={@current_user} current_scope={@current_scope}>
+    <Layouts.app
+      flash={@flash}
+      current_user={@current_user}
+      current_scope={@current_scope}
+      org={@current_org}
+    >
       <div class="max-w-6xl mx-auto space-y-8">
         <div class="flex items-start justify-between gap-4">
           <div>
@@ -48,19 +58,50 @@ defmodule CloseTheLoopWeb.DashboardLive.Index do
           </div>
 
           <div class="flex items-center gap-2">
-            <.button navigate={~p"/app/issues"} variant="outline">Open issues</.button>
-            <.button navigate={~p"/app/reports/new"} variant="solid" color="primary">
+            <.button navigate={~p"/app/#{@current_org.id}/issues"} variant="outline">
+              Open issues
+            </.button>
+            <.button
+              navigate={~p"/app/#{@current_org.id}/reports/new"}
+              variant="solid"
+              color="primary"
+            >
               New report
             </.button>
           </div>
         </div>
 
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <.stat_card title="Open issues" value={@stats.issues_total} hint="Excludes duplicates" />
-          <.stat_card title="New" value={@stats.issues_new} hint="Needs triage" />
-          <.stat_card title="In progress" value={@stats.issues_in_progress} hint="Work ongoing" />
-          <.stat_card title="Fixed" value={@stats.issues_fixed} hint="Recently resolved" />
-          <.stat_card title="Reports" value={@stats.reports_total} hint="All time" />
+          <.stat_card
+            title="Open issues"
+            value={@stats.issues_total}
+            hint="Excludes duplicates"
+            navigate={~p"/app/#{@current_org.id}/issues"}
+          />
+          <.stat_card
+            title="New"
+            value={@stats.issues_new}
+            hint="Needs triage"
+            navigate={~p"/app/#{@current_org.id}/issues?#{%{status: "new"}}"}
+          />
+          <.stat_card
+            title="In progress"
+            value={@stats.issues_in_progress}
+            hint="Work ongoing"
+            navigate={~p"/app/#{@current_org.id}/issues?#{%{status: "in_progress"}}"}
+          />
+          <.stat_card
+            title="Fixed"
+            value={@stats.issues_fixed}
+            hint="Recently resolved"
+            navigate={~p"/app/#{@current_org.id}/issues?#{%{status: "fixed"}}"}
+          />
+          <.stat_card
+            title="Reports"
+            value={@stats.reports_total}
+            hint="All time"
+            navigate={~p"/app/#{@current_org.id}/reports"}
+          />
           <.stat_card title="Comments" value={@stats.comments_total} hint="Internal discussion" />
         </div>
 
@@ -70,7 +111,7 @@ defmodule CloseTheLoopWeb.DashboardLive.Index do
               <div class="flex items-start gap-3">
                 <div class="min-w-0 flex-1">
                   <.link
-                    navigate={~p"/app/issues/#{i.id}"}
+                    navigate={~p"/app/#{@current_org.id}/issues/#{i.id}"}
                     class="text-sm font-medium hover:underline"
                   >
                     {i.title}
@@ -84,7 +125,13 @@ defmodule CloseTheLoopWeb.DashboardLive.Index do
                     </span>
                   </div>
                 </div>
-                <.button size="sm" variant="outline" navigate={~p"/app/issues/#{i.id}"}>View</.button>
+                <.button
+                  size="sm"
+                  variant="outline"
+                  navigate={~p"/app/#{@current_org.id}/issues/#{i.id}"}
+                >
+                  View
+                </.button>
               </div>
             </div>
           </.list_panel>
@@ -94,7 +141,7 @@ defmodule CloseTheLoopWeb.DashboardLive.Index do
               <div class="flex items-start gap-3">
                 <div class="min-w-0 flex-1">
                   <.link
-                    navigate={~p"/app/reports/#{r.id}"}
+                    navigate={~p"/app/#{@current_org.id}/reports/#{r.id}"}
                     class="text-sm font-medium hover:underline"
                   >
                     {r.body |> to_string() |> String.slice(0, 70)}
@@ -106,10 +153,21 @@ defmodule CloseTheLoopWeb.DashboardLive.Index do
                   <div class="mt-1 flex items-center gap-2 text-xs text-foreground-soft min-w-0">
                     <.icon name="hero-inbox" class="size-4 shrink-0" />
                     <span class="truncate">{r.issue.title}</span>
-                    <span class="ml-auto whitespace-nowrap">{format_dt(r.inserted_at)}</span>
+                    <time
+                      id={"dash-report-time-#{r.id}"}
+                      phx-hook="LocalTime"
+                      data-iso={iso8601(r.inserted_at)}
+                      class="ml-auto whitespace-nowrap"
+                    >
+                      {format_dt(r.inserted_at)}
+                    </time>
                   </div>
                 </div>
-                <.button size="sm" variant="outline" navigate={~p"/app/reports/#{r.id}"}>
+                <.button
+                  size="sm"
+                  variant="outline"
+                  navigate={~p"/app/#{@current_org.id}/reports/#{r.id}"}
+                >
                   View
                 </.button>
               </div>
@@ -125,14 +183,23 @@ defmodule CloseTheLoopWeb.DashboardLive.Index do
                   <div class="text-xs text-foreground-soft">
                     <span class="font-medium text-foreground">{c.author_email || "Internal"}</span>
                     <span class="mx-1 opacity-60">•</span>
-                    <span>{format_dt(c.inserted_at)}</span>
+                    <time
+                      id={"dash-comment-time-#{c.id}"}
+                      phx-hook="LocalTime"
+                      data-iso={iso8601(c.inserted_at)}
+                    >
+                      {format_dt(c.inserted_at)}
+                    </time>
                   </div>
                   <div class="mt-1 text-sm text-foreground break-words">
                     {c.body}
                   </div>
                   <div class="mt-1 text-xs text-foreground-soft">
                     On:
-                    <.link navigate={~p"/app/issues/#{c.issue_id}"} class="hover:underline">
+                    <.link
+                      navigate={~p"/app/#{@current_org.id}/issues/#{c.issue_id}"}
+                      class="hover:underline"
+                    >
                       {c.issue.title}
                     </.link>
                   </div>
@@ -148,14 +215,23 @@ defmodule CloseTheLoopWeb.DashboardLive.Index do
                   <div class="text-xs text-foreground-soft">
                     <span class="font-medium text-foreground">Update queued</span>
                     <span class="mx-1 opacity-60">•</span>
-                    <span>{format_dt(u.inserted_at)}</span>
+                    <time
+                      id={"dash-update-time-#{u.id}"}
+                      phx-hook="LocalTime"
+                      data-iso={iso8601(u.inserted_at)}
+                    >
+                      {format_dt(u.inserted_at)}
+                    </time>
                   </div>
                   <div class="mt-1 text-sm text-foreground break-words">
                     {u.message}
                   </div>
                   <div class="mt-1 text-xs text-foreground-soft">
                     For:
-                    <.link navigate={~p"/app/issues/#{u.issue_id}"} class="hover:underline">
+                    <.link
+                      navigate={~p"/app/#{@current_org.id}/issues/#{u.issue_id}"}
+                      class="hover:underline"
+                    >
                       {u.issue.title}
                     </.link>
                   </div>
@@ -172,10 +248,27 @@ defmodule CloseTheLoopWeb.DashboardLive.Index do
   attr :title, :string, required: true
   attr :value, :any, required: true
   attr :hint, :string, required: true
+  attr :navigate, :string, default: nil
 
   defp stat_card(assigns) do
     ~H"""
-    <div class="rounded-2xl border border-base bg-base p-5 shadow-base">
+    <.link
+      :if={@navigate}
+      navigate={@navigate}
+      class={[
+        "block rounded-2xl border border-base bg-base p-5 shadow-base",
+        "transition hover:bg-accent hover:shadow-lg hover:-translate-y-[1px]"
+      ]}
+    >
+      <div class="flex items-center justify-between gap-3">
+        <p class="text-sm font-medium text-foreground-soft">{@title}</p>
+        <.icon name="hero-arrow-right" class="size-4 text-foreground-soft" />
+      </div>
+      <p class="mt-2 text-3xl font-semibold tracking-tight">{@value}</p>
+      <p class="mt-1 text-xs text-foreground-soft">{@hint}</p>
+    </.link>
+
+    <div :if={!@navigate} class="rounded-2xl border border-base bg-base p-5 shadow-base">
       <div class="flex items-center justify-between gap-3">
         <p class="text-sm font-medium text-foreground-soft">{@title}</p>
       </div>

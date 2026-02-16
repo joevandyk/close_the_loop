@@ -76,7 +76,8 @@ defmodule CloseTheLoopWeb.ReportsLive.New do
     else
       _ ->
         {:ok,
-         put_flash(socket, :error, "Failed to load form") |> push_navigate(to: ~p"/app/reports")}
+         put_flash(socket, :error, "Failed to load form")
+         |> push_navigate(to: ~p"/app/#{socket.assigns.current_org.id}/reports")}
     end
   end
 
@@ -126,7 +127,12 @@ defmodule CloseTheLoopWeb.ReportsLive.New do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} current_user={@current_user} current_scope={@current_scope}>
+    <Layouts.app
+      flash={@flash}
+      current_user={@current_user}
+      current_scope={@current_scope}
+      org={@current_org}
+    >
       <div class="max-w-4xl mx-auto space-y-8">
         <div class="flex items-start justify-between gap-4">
           <div>
@@ -136,7 +142,7 @@ defmodule CloseTheLoopWeb.ReportsLive.New do
             </p>
           </div>
 
-          <.button navigate={~p"/app/reports"} variant="ghost">Back</.button>
+          <.button navigate={~p"/app/#{@current_org.id}/reports"} variant="ghost">Back</.button>
         </div>
 
         <div class="rounded-2xl border border-base bg-base p-6 shadow-base">
@@ -327,7 +333,7 @@ defmodule CloseTheLoopWeb.ReportsLive.New do
       {:noreply,
        socket
        |> put_flash(:info, "Report added.")
-       |> push_navigate(to: ~p"/app/issues/#{issue.id}")}
+       |> push_navigate(to: ~p"/app/#{socket.assigns.current_org.id}/issues/#{issue.id}")}
     else
       {:error, msg} when is_binary(msg) ->
         {:noreply, assign(socket, :error, msg)}

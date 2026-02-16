@@ -169,6 +169,14 @@
           "key": "rpt_dryer7_1",
           "reporter_phone": null,
           "source": "qr"
+        },
+        {
+          "body": "Dryer 7 spins but there’s basically no heat. Wasted $3 trying to dry towels. Also noticed by another guest (separately reported).",
+          "consent": false,
+          "days_ago": 26,
+          "key": "rpt_dryer7_1_2",
+          "reporter_phone": null,
+          "source": "sms"
         }
       ],
       "status": "acknowledged",
@@ -279,6 +287,14 @@
           "key": "rpt_tables_1",
           "reporter_phone": null,
           "source": "qr"
+        },
+        {
+          "body": "The folding tables are sticky and covered in lint. Hard to fold clean clothes on them. Also noticed by another guest (separately reported).",
+          "consent": false,
+          "days_ago": 34,
+          "key": "rpt_tables_1_2",
+          "reporter_phone": null,
+          "source": "qr"
         }
       ],
       "status": "fixed",
@@ -303,6 +319,14 @@
           "consent": true,
           "days_ago": 22,
           "key": "rpt_faucet_1",
+          "reporter_phone": null,
+          "source": "sms"
+        },
+        {
+          "body": "Bathroom sink handle is loose and the faucet keeps dripping even when you try to shut it off. Also noticed by another guest (separately reported).",
+          "consent": false,
+          "days_ago": 21,
+          "key": "rpt_faucet_1_2",
           "reporter_phone": null,
           "source": "sms"
         }
@@ -331,6 +355,14 @@
           "key": "rpt_trash_1",
           "reporter_phone": null,
           "source": "qr"
+        },
+        {
+          "body": "Trash by the dryers is completely full and stuff is falling onto the floor. Also noticed by another guest (separately reported).",
+          "consent": false,
+          "days_ago": 5,
+          "key": "rpt_trash_1_2",
+          "reporter_phone": null,
+          "source": "sms"
         }
       ],
       "status": "fixed",
@@ -414,6 +446,14 @@
           "consent": true,
           "days_ago": 9,
           "key": "rpt_safety_1",
+          "reporter_phone": null,
+          "source": "sms"
+        },
+        {
+          "body": "The floor is super slippery near the big washers—please put a caution sign or mop ASAP. Also noticed by another guest (separately reported).",
+          "consent": false,
+          "days_ago": 8,
+          "key": "rpt_safety_1_2",
           "reporter_phone": null,
           "source": "sms"
         }
@@ -502,6 +542,14 @@
           "key": "rpt_signage_1",
           "reporter_phone": null,
           "source": "qr"
+        },
+        {
+          "body": "Can you add a sign for last wash/last dry? I wasn’t sure if I could start a load at 8:45. Also noticed by another guest (separately reported).",
+          "consent": false,
+          "days_ago": 28,
+          "key": "rpt_signage_1_2",
+          "reporter_phone": null,
+          "source": "qr"
         }
       ],
       "status": "new",
@@ -510,92 +558,87 @@
   ],
   "locations": [
     {
-      "full_path": "Sudzy Laundromat",
-      "key": "loc_root",
-      "name": "Sudzy Laundromat"
-    },
-    {
-      "full_path": "Sudzy Laundromat / Front Entrance",
+      "full_path": "Front Entrance",
       "key": "loc_front_entrance",
       "name": "Front Entrance"
     },
     {
-      "full_path": "Sudzy Laundromat / Customer Service Counter",
+      "full_path": "Customer Service Counter",
       "key": "loc_service_counter",
       "name": "Customer Service Counter"
     },
     {
-      "full_path": "Sudzy Laundromat / Change Machine Area",
+      "full_path": "Change Machine Area",
       "key": "loc_change_area",
       "name": "Change Machine Area"
     },
     {
-      "full_path": "Sudzy Laundromat / Change Machine Area / Change Machine #1",
+      "full_path": "Change Machine Area / Change Machine #1",
       "key": "loc_change_machine_1",
       "name": "Change Machine #1"
     },
     {
-      "full_path": "Sudzy Laundromat / Washers",
+      "full_path": "Washers",
       "key": "loc_washers",
       "name": "Washers"
     },
     {
-      "full_path": "Sudzy Laundromat / Washers / Washer Row A",
+      "full_path": "Washers / Washer Row A",
       "key": "loc_washers_row_a",
       "name": "Washer Row A"
     },
     {
-      "full_path": "Sudzy Laundromat / Washers / Washer Row B (Large Capacity)",
+      "full_path": "Washers / Washer Row B (Large Capacity)",
       "key": "loc_washers_row_b",
       "name": "Washer Row B (Large Capacity)"
     },
     {
-      "full_path": "Sudzy Laundromat / Dryers",
+      "full_path": "Dryers",
       "key": "loc_dryers",
       "name": "Dryers"
     },
     {
-      "full_path": "Sudzy Laundromat / Dryers / Dryer Row 1",
+      "full_path": "Dryers / Dryer Row 1",
       "key": "loc_dryers_row_1",
       "name": "Dryer Row 1"
     },
     {
-      "full_path": "Sudzy Laundromat / Dryers / Dryer Row 2",
+      "full_path": "Dryers / Dryer Row 2",
       "key": "loc_dryers_row_2",
       "name": "Dryer Row 2"
     },
     {
-      "full_path": "Sudzy Laundromat / Folding Area",
+      "full_path": "Folding Area",
       "key": "loc_folding_area",
       "name": "Folding Area"
     },
     {
-      "full_path": "Sudzy Laundromat / Seating Area",
+      "full_path": "Seating Area",
       "key": "loc_seating_area",
       "name": "Seating Area"
     },
     {
-      "full_path": "Sudzy Laundromat / Center Aisle",
+      "full_path": "Center Aisle",
       "key": "loc_center_aisle",
       "name": "Center Aisle"
     },
     {
-      "full_path": "Sudzy Laundromat / Restroom",
+      "full_path": "Restroom",
       "key": "loc_restroom",
       "name": "Restroom"
     },
     {
-      "full_path": "Sudzy Laundromat / Vending & Supplies",
+      "full_path": "Vending & Supplies",
       "key": "loc_vending_area",
       "name": "Vending & Supplies"
     },
     {
-      "full_path": "Sudzy Laundromat / Utility Closet (Staff Only)",
+      "full_path": "Utility Closet (Staff Only)",
       "key": "loc_utility_closet",
       "name": "Utility Closet (Staff Only)"
     },
     {
-      "full_path": "Sudzy Laundromat / Parking Lot",
+      "full_path": "Parking Lot",
       "key": "loc_parking_lot",
       "name": "Parking Lot"
     }

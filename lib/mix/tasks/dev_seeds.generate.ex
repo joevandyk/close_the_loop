@@ -102,6 +102,7 @@ defmodule Mix.Tasks.DevSeeds.Generate do
             "reports" => %{
               "type" => "array",
               "minItems" => 1,
+              "maxItems" => 4,
               "items" => %{
                 "type" => "object",
                 "required" => ["key", "body", "source", "days_ago", "consent", "reporter_phone"],
@@ -344,12 +345,41 @@ defmodule Mix.Tasks.DevSeeds.Generate do
 
     Rules:
     - organization_name, ai_business_context, ai_categorization_instructions: set from the business name and context in the user message.
-    - locations: return a list of {key, name, full_path}. Use " / " in full_path for hierarchy, and include parent nodes.
+    - locations: return a list of {key, name, full_path}.
+      - Use " / " in full_path for hierarchy, and include parent nodes.
+      - Do NOT include the organization name as a path segment (no root like "The Spot").
+        Example: "Bar / Bar Counter" (GOOD) vs "The Spot / Bar / Bar Counter" (BAD).
       #{locations_hint}
     - issue_categories: include all categories needed for this business (short snake_case keys + nice labels). Issues must reference issue_categories[].key via issue.category_key.
     - issues: 1–3 months of feedback; use days_ago between 1 and 90; variety of statuses (new, acknowledged, in_progress, fixed) and categories.
       Issues reference locations by issue.location_key (must match locations[].key).
-    - Each issue must have at least one report. Some issues have updates and/or comments.
+    - Each issue must have at least one report; most issues should have 2–4 reports (distinct bodies).
+      Some issues can have exactly 1 report, but seeing multiple reports is better.
+    - Some issues have updates and/or comments.
+
+    Example shape (abbreviated):
+    {
+      "locations": [
+        {"key": "loc_bar", "name": "Bar", "full_path": "Bar"},
+        {"key": "loc_bar_counter", "name": "Bar Counter", "full_path": "Bar / Bar Counter"}
+      ],
+      "issues": [
+        {
+          "key": "iss_001",
+          "location_key": "loc_bar_counter",
+          "description": "Bar counter is sticky and smells like old beer.",
+          "status": "new",
+          "category_key": "cleanliness_hygiene",
+          "days_ago": 6,
+          "reports": [
+            {"key": "rep_001a", "body": "Counter is sticky near the register.", "source": "qr", "days_ago": 6, "consent": false, "reporter_phone": null},
+            {"key": "rep_001b", "body": "Same spot smells sour and needs a deeper clean.", "source": "sms", "days_ago": 5, "consent": false, "reporter_phone": null}
+          ],
+          "updates": [],
+          "comments": []
+        }
+      ]
+    }
     """
   end
 

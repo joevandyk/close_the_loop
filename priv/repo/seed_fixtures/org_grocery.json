@@ -276,6 +276,14 @@
           "key": "rpt_restroom_supplies_003a",
           "reporter_phone": null,
           "source": "qr"
+        },
+        {
+          "body": "No paper towels in the women’s restroom and the left sink barely has water. Also noticed by another guest (separately reported).",
+          "consent": false,
+          "days_ago": 20,
+          "key": "rpt_restroom_supplies_003a_2",
+          "reporter_phone": null,
+          "source": "qr"
         }
       ],
       "status": "acknowledged",
@@ -355,6 +363,14 @@
           "key": "rpt_carts_005a",
           "reporter_phone": null,
           "source": "qr"
+        },
+        {
+          "body": "No carts at the entrance around 5:30pm. Also a few carts have wheels that lock up. Also noticed by another guest (separately reported).",
+          "consent": false,
+          "days_ago": 16,
+          "key": "rpt_carts_005a_2",
+          "reporter_phone": null,
+          "source": "sms"
         }
       ],
       "status": "in_progress",
@@ -393,6 +409,14 @@
           "key": "rpt_pricing_006a",
           "reporter_phone": null,
           "source": "qr"
+        },
+        {
+          "body": "Cereal shelf tag said $3.49 but it rang up $4.29. Promo sign was unclear. Also noticed by another guest (separately reported).",
+          "consent": false,
+          "days_ago": 27,
+          "key": "rpt_pricing_006a_2",
+          "reporter_phone": null,
+          "source": "sms"
         }
       ],
       "status": "fixed",
@@ -424,6 +448,14 @@
           "consent": true,
           "days_ago": 45,
           "key": "rpt_lighting_007a",
+          "reporter_phone": null,
+          "source": "qr"
+        },
+        {
+          "body": "One of the lights in the frozen aisle is flickering a lot. Also noticed by another guest (separately reported).",
+          "consent": false,
+          "days_ago": 44,
+          "key": "rpt_lighting_007a_2",
           "reporter_phone": null,
           "source": "qr"
         }
@@ -505,6 +537,14 @@
           "key": "rpt_safety_009a",
           "reporter_phone": null,
           "source": "qr"
+        },
+        {
+          "body": "There’s a tile lifting up near the endcap in aisle 2. I almost tripped. Also noticed by another guest (separately reported).",
+          "consent": false,
+          "days_ago": 59,
+          "key": "rpt_safety_009a_2",
+          "reporter_phone": null,
+          "source": "sms"
         }
       ],
       "status": "in_progress",
@@ -543,6 +583,14 @@
           "key": "rpt_dairy_expired_010a",
           "reporter_phone": null,
           "source": "qr"
+        },
+        {
+          "body": "Found two yogurts expired by 5 days still on the shelf. Also noticed by another guest (separately reported).",
+          "consent": false,
+          "days_ago": 1,
+          "key": "rpt_dairy_expired_010a_2",
+          "reporter_phone": null,
+          "source": "qr"
         }
       ],
       "status": "acknowledged",
@@ -576,6 +624,14 @@
           "key": "rpt_suggestion_011a",
           "reporter_phone": null,
           "source": "qr"
+        },
+        {
+          "body": "Could you carry more oat milk brands (unsweetened) and maybe open another express lane on weekends? Also noticed by another guest (separately reported).",
+          "consent": false,
+          "days_ago": 23,
+          "key": "rpt_suggestion_011a_2",
+          "reporter_phone": null,
+          "source": "qr"
         }
       ],
       "status": "new",
@@ -601,6 +657,14 @@
           "consent": true,
           "days_ago": 32,
           "key": "rpt_facility_damage_012a",
+          "reporter_phone": null,
+          "source": "qr"
+        },
+        {
+          "body": "The restroom hallway door handle is loose and wobbly. Might break soon. Also noticed by another guest (separately reported).",
+          "consent": false,
+          "days_ago": 31,
+          "key": "rpt_facility_damage_012a_2",
           "reporter_phone": null,
           "source": "qr"
         }
@@ -636,6 +700,14 @@
           "key": "rpt_other_013a",
           "reporter_phone": null,
           "source": "qr"
+        },
+        {
+          "body": "It gets really warm near the bakery around 3–5pm. Not sure if AC is working there. Also noticed by another guest (separately reported).",
+          "consent": false,
+          "days_ago": 71,
+          "key": "rpt_other_013a_2",
+          "reporter_phone": null,
+          "source": "qr"
         }
       ],
       "status": "acknowledged",
@@ -650,122 +722,117 @@
   ],
   "locations": [
     {
-      "full_path": "Fresh Mart",
-      "key": "loc_store_root",
-      "name": "Fresh Mart"
-    },
-    {
-      "full_path": "Fresh Mart / Entrance",
+      "full_path": "Entrance",
       "key": "loc_entrance",
       "name": "Entrance"
     },
     {
-      "full_path": "Fresh Mart / Entrance / Vestibule",
+      "full_path": "Entrance / Vestibule",
       "key": "loc_entrance_vestibule",
       "name": "Vestibule"
     },
     {
-      "full_path": "Fresh Mart / Entrance / Cart Corral",
+      "full_path": "Entrance / Cart Corral",
       "key": "loc_cart_corral",
       "name": "Cart Corral"
     },
     {
-      "full_path": "Fresh Mart / Produce",
+      "full_path": "Produce",
       "key": "loc_produce",
       "name": "Produce"
     },
     {
-      "full_path": "Fresh Mart / Produce / Berries Display",
+      "full_path": "Produce / Berries Display",
       "key": "loc_produce_berries",
       "name": "Berries Display"
     },
     {
-      "full_path": "Fresh Mart / Dairy",
+      "full_path": "Dairy",
       "key": "loc_dairy",
       "name": "Dairy"
     },
     {
-      "full_path": "Fresh Mart / Dairy / Dairy Wall Cooler",
+      "full_path": "Dairy / Dairy Wall Cooler",
       "key": "loc_dairy_wall",
       "name": "Dairy Wall Cooler"
     },
     {
-      "full_path": "Fresh Mart / Dairy / Yogurt Section",
+      "full_path": "Dairy / Yogurt Section",
       "key": "loc_dairy_yogurt",
       "name": "Yogurt Section"
     },
     {
-      "full_path": "Fresh Mart / Frozen",
+      "full_path": "Frozen",
       "key": "loc_frozen",
       "name": "Frozen"
     },
     {
-      "full_path": "Fresh Mart / Frozen / Frozen Aisle",
+      "full_path": "Frozen / Frozen Aisle",
       "key": "loc_frozen_aisle",
       "name": "Frozen Aisle"
     },
     {
-      "full_path": "Fresh Mart / Grocery Aisles",
+      "full_path": "Grocery Aisles",
       "key": "loc_grocery_aisles",
       "name": "Grocery Aisles"
     },
     {
-      "full_path": "Fresh Mart / Grocery Aisles / Aisle 2 Endcap",
+      "full_path": "Grocery Aisles / Aisle 2 Endcap",
       "key": "loc_aisle_2_endcap",
       "name": "Aisle 2 Endcap"
     },
     {
-      "full_path": "Fresh Mart / Grocery Aisles / Aisle 5 (Cereal)",
+      "full_path": "Grocery Aisles / Aisle 5 (Cereal)",
       "key": "loc_aisle_5_cereal",
       "name": "Aisle 5 (Cereal)"
     },
     {
-      "full_path": "Fresh Mart / Checkout",
+      "full_path": "Checkout",
       "key": "loc_checkout",
       "name": "Checkout"
     },
     {
-      "full_path": "Fresh Mart / Checkout / Self-Checkout",
+      "full_path": "Checkout / Self-Checkout",
       "key": "loc_self_checkout",
       "name": "Self-Checkout"
     },
     {
-      "full_path": "Fresh Mart / Checkout / Lane 3",
+      "full_path": "Checkout / Lane 3",
       "key": "loc_checkout_lane_3",
       "name": "Lane 3"
     },
     {
-      "full_path": "Fresh Mart / Customer Service",
+      "full_path": "Customer Service",
       "key": "loc_customer_service",
       "name": "Customer Service"
     },
     {
-      "full_path": "Fresh Mart / Customer Service / Service Desk",
+      "full_path": "Customer Service / Service Desk",
       "key": "loc_customer_service_desk",
       "name": "Service Desk"
     },
     {
-      "full_path": "Fresh Mart / Restrooms",
+      "full_path": "Restrooms",
       "key": "loc_restrooms",
       "name": "Restrooms"
     },
     {
-      "full_path": "Fresh Mart / Restrooms / Restroom Hallway",
+      "full_path": "Restrooms / Restroom Hallway",
       "key": "loc_restroom_hallway",
       "name": "Restroom Hallway"
     },
     {
-      "full_path": "Fresh Mart / Restrooms / Women's Restroom",
+      "full_path": "Restrooms / Women's Restroom",
       "key": "loc_restroom_womens",
       "name": "Women's Restroom"
     },
     {
-      "full_path": "Fresh Mart / Bakery",
+      "full_path": "Bakery",
       "key": "loc_bakery",
       "name": "Bakery"
     },
     {
-      "full_path": "Fresh Mart / Bakery / Bakery Area",
+      "full_path": "Bakery / Bakery Area",
       "key": "loc_bakery_area",
       "name": "Bakery Area"
     }

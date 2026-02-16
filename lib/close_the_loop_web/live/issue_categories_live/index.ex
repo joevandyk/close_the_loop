@@ -68,7 +68,12 @@ defmodule CloseTheLoopWeb.IssueCategoriesLive.Index do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} current_user={@current_user} current_scope={@current_scope}>
+    <Layouts.app
+      flash={@flash}
+      current_user={@current_user}
+      current_scope={@current_scope}
+      org={@current_org}
+    >
       <div class="max-w-4xl mx-auto space-y-8">
         <div class="flex items-start justify-between gap-4">
           <div>
@@ -78,7 +83,7 @@ defmodule CloseTheLoopWeb.IssueCategoriesLive.Index do
             </p>
           </div>
 
-          <.button navigate={~p"/app/settings"} variant="ghost">Back</.button>
+          <.button navigate={~p"/app/#{@current_org.id}/settings"} variant="ghost">Back</.button>
         </div>
 
         <div class="rounded-2xl border border-base bg-base p-6 shadow-base">

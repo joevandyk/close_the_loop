@@ -150,10 +150,37 @@ const armPrintButtons = (() => {
   return {start, scan}
 })()
 
+const LocalTime = {
+  mounted() { this.format() },
+  updated() { this.format() },
+  format() {
+    const iso = this.el?.dataset?.iso
+    if (!iso) return
+
+    const d = new Date(iso)
+    if (Number.isNaN(d.getTime())) return
+
+    const mode = this.el.dataset.format || "datetime"
+    const locale = undefined // use user's browser locale
+
+    let formatted
+    if (mode === "date") {
+      formatted = new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(d)
+    } else if (mode === "time") {
+      formatted = new Intl.DateTimeFormat(locale, { timeStyle: "short" }).format(d)
+    } else {
+      formatted = new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short" }).format(d)
+    }
+
+    this.el.textContent = formatted
+    this.el.setAttribute("title", iso)
+  },
+}
+
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: {_csrf_token: csrfToken},
-  hooks: {...FluxonHooks, ...colocatedHooks},
+  hooks: {...FluxonHooks, ...colocatedHooks, LocalTime},
   dom: {
     onBeforeElUpdated(from, to) {
       FluxonDOM.onBeforeElUpdated(from, to)
