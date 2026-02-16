@@ -171,6 +171,7 @@ defmodule CloseTheLoopWeb.Router do
 
       live_dashboard "/dashboard", metrics: CloseTheLoopWeb.Telemetry
       forward "/mailbox", Plug.Swoosh.MailboxPreview
+      live "/sms", CloseTheLoopWeb.Dev.SmsOutboxLive, :index
     end
   end
 end
