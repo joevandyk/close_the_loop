@@ -2,6 +2,7 @@ defmodule CloseTheLoopWeb.SettingsLiveTest do
   use CloseTheLoopWeb.ConnCase, async: true
 
   import Phoenix.LiveViewTest
+  import CloseTheLoop.TestHelpers, only: [unique_email: 1]
 
   alias CloseTheLoop.Accounts.User
 
@@ -27,12 +28,13 @@ defmodule CloseTheLoopWeb.SettingsLiveTest do
   test "user can update their name", %{conn: conn} do
     tenant = "public"
     org_id = create_org_row!(tenant)
+    email = unique_email("owner-name")
 
     {:ok, user} =
       Ash.create(
         User,
         %{
-          email: "owner-name@example.com",
+          email: email,
           password: "password1234",
           password_confirmation: "password1234"
         },
@@ -65,12 +67,14 @@ defmodule CloseTheLoopWeb.SettingsLiveTest do
   test "change email with incorrect password shows error and does not update email", %{conn: conn} do
     tenant = "public"
     org_id = create_org_row!(tenant)
+    email_old = unique_email("owner-email-wrong-pw")
+    email_new = unique_email("owner-email-changed")
 
     {:ok, user} =
       Ash.create(
         User,
         %{
-          email: "owner-email-wrong-pw@example.com",
+          email: email_old,
           password: "password1234",
           password_confirmation: "password1234"
         },
@@ -94,7 +98,7 @@ defmodule CloseTheLoopWeb.SettingsLiveTest do
 
     view
     |> form("#user-email-form",
-      email: %{email: "owner-email-changed@example.com", current_password: "wrongpassword"}
+      email: %{email: email_new, current_password: "wrongpassword"}
     )
     |> render_submit()
 
@@ -104,19 +108,21 @@ defmodule CloseTheLoopWeb.SettingsLiveTest do
 
     user_id = Ecto.UUID.dump!(user.id)
 
-    assert %{rows: [["owner-email-wrong-pw@example.com"]]} =
+    assert %{rows: [[^email_old]]} =
              CloseTheLoop.Repo.query!("SELECT email FROM users WHERE id = $1", [user_id])
   end
 
   test "user can change their email (with current password)", %{conn: conn} do
     tenant = "public"
     org_id = create_org_row!(tenant)
+    email_old = unique_email("owner-email-old")
+    email_new = unique_email("owner-email-new")
 
     {:ok, user} =
       Ash.create(
         User,
         %{
-          email: "owner-email-old@example.com",
+          email: email_old,
           password: "password1234",
           password_confirmation: "password1234"
         },
@@ -140,16 +146,16 @@ defmodule CloseTheLoopWeb.SettingsLiveTest do
 
     view
     |> form("#user-email-form",
-      email: %{email: "owner-email-new@example.com", current_password: "password1234"}
+      email: %{email: email_new, current_password: "password1234"}
     )
     |> render_submit()
 
     assert render(view) =~ "Email updated."
-    assert render(view) =~ "owner-email-new@example.com"
+    assert render(view) =~ email_new
 
     user_id = Ecto.UUID.dump!(user.id)
 
-    assert %{rows: [["owner-email-new@example.com"]]} =
+    assert %{rows: [[^email_new]]} =
              CloseTheLoop.Repo.query!("SELECT email FROM users WHERE id = $1", [user_id])
   end
 
@@ -158,12 +164,13 @@ defmodule CloseTheLoopWeb.SettingsLiveTest do
   } do
     tenant = "public"
     org_id = create_org_row!(tenant)
+    email = unique_email("owner-password-wrong")
 
     {:ok, user} =
       Ash.create(
         User,
         %{
-          email: "owner-password-wrong@example.com",
+          email: email,
           password: "password1234",
           password_confirmation: "password1234"
         },
@@ -210,12 +217,13 @@ defmodule CloseTheLoopWeb.SettingsLiveTest do
   test "user can change their password (with current password)", %{conn: conn} do
     tenant = "public"
     org_id = create_org_row!(tenant)
+    email = unique_email("owner-password")
 
     {:ok, user} =
       Ash.create(
         User,
         %{
-          email: "owner-password@example.com",
+          email: email,
           password: "password1234",
           password_confirmation: "password1234"
         },

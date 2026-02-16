@@ -2,12 +2,14 @@ defmodule CloseTheLoopWeb.IssueCategoriesLiveTest do
   use CloseTheLoopWeb.ConnCase, async: true
 
   import Phoenix.LiveViewTest
+  import CloseTheLoop.TestHelpers, only: [unique_email: 1]
 
   alias CloseTheLoop.Accounts.User
   alias CloseTheLoop.Feedback.IssueCategory
 
   test "owner can deactivate and reactivate a category", %{conn: conn} do
     tenant = "public"
+    email = unique_email("owner-cats")
 
     # Avoid triggering `manage_tenant` in tests (it would rerun tenant migrations).
     org_id = Ash.UUID.generate()
@@ -29,7 +31,7 @@ defmodule CloseTheLoopWeb.IssueCategoriesLiveTest do
       Ash.create(
         User,
         %{
-          email: "owner-cats@example.com",
+          email: email,
           password: "password1234",
           password_confirmation: "password1234"
         },
@@ -72,6 +74,7 @@ defmodule CloseTheLoopWeb.IssueCategoriesLiveTest do
 
   test "owner can save AI settings", %{conn: conn} do
     tenant = "public"
+    email = unique_email("owner-ai-settings")
 
     # Avoid triggering `manage_tenant` in tests (it would rerun tenant migrations).
     org_id = Ash.UUID.generate()
@@ -93,7 +96,7 @@ defmodule CloseTheLoopWeb.IssueCategoriesLiveTest do
       Ash.create(
         User,
         %{
-          email: "owner-ai-settings@example.com",
+          email: email,
           password: "password1234",
           password_confirmation: "password1234"
         },

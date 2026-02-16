@@ -2,12 +2,14 @@ defmodule CloseTheLoopWeb.ReportsLiveTest do
   use CloseTheLoopWeb.ConnCase, async: true
 
   import Phoenix.LiveViewTest
+  import CloseTheLoop.TestHelpers, only: [unique_email: 1]
 
   alias CloseTheLoop.Accounts.User
   alias CloseTheLoop.Feedback.{Issue, Location, Report}
 
   test "business can move a report to a different issue", %{conn: conn} do
     tenant = "public"
+    email = unique_email("owner")
 
     # Avoid triggering `manage_tenant` in tests (it would rerun tenant migrations).
     org_id = Ash.UUID.generate()
@@ -29,7 +31,7 @@ defmodule CloseTheLoopWeb.ReportsLiveTest do
       Ash.create(
         User,
         %{
-          email: "owner@example.com",
+          email: email,
           password: "password1234",
           password_confirmation: "password1234"
         },
@@ -107,6 +109,7 @@ defmodule CloseTheLoopWeb.ReportsLiveTest do
 
   test "business can create a manual report (auto issue)", %{conn: conn} do
     tenant = "public"
+    email = unique_email("owner")
 
     # Avoid triggering `manage_tenant` in tests (it would rerun tenant migrations).
     org_id = Ash.UUID.generate()
@@ -128,7 +131,7 @@ defmodule CloseTheLoopWeb.ReportsLiveTest do
       Ash.create(
         User,
         %{
-          email: "owner2@example.com",
+          email: email,
           password: "password1234",
           password_confirmation: "password1234"
         },
@@ -180,6 +183,7 @@ defmodule CloseTheLoopWeb.ReportsLiveTest do
 
   test "business can create a manual report assigned to an existing issue", %{conn: conn} do
     tenant = "public"
+    email = unique_email("owner")
 
     # Avoid triggering `manage_tenant` in tests (it would rerun tenant migrations).
     org_id = Ash.UUID.generate()
@@ -201,7 +205,7 @@ defmodule CloseTheLoopWeb.ReportsLiveTest do
       Ash.create(
         User,
         %{
-          email: "owner3@example.com",
+          email: email,
           password: "password1234",
           password_confirmation: "password1234"
         },

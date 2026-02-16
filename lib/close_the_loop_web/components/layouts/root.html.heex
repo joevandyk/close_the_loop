@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="system">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -26,25 +26,6 @@
     </.live_title>
     <link phx-track-static rel="stylesheet" href={~p"/assets/css/app.css"} />
     <script defer phx-track-static type="text/javascript" src={~p"/assets/js/app.js"}>
-    </script>
-    <script>
-      (() => {
-        const setTheme = (theme) => {
-          // Fluxon supports both automatic and manual theme control.
-          // We keep a 3-state toggle: system (default), light, dark.
-          if (!theme || theme === "system") {
-            localStorage.removeItem("phx:theme")
-            document.documentElement.setAttribute("data-theme", "system")
-          } else {
-            localStorage.setItem("phx:theme", theme)
-            document.documentElement.setAttribute("data-theme", theme)
-          }
-        };
-        setTheme(localStorage.getItem("phx:theme") || "system");
-        window.addEventListener("storage", (e) => e.key === "phx:theme" && setTheme(e.newValue || "system"));
-
-        window.addEventListener("phx:set-theme", (e) => setTheme(e.target.dataset.phxTheme));
-      })();
     </script>
   </head>
   <body>

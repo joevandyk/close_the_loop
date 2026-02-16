@@ -13,6 +13,10 @@ defmodule CloseTheLoop.Feedback.Issue do
   actions do
     defaults [:read, :update, :destroy]
 
+    read :non_duplicates do
+      prepare build(filter: expr(is_nil(duplicate_of_issue_id)))
+    end
+
     create :create do
       primary? true
 

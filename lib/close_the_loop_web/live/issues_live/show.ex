@@ -2,20 +2,15 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
   use CloseTheLoopWeb, :live_view
   on_mount {CloseTheLoopWeb.LiveUserAuth, :live_org_required}
 
-  import Ash.Expr
-
-  alias CloseTheLoop.Feedback.{Issue, IssueComment, IssueUpdate, Report}
   alias CloseTheLoop.Feedback.Categories
-  alias CloseTheLoop.Tenants.Organization
-
-  require Ash.Query
+  alias CloseTheLoop.Feedback
 
   @impl true
   def mount(%{"id" => id}, _session, socket) do
+    tenant = socket.assigns.current_tenant
     user = socket.assigns.current_user
 
-    with {:ok, %Organization{} = org} <- Ash.get(Organization, user.organization_id),
-         tenant when is_binary(tenant) <- org.tenant_schema,
+    with true <- is_binary(tenant) || {:error, :missing_tenant},
          :ok <- Categories.ensure_defaults(tenant),
          {:ok, issue} <- get_issue(tenant, id),
          {:ok, reports} <- list_reports(tenant, id),
@@ -33,8 +28,8 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
          |> assign(:reports, reports)
          |> assign(:category_labels, Categories.key_label_map(tenant))
          |> assign(:active_category_labels, Categories.active_key_label_map(tenant))
-         |> assign(:message, "")
-         |> assign(:comment_body, "")
+         |> assign(:update_form, to_form(%{"message" => ""}, as: :update))
+         |> assign(:comment_form, to_form(%{"body" => ""}, as: :comment))
          |> assign(:can_edit_issue?, can_edit_issue?(user))
          |> assign(:editing_details?, false)
          |> assign(:details_form, details_form(issue))
@@ -49,269 +44,272 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
   end
 
   defp get_issue(tenant, id) do
-    Ash.get(Issue, id,
-      load: [:reporter_count, :updates, location: [:name, :full_path]],
-      tenant: tenant
+    Feedback.get_issue_by_id(id,
+      tenant: tenant,
+      load: [:reporter_count, :updates, location: [:name, :full_path]]
     )
   end
 
   defp list_reports(tenant, issue_id) do
-    query =
-      Report
-      |> Ash.Query.filter(expr(issue_id == ^issue_id))
-      |> Ash.Query.sort(inserted_at: :desc)
-
-    Ash.read(query, tenant: tenant)
+    Feedback.list_reports(
+      tenant: tenant,
+      query: [
+        filter: [issue_id: issue_id],
+        sort: [inserted_at: :desc]
+      ]
+    )
   end
 
   defp list_comments(tenant, issue_id) do
-    query =
-      IssueComment
-      |> Ash.Query.filter(expr(issue_id == ^issue_id))
-      |> Ash.Query.sort(inserted_at: :asc)
-
-    Ash.read(query, tenant: tenant)
+    Feedback.list_issue_comments(
+      tenant: tenant,
+      query: [
+        filter: [issue_id: issue_id],
+        sort: [inserted_at: :asc]
+      ]
+    )
   end
 
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="max-w-4xl mx-auto space-y-6">
-      <div class="flex items-start justify-between gap-4">
-        <div>
-          <h1 class="text-2xl font-semibold">{@issue.title}</h1>
-          <div class="text-foreground-soft mt-1 text-sm">
-            <span>Location:</span>
-            <span class="font-medium">{@issue.location.full_path || @issue.location.name}</span>
-            <span class="mx-2">•</span>
-            <span>{@issue.reporter_count} reporter(s)</span>
-            <%= if @issue.category && @issue.category != "" do %>
-              <span class="mx-2">•</span>
-              <% key = @issue.category %>
-              <% label = Map.get(@category_labels, key, key) %>
-              <% active? = Map.has_key?(@active_category_labels, key) %>
-
-              <.badge
-                variant={if(active?, do: "surface", else: "ghost")}
-                color={if(active?, do: "primary", else: "warning")}
-                title={
-                  if(active?, do: nil, else: "This category is inactive (kept for existing issues).")
-                }
-              >
-                {label}
-                <span :if={!active?} class="ml-1 text-[10px] opacity-80">(inactive)</span>
-              </.badge>
-            <% end %>
-          </div>
-        </div>
-
-        <.button navigate={~p"/app/issues"} variant="ghost">Back</.button>
-      </div>
-
-      <div id="issue-details-card" class="rounded-2xl border border-base bg-base p-6 shadow-base">
+    <Layouts.app flash={@flash} current_user={@current_user} current_scope={@current_scope}>
+      <div class="max-w-4xl mx-auto space-y-6">
         <div class="flex items-start justify-between gap-4">
           <div>
-            <h2 class="text-sm font-semibold">Details</h2>
-            <p class="mt-1 text-sm text-foreground-soft">
-              Title and description used for triage and reporter updates.
-            </p>
+            <h1 class="text-2xl font-semibold">{@issue.title}</h1>
+            <div class="text-foreground-soft mt-1 text-sm">
+              <span>Location:</span>
+              <span class="font-medium">{@issue.location.full_path || @issue.location.name}</span>
+              <span class="mx-2">•</span>
+              <span>{@issue.reporter_count} reporter(s)</span>
+              <%= if @issue.category && @issue.category != "" do %>
+                <span class="mx-2">•</span>
+                <% key = @issue.category %>
+                <% label = Map.get(@category_labels, key, key) %>
+                <% active? = Map.has_key?(@active_category_labels, key) %>
+
+                <.badge
+                  variant={if(active?, do: "surface", else: "ghost")}
+                  color={if(active?, do: "primary", else: "warning")}
+                  title={
+                    if(active?,
+                      do: nil,
+                      else: "This category is inactive (kept for existing issues)."
+                    )
+                  }
+                >
+                  {label}
+                  <span :if={!active?} class="ml-1 text-[10px] opacity-80">(inactive)</span>
+                </.badge>
+              <% end %>
+            </div>
           </div>
 
-          <%= if @can_edit_issue? do %>
-            <%= if @editing_details? do %>
-              <.button
-                id="issue-edit-details-cancel"
-                type="button"
-                size="sm"
-                variant="outline"
-                phx-click="issue_details_cancel"
-              >
-                Cancel
-              </.button>
-            <% else %>
-              <.button
-                id="issue-edit-details-toggle"
-                type="button"
-                size="sm"
-                variant="outline"
-                phx-click="issue_details_toggle"
-              >
-                <.icon name="hero-pencil-square" class="size-4" /> Edit
-              </.button>
+          <.button navigate={~p"/app/issues"} variant="ghost">Back</.button>
+        </div>
+
+        <div id="issue-details-card" class="rounded-2xl border border-base bg-base p-6 shadow-base">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <h2 class="text-sm font-semibold">Details</h2>
+              <p class="mt-1 text-sm text-foreground-soft">
+                Title and description used for triage and reporter updates.
+              </p>
+            </div>
+
+            <%= if @can_edit_issue? do %>
+              <%= if @editing_details? do %>
+                <.button
+                  id="issue-edit-details-cancel"
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  phx-click="issue_details_cancel"
+                >
+                  Cancel
+                </.button>
+              <% else %>
+                <.button
+                  id="issue-edit-details-toggle"
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  phx-click="issue_details_toggle"
+                >
+                  <.icon name="hero-pencil-square" class="size-4" /> Edit
+                </.button>
+              <% end %>
             <% end %>
+          </div>
+
+          <%= if @editing_details? do %>
+            <.form
+              for={@details_form}
+              id="issue-edit-details-form"
+              phx-change="issue_details_change"
+              phx-submit="issue_details_save"
+              class="mt-4 space-y-4"
+            >
+              <.input
+                id="issue-edit-title"
+                name={@details_form[:title].name}
+                type="text"
+                label="Title"
+                value={@details_form[:title].value}
+                required
+              />
+
+              <div>
+                <label for="issue-edit-description" class="text-xs font-medium text-foreground-soft">
+                  Description
+                </label>
+                <.textarea
+                  id="issue-edit-description"
+                  name={@details_form[:description].name}
+                  rows={6}
+                  value={@details_form[:description].value}
+                  required
+                />
+              </div>
+
+              <%= if @details_error do %>
+                <.alert color="danger" hide_close>{@details_error}</.alert>
+              <% end %>
+
+              <div class="flex items-center justify-end gap-2">
+                <.button type="submit" variant="solid" color="primary" phx-disable-with="Saving...">
+                  Save changes
+                </.button>
+              </div>
+            </.form>
+          <% else %>
+            <p class="mt-4 whitespace-pre-wrap text-sm leading-6">{@issue.description}</p>
           <% end %>
         </div>
 
-        <%= if @editing_details? do %>
-          <.form
-            for={@details_form}
-            id="issue-edit-details-form"
-            phx-change="issue_details_change"
-            phx-submit="issue_details_save"
-            class="mt-4 space-y-4"
-          >
-            <.input
-              id="issue-edit-title"
-              name={@details_form[:title].name}
-              type="text"
-              label="Title"
-              value={@details_form[:title].value}
+        <div class="rounded-2xl border border-base bg-base p-6 shadow-base space-y-4">
+          <h2 class="text-sm font-semibold">Status</h2>
+
+          <.button_group>
+            <.button
+              :for={{label, value} <- status_options()}
+              type="button"
+              size="sm"
+              color="primary"
+              variant={if @issue.status == value, do: "solid", else: "outline"}
+              phx-click="set_status"
+              phx-value-status={value}
+            >
+              {label}
+            </.button>
+          </.button_group>
+        </div>
+
+        <div class="rounded-2xl border border-base bg-base p-6 shadow-base space-y-4">
+          <h2 class="text-sm font-semibold">Send update to reporters</h2>
+
+          <.form for={@update_form} id="issue-update-form" phx-submit="send_update" class="space-y-3">
+            <.textarea
+              field={@update_form[:message]}
+              rows={3}
+              placeholder="New water heater ordered. ETA Tuesday."
               required
             />
 
-            <div>
-              <label for="issue-edit-description" class="text-xs font-medium text-foreground-soft">
-                Description
-              </label>
-              <.textarea
-                id="issue-edit-description"
-                name={@details_form[:description].name}
-                rows={6}
-                value={@details_form[:description].value}
-                required
-              />
-            </div>
-
-            <%= if @details_error do %>
-              <.alert color="danger" hide_close>{@details_error}</.alert>
-            <% end %>
-
-            <div class="flex items-center justify-end gap-2">
-              <.button type="submit" variant="solid" color="primary" phx-disable-with="Saving...">
-                Save changes
-              </.button>
-            </div>
+            <.button type="submit" variant="solid" color="primary" phx-disable-with="Sending...">
+              Send update (SMS)
+            </.button>
           </.form>
-        <% else %>
-          <p class="mt-4 whitespace-pre-wrap text-sm leading-6">{@issue.description}</p>
-        <% end %>
-      </div>
 
-      <div class="rounded-2xl border border-base bg-base p-6 shadow-base space-y-4">
-        <h2 class="text-sm font-semibold">Status</h2>
+          <%= if @issue.updates != [] do %>
+            <.separator text="Updates" class="my-4" />
+            <ul class="space-y-3">
+              <%= for upd <- @issue.updates do %>
+                <li class="text-sm">
+                  <div class="text-foreground-soft">{upd.inserted_at}</div>
+                  <div class="whitespace-pre-wrap">{upd.message}</div>
+                </li>
+              <% end %>
+            </ul>
+          <% end %>
+        </div>
 
-        <.button_group>
-          <.button
-            :for={{label, value} <- status_options()}
-            type="button"
-            size="sm"
-            color="primary"
-            variant={if @issue.status == value, do: "solid", else: "outline"}
-            phx-click="set_status"
-            phx-value-status={value}
+        <div class="rounded-2xl border border-base bg-base p-6 shadow-base space-y-4">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <h2 class="text-sm font-semibold">Internal comments</h2>
+              <p class="mt-1 text-sm text-foreground-soft">
+                Visible only to your team. Great for triage, follow-ups, and resolution notes.
+              </p>
+            </div>
+          </div>
+
+          <.form
+            for={@comment_form}
+            id="issue-internal-comment-form"
+            phx-submit="add_comment"
+            class="space-y-3"
           >
-            {label}
-          </.button>
-        </.button_group>
-      </div>
+            <.textarea
+              field={@comment_form[:body]}
+              rows={3}
+              placeholder="Called maintenance; plumber scheduled for Tuesday."
+              required
+            />
 
-      <div class="rounded-2xl border border-base bg-base p-6 shadow-base space-y-4">
-        <h2 class="text-sm font-semibold">Send update to reporters</h2>
+            <.button type="submit" variant="solid" color="primary" phx-disable-with="Adding...">
+              Add internal comment
+            </.button>
+          </.form>
 
-        <.form for={%{}} as={:update} phx-submit="send_update" class="space-y-3">
-          <.textarea
-            name="message"
-            rows={3}
-            placeholder="New water heater ordered. ETA Tuesday."
-            value={@message}
-            required
-          />
+          <%= if @comments_empty? do %>
+            <div class="text-sm text-foreground-soft">
+              No internal comments yet.
+            </div>
+          <% end %>
 
-          <.button type="submit" variant="solid" color="primary" phx-disable-with="Sending...">
-            Send update (SMS)
-          </.button>
-        </.form>
+          <div id="issue-comments" phx-update="stream" class="space-y-3">
+            <div
+              :for={{dom_id, c} <- @streams.comments}
+              id={dom_id}
+              class="rounded-xl border border-base bg-accent p-4"
+            >
+              <div class="text-xs text-foreground-soft">
+                <span class="font-medium text-foreground">{c.author_email || "Team"}</span>
+                <span class="mx-2">•</span>
+                <span>{c.inserted_at}</span>
+              </div>
+              <div class="mt-2 whitespace-pre-wrap text-sm leading-6">{c.body}</div>
+            </div>
+          </div>
+        </div>
 
-        <%= if @issue.updates != [] do %>
-          <.separator text="Updates" class="my-4" />
+        <div class="rounded-2xl border border-base bg-base p-6 shadow-base space-y-4">
+          <h2 class="text-sm font-semibold">Reports</h2>
           <ul class="space-y-3">
-            <%= for upd <- @issue.updates do %>
+            <%= for r <- @reports do %>
               <li class="text-sm">
-                <div class="text-foreground-soft">{upd.inserted_at}</div>
-                <div class="whitespace-pre-wrap">{upd.message}</div>
+                <div class="flex items-start justify-between gap-3">
+                  <div class="text-foreground-soft">
+                    {r.inserted_at}
+                    <span class="mx-2">•</span>
+                    <span>{r.source}</span>
+                  </div>
+                  <.link
+                    navigate={~p"/app/reports/#{r.id}"}
+                    class="text-xs font-medium underline underline-offset-2 text-foreground-soft hover:text-foreground transition"
+                  >
+                    Reassign
+                  </.link>
+                </div>
+                <div class="whitespace-pre-wrap">{r.body}</div>
               </li>
             <% end %>
           </ul>
-        <% end %>
-      </div>
-
-      <div class="rounded-2xl border border-base bg-base p-6 shadow-base space-y-4">
-        <div class="flex items-start justify-between gap-4">
-          <div>
-            <h2 class="text-sm font-semibold">Internal comments</h2>
-            <p class="mt-1 text-sm text-foreground-soft">
-              Visible only to your team. Great for triage, follow-ups, and resolution notes.
-            </p>
-          </div>
-        </div>
-
-        <.form
-          for={%{}}
-          as={:comment}
-          id="issue-internal-comment-form"
-          phx-submit="add_comment"
-          class="space-y-3"
-        >
-          <.textarea
-            id="issue-internal-comment-body"
-            name="comment[body]"
-            rows={3}
-            placeholder="Called maintenance; plumber scheduled for Tuesday."
-            value={@comment_body}
-            required
-          />
-
-          <.button type="submit" variant="solid" color="primary" phx-disable-with="Adding...">
-            Add internal comment
-          </.button>
-        </.form>
-
-        <%= if @comments_empty? do %>
-          <div class="text-sm text-foreground-soft">
-            No internal comments yet.
-          </div>
-        <% end %>
-
-        <div id="issue-comments" phx-update="stream" class="space-y-3">
-          <div
-            :for={{dom_id, c} <- @streams.comments}
-            id={dom_id}
-            class="rounded-xl border border-base bg-accent p-4"
-          >
-            <div class="text-xs text-foreground-soft">
-              <span class="font-medium text-foreground">{c.author_email || "Team"}</span>
-              <span class="mx-2">•</span>
-              <span>{c.inserted_at}</span>
-            </div>
-            <div class="mt-2 whitespace-pre-wrap text-sm leading-6">{c.body}</div>
-          </div>
         </div>
       </div>
-
-      <div class="rounded-2xl border border-base bg-base p-6 shadow-base space-y-4">
-        <h2 class="text-sm font-semibold">Reports</h2>
-        <ul class="space-y-3">
-          <%= for r <- @reports do %>
-            <li class="text-sm">
-              <div class="flex items-start justify-between gap-3">
-                <div class="text-foreground-soft">
-                  {r.inserted_at}
-                  <span class="mx-2">•</span>
-                  <span>{r.source}</span>
-                </div>
-                <.link
-                  navigate={~p"/app/reports/#{r.id}"}
-                  class="text-xs font-medium underline underline-offset-2 text-foreground-soft hover:text-foreground transition"
-                >
-                  Reassign
-                </.link>
-              </div>
-              <div class="whitespace-pre-wrap">{r.body}</div>
-            </li>
-          <% end %>
-        </ul>
-      </div>
-    </div>
+    </Layouts.app>
     """
   end
 
@@ -319,38 +317,39 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
   def handle_event("set_status", %{"status" => status_str}, socket) do
     tenant = socket.assigns.tenant
     issue = socket.assigns.issue
+    user = socket.assigns.current_user
 
-    status =
-      status_str
-      |> to_string()
-      |> String.to_existing_atom()
-
-    case Ash.update(issue, %{status: status}, action: :set_status, tenant: tenant) do
-      {:ok, issue} ->
-        {:noreply, assign(socket, :issue, issue)}
+    with {:ok, status} <- parse_status(status_str),
+         {:ok, issue} <-
+           Feedback.set_issue_status(issue, %{status: status}, tenant: tenant, actor: user) do
+      {:noreply, assign(socket, :issue, issue)}
+    else
+      :error ->
+        {:noreply, put_flash(socket, :error, "Invalid status")}
 
       {:error, err} ->
         {:noreply, put_flash(socket, :error, "Failed to update status: #{inspect(err)}")}
     end
-  rescue
-    ArgumentError ->
-      {:noreply, put_flash(socket, :error, "Invalid status")}
   end
 
   @impl true
-  def handle_event("send_update", %{"message" => message}, socket) do
+  def handle_event("send_update", %{"update" => %{"message" => message}}, socket) do
     tenant = socket.assigns.tenant
     issue = socket.assigns.issue
+    user = socket.assigns.current_user
     message = String.trim(message || "")
 
     with true <- message != "" || {:error, "Message is required"},
          {:ok, upd} <-
-           Ash.create(IssueUpdate, %{issue_id: issue.id, message: message}, tenant: tenant),
+           Feedback.create_issue_update(%{issue_id: issue.id, message: message},
+             tenant: tenant,
+             actor: user
+           ),
          {:ok, _job} <- CloseTheLoop.Workers.SendIssueUpdateSmsWorker.enqueue(upd, tenant) do
       {:noreply,
        socket
        |> put_flash(:info, "Update queued (SMS).")
-       |> assign(:message, "")
+       |> assign(:update_form, to_form(%{"message" => ""}, as: :update))
        |> reload_issue()}
     else
       {:error, msg} when is_binary(msg) ->
@@ -370,19 +369,19 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
 
     with true <- body != "" || {:error, "Comment can't be blank"},
          {:ok, comment} <-
-           Ash.create(
-             IssueComment,
+           Feedback.create_issue_comment(
              %{
                issue_id: issue.id,
                body: body,
                author_user_id: user.id,
                author_email: to_string(user.email)
              },
-             tenant: tenant
+             tenant: tenant,
+             actor: user
            ) do
       {:noreply,
        socket
-       |> assign(:comment_body, "")
+       |> assign(:comment_form, to_form(%{"body" => ""}, as: :comment))
        |> assign(:comments_empty?, false)
        |> stream_insert(:comments, comment)
        |> put_flash(:info, "Internal comment added.")}
@@ -434,6 +433,7 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
     if socket.assigns.can_edit_issue? do
       tenant = socket.assigns.tenant
       issue = socket.assigns.issue
+      user = socket.assigns.current_user
 
       title = params |> Map.get("title", "") |> to_string() |> String.trim()
       description = params |> Map.get("description", "") |> to_string() |> String.trim()
@@ -441,9 +441,9 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
       with true <- title != "" || {:error, "Title is required"},
            true <- description != "" || {:error, "Description is required"},
            {:ok, issue} <-
-             Ash.update(issue, %{title: title, description: description},
-               action: :edit_details,
-               tenant: tenant
+             Feedback.edit_issue_details(issue, %{title: title, description: description},
+               tenant: tenant,
+               actor: user
              ) do
         {:noreply,
          socket
@@ -484,6 +484,16 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
       {"In progress", :in_progress},
       {"Fixed", :fixed}
     ]
+  end
+
+  defp parse_status(val) do
+    case val |> to_string() |> String.trim() do
+      "new" -> {:ok, :new}
+      "acknowledged" -> {:ok, :acknowledged}
+      "in_progress" -> {:ok, :in_progress}
+      "fixed" -> {:ok, :fixed}
+      _ -> :error
+    end
   end
 
   defp can_edit_issue?(%{role: :owner}), do: true

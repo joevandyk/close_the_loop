@@ -21,8 +21,7 @@ defmodule CloseTheLoop.Accounts.User.Senders.SendMagicLinkEmail do
       end
 
     new()
-    # TODO: Replace with your email
-    |> from({"noreply", "noreply@example.com"})
+    |> from(Mailer.default_from())
     |> to(to_string(email))
     |> subject("Your login link")
     |> html_body(body(token: token, email: email))

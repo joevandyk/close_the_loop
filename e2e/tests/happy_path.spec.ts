@@ -72,14 +72,12 @@ test("business can onboard, receive a report, and view it", async ({ page }) => 
   await page.goto("/app/settings/locations");
   // Ensure LiveView JS is loaded + connected before interacting.
   await page.waitForFunction(() => (window as any).liveSocket?.isConnected?.(), { timeout: 20_000 });
+  await expect(page).toHaveURL(/\/app\/settings\/locations/);
   const locationName = `Locker room ${Date.now()}`;
-  const createLocationForm = page.locator("form", {
-    has: page.getByRole("button", { name: /create location/i }),
-  });
-  const nameInput = createLocationForm.locator('input[name="name"]');
+  const nameInput = page.getByRole("textbox", { name: /^name$/i });
   await expect(nameInput).toBeVisible();
   await nameInput.fill(locationName);
-  await createLocationForm.getByRole("button", { name: /create location/i }).click();
+  await page.getByRole("button", { name: /create location/i }).click();
   await expect(page.getByText(new RegExp(locationName, "i"))).toBeVisible({
     timeout: 30_000,
   });
@@ -129,8 +127,8 @@ test("business can onboard, receive a report, and view it", async ({ page }) => 
   await expect(page.getByText(reportBody).first()).toBeVisible();
 
   // Send an update (we don't validate SMS delivery, just that the action succeeds).
-  await page.locator('textarea[name="message"]').fill("Thanks - we are on it.");
-  await page.getByRole("button", { name: /send update/i }).click();
+  await page.locator("#issue-update-form textarea").fill("Thanks - we are on it.");
+  await page.locator("#issue-update-form").getByRole("button", { name: /send update/i }).click();
   await expect(page.getByText(/update queued/i)).toBeVisible();
 });
 
