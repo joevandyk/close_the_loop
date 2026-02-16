@@ -4,7 +4,6 @@ defmodule CloseTheLoopWeb.OnboardingLive do
 
   alias CloseTheLoop.Accounts
   alias CloseTheLoop.Feedback.Categories
-  alias CloseTheLoop.Feedback.Location
   alias CloseTheLoop.Tenants.Organization
 
   @impl true
@@ -72,11 +71,6 @@ defmodule CloseTheLoopWeb.OnboardingLive do
     with true <- name != "" || {:error, "Organization name is required"},
          {:ok, %Organization{} = org} <-
            CloseTheLoop.Tenants.create_organization(%{name: name}, actor: user),
-         {:ok, %Location{} = _location} <-
-           CloseTheLoop.Feedback.create_location(%{name: "General", full_path: "General"},
-             tenant: org.tenant_schema,
-             actor: user
-           ),
          {:ok, _membership} <-
            Accounts.create_user_organization(
              %{user_id: user.id, organization_id: org.id, role: :owner},
@@ -87,10 +81,9 @@ defmodule CloseTheLoopWeb.OnboardingLive do
 
       socket =
         socket
-        |> put_flash(:info, "Organization created. Your first location is ready.")
-        |> push_navigate(to: ~p"/app/#{org.id}/issues")
+        |> put_flash(:info, "Organization created. Next: add your first location.")
+        |> push_navigate(to: ~p"/app/#{org.id}/onboarding")
 
-      # The reporter link is deterministic; we show it once on the issues page (later).
       {:noreply, socket}
     else
       {:error, err} ->

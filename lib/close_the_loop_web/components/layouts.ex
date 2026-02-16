@@ -29,7 +29,18 @@ defmodule CloseTheLoopWeb.Layouts do
         (assigns[:socket] && Map.get(assigns.socket, :view))
 
     current_view = if is_atom(current_view), do: Atom.to_string(current_view), else: ""
-    assigns = assign(assigns, :current_view, current_view)
+
+    progress =
+      assigns[:socket] &&
+        assigns.socket.assigns[:onboarding_progress]
+
+    show_getting_started? =
+      is_map(progress) and Map.get(progress, :complete?) == false
+
+    assigns =
+      assigns
+      |> assign(:current_view, current_view)
+      |> assign(:show_getting_started?, show_getting_started?)
 
     ~H"""
     <%= case @variant do %>
@@ -108,7 +119,12 @@ defmodule CloseTheLoopWeb.Layouts do
               </div>
 
               <div class="flex-1 overflow-y-auto px-5 py-4">
-                <.app_nav current_view={@current_view} org={@org} current_user={@current_user} />
+                <.app_nav
+                  current_view={@current_view}
+                  org={@org}
+                  current_user={@current_user}
+                  show_getting_started?={@show_getting_started?}
+                />
               </div>
 
               <div class="border-t border-base px-5 py-4">
@@ -155,7 +171,12 @@ defmodule CloseTheLoopWeb.Layouts do
               </div>
 
               <div class="flex-1 overflow-y-auto px-6 pb-6">
-                <.app_nav current_view={@current_view} org={@org} current_user={@current_user} />
+                <.app_nav
+                  current_view={@current_view}
+                  org={@org}
+                  current_user={@current_user}
+                  show_getting_started?={@show_getting_started?}
+                />
               </div>
 
               <div class="border-t border-base px-6 py-4">
@@ -386,9 +407,14 @@ defmodule CloseTheLoopWeb.Layouts do
   attr :current_view, :string, default: ""
   attr :org, :any, default: nil
   attr :current_user, :any, default: nil
+  attr :show_getting_started?, :boolean, default: false
 
   def app_nav(assigns) do
     dashboard_active = String.contains?(assigns.current_view, ".DashboardLive.")
+
+    getting_started_active =
+      String.contains?(assigns.current_view, ".OnboardingLive.GettingStarted")
+
     inbox_active = String.contains?(assigns.current_view, ".IssuesLive.")
     reports_active = String.contains?(assigns.current_view, ".ReportsLive.")
     locations_active = String.contains?(assigns.current_view, ".LocationsLive.")
@@ -396,8 +422,6 @@ defmodule CloseTheLoopWeb.Layouts do
     settings_active =
       String.contains?(assigns.current_view, ".SettingsLive.") or
         String.contains?(assigns.current_view, ".IssueCategoriesLive.")
-
-    onboarding_active = String.contains?(assigns.current_view, ".OnboardingLive.")
 
     organizations_active =
       String.contains?(assigns.current_view, ".OrgPickerLive.") or
@@ -409,11 +433,11 @@ defmodule CloseTheLoopWeb.Layouts do
       assigns
       |> assign(:org_id, assigns.org && Map.get(assigns.org, :id))
       |> assign(:dashboard_active, dashboard_active)
+      |> assign(:getting_started_active, getting_started_active)
       |> assign(:inbox_active, inbox_active)
       |> assign(:reports_active, reports_active)
       |> assign(:locations_active, locations_active)
       |> assign(:settings_active, settings_active)
-      |> assign(:onboarding_active, onboarding_active)
       |> assign(:organizations_active, organizations_active)
       |> assign(:ops_active, ops_active)
       |> assign(:is_admin, !!(assigns[:current_user] && assigns.current_user.admin?))
@@ -423,6 +447,13 @@ defmodule CloseTheLoopWeb.Layouts do
       <%= if @org_id do %>
         <.navlink navigate={~p"/app/#{@org_id}"} active={@dashboard_active}>
           <.icon name="hero-squares-2x2" class="size-5" /> Dashboard
+        </.navlink>
+        <.navlink
+          :if={@show_getting_started?}
+          navigate={~p"/app/#{@org_id}/onboarding"}
+          active={@getting_started_active}
+        >
+          <.icon name="hero-sparkles" class="size-5" /> Getting started
         </.navlink>
         <.navlink navigate={~p"/app"}>
           <.icon name="hero-arrows-right-left" class="size-5" /> Switch organization
@@ -454,9 +485,6 @@ defmodule CloseTheLoopWeb.Layouts do
       </.navlink>
       <.navlink href={~p"/app/oban"}>
         <.icon name="hero-queue-list" class="size-5" /> Jobs
-      </.navlink>
-      <.navlink :if={@onboarding_active} navigate={~p"/app/onboarding"} active>
-        <.icon name="hero-sparkles" class="size-5" /> Onboarding
       </.navlink>
     </.navlist>
     """

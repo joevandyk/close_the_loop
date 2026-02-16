@@ -2,7 +2,9 @@ defmodule CloseTheLoopWeb.DashboardLive.Index do
   use CloseTheLoopWeb, :live_view
   on_mount {CloseTheLoopWeb.LiveUserAuth, :live_org_required}
 
+  alias CloseTheLoop.Feedback, as: FeedbackDomain
   alias CloseTheLoop.Feedback.Dashboard
+  alias CloseTheLoopWeb.OnboardingProgress
 
   @impl true
   def mount(_params, _session, socket) do
@@ -13,18 +15,50 @@ defmodule CloseTheLoopWeb.DashboardLive.Index do
       |> assign(:recent_reports, [])
       |> assign(:recent_comments, [])
       |> assign(:recent_updates, [])
+      |> assign(:getting_started, nil)
 
     tenant = socket.assigns.current_tenant
+    org = socket.assigns.current_org
 
     with true <- is_binary(tenant) || {:error, :missing_tenant},
          {:ok, data} <- Dashboard.load(tenant) do
+      progress = socket.assigns[:onboarding_progress] || OnboardingProgress.load(tenant)
+
+      primary_location =
+        case FeedbackDomain.list_locations(
+               tenant: tenant,
+               query: [sort: [inserted_at: :asc], limit: 1]
+             ) do
+          {:ok, [loc | _]} -> loc
+          _ -> nil
+        end
+
+      reporter_link =
+        if primary_location do
+          CloseTheLoopWeb.Endpoint.url() <> "/r/#{tenant}/#{primary_location.id}"
+        end
+
+      poster_href =
+        if primary_location do
+          ~p"/app/#{org.id}/settings/locations/#{primary_location.id}/poster"
+        end
+
+      getting_started = %{
+        show?: Map.get(progress, :complete?) == false,
+        progress: progress,
+        onboarding_href: ~p"/app/#{org.id}/onboarding",
+        poster_href: poster_href,
+        reporter_link: reporter_link
+      }
+
       {:ok,
        socket
        |> assign(:stats, data.stats)
        |> assign(:recent_issues, data.recent_issues)
        |> assign(:recent_reports, data.recent_reports)
        |> assign(:recent_comments, data.recent_comments)
-       |> assign(:recent_updates, data.recent_updates)}
+       |> assign(:recent_updates, data.recent_updates)
+       |> assign(:getting_started, getting_started)}
     else
       _ -> {:ok, put_flash(socket, :error, "Failed to load dashboard")}
     end
@@ -63,6 +97,53 @@ defmodule CloseTheLoopWeb.DashboardLive.Index do
             >
               New report
             </.button>
+          </div>
+        </div>
+
+        <div
+          :if={@getting_started && @getting_started.show?}
+          class="rounded-2xl border border-base bg-base p-5 shadow-base"
+        >
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div class="min-w-0">
+              <h2 class="text-sm font-semibold flex items-center gap-2">
+                <.icon name="hero-sparkles" class="size-4 text-foreground-soft" /> Getting started
+              </h2>
+              <p class="mt-1 text-sm text-foreground-soft">
+                <%= if @getting_started.progress.has_any_locations? do %>
+                  Print a poster and submit a test report to validate the full loop.
+                <% else %>
+                  Add your first location to unlock posters and reporter links.
+                <% end %>
+              </p>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2 shrink-0">
+              <.button
+                :if={@getting_started.poster_href}
+                href={@getting_started.poster_href}
+                target="_blank"
+                rel="noreferrer"
+                variant="solid"
+                color="primary"
+              >
+                <.icon name="hero-printer" class="size-4" /> Print poster
+              </.button>
+
+              <.button
+                :if={@getting_started.reporter_link}
+                href={@getting_started.reporter_link}
+                target="_blank"
+                rel="noreferrer"
+                variant="outline"
+              >
+                <.icon name="hero-arrow-top-right-on-square" class="size-4" /> Submit test report
+              </.button>
+
+              <.button navigate={@getting_started.onboarding_href} variant="outline">
+                View checklist
+              </.button>
+            </div>
           </div>
         </div>
 

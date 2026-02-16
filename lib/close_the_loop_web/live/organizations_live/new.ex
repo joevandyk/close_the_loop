@@ -4,7 +4,6 @@ defmodule CloseTheLoopWeb.OrganizationsLive.New do
 
   alias CloseTheLoop.Accounts
   alias CloseTheLoop.Feedback.Categories
-  alias CloseTheLoop.Feedback.Location
   alias CloseTheLoop.Tenants.Organization
 
   @impl true
@@ -75,11 +74,6 @@ defmodule CloseTheLoopWeb.OrganizationsLive.New do
 
     with {:ok, %Organization{} = org} <-
            AshPhoenix.Form.submit(socket.assigns.form, params: params),
-         {:ok, %Location{} = _location} <-
-           CloseTheLoop.Feedback.create_location(%{name: "General", full_path: "General"},
-             tenant: org.tenant_schema,
-             actor: user
-           ),
          {:ok, _membership} <-
            Accounts.create_user_organization(
              %{user_id: user.id, organization_id: org.id, role: :owner},
@@ -90,7 +84,7 @@ defmodule CloseTheLoopWeb.OrganizationsLive.New do
       {:noreply,
        socket
        |> put_flash(:info, "Organization created.")
-       |> push_navigate(to: ~p"/app/#{org.id}/issues")}
+       |> push_navigate(to: ~p"/app/#{org.id}/onboarding")}
     else
       {:error, %Phoenix.HTML.Form{} = form} ->
         {:noreply, assign(socket, :form, form)}
