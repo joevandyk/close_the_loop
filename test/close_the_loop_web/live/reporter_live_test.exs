@@ -14,7 +14,7 @@ defmodule CloseTheLoopWeb.ReporterLiveTest do
     {:ok, view, _html} = live(conn, ~p"/r/#{tenant}/#{location.id}")
 
     view
-    |> form("form[phx-submit='submit']", report: %{body: "Cold shower"})
+    |> form("#reporter-intake-form", report: %{body: "Cold shower"})
     |> render_submit()
 
     assert render(view) =~ "Got it"

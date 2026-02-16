@@ -44,8 +44,7 @@ defmodule CloseTheLoopWeb.Router do
       ]
     )
 
-    ash_authentication_live_session :authenticated_routes,
-      layout: {CloseTheLoopWeb.Layouts, :app_shell} do
+    ash_authentication_live_session :authenticated_routes, layout: false do
       # in each liveview, add one of the following at the top of the module:
       #
       # If an authenticated user must be present:
@@ -95,7 +94,7 @@ defmodule CloseTheLoopWeb.Router do
     get "/privacy", PageController, :privacy
     get "/terms", PageController, :terms
 
-    live_session :reporter, layout: {CloseTheLoopWeb.Layouts, :reporter} do
+    live_session :reporter, layout: false do
       live "/r/:tenant/:location_id", ReporterLive.New, :new
     end
 

@@ -16,7 +16,7 @@ defmodule CloseTheLoopWeb.OnboardingLive do
     else
       {:ok,
        socket
-       |> assign(:org_name, "")
+       |> assign(:form, to_form(%{"org_name" => ""}, as: :onboarding))
        |> assign(:error, nil)}
     end
   end
@@ -24,53 +24,55 @@ defmodule CloseTheLoopWeb.OnboardingLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="max-w-lg mx-auto">
-      <h1 class="text-2xl font-semibold">Set up your business</h1>
-      <p class="text-foreground-soft mt-2">
-        Create your organization to start receiving reports.
-      </p>
+    <Layouts.app flash={@flash} current_user={@current_user} current_scope={@current_scope}>
+      <div class="max-w-lg mx-auto">
+        <h1 class="text-2xl font-semibold">Set up your business</h1>
+        <p class="text-foreground-soft mt-2">
+          Create your organization to start receiving reports.
+        </p>
 
-      <.form for={%{}} as={:onboarding} phx-submit="save" class="mt-6 space-y-4">
-        <.input
-          id="org_name"
-          name="org_name"
-          type="text"
-          label="Organization name"
-          placeholder="Acme Gym"
-          value={@org_name}
-          required
-        />
+        <.form for={@form} id="onboarding-form" phx-submit="save" class="mt-6 space-y-4">
+          <.input
+            field={@form[:org_name]}
+            type="text"
+            label="Organization name"
+            placeholder="Acme Gym"
+            required
+          />
 
-        <%= if @error do %>
-          <.alert color="danger" hide_close>
-            {@error}
-          </.alert>
-        <% end %>
+          <%= if @error do %>
+            <.alert color="danger" hide_close>
+              {@error}
+            </.alert>
+          <% end %>
 
-        <.button type="submit" variant="solid" color="primary" class="w-full">
-          Create organization
-        </.button>
-      </.form>
-    </div>
+          <.button type="submit" variant="solid" color="primary" class="w-full">
+            Create organization
+          </.button>
+        </.form>
+      </div>
+    </Layouts.app>
     """
   end
 
   @impl true
-  def handle_event("save", %{"org_name" => name}, socket) do
+  def handle_event("save", %{"onboarding" => %{"org_name" => name}}, socket) do
     user = socket.assigns.current_user
     name = String.trim(name || "")
+    socket = assign(socket, :form, to_form(%{"org_name" => name}, as: :onboarding))
 
     with true <- name != "" || {:error, "Organization name is required"},
-         {:ok, %Organization{} = org} <- Ash.create(Organization, %{name: name}),
+         {:ok, %Organization{} = org} <-
+           CloseTheLoop.Tenants.create_organization(%{name: name}, actor: user),
          {:ok, %Location{} = _location} <-
-           Ash.create(Location, %{name: "General", full_path: "General"},
-             tenant: org.tenant_schema
+           CloseTheLoop.Feedback.create_location(%{name: "General", full_path: "General"},
+             tenant: org.tenant_schema,
+             actor: user
            ),
          {:ok, %User{} = updated_user} <-
-           Ash.update(user, %{organization_id: org.id, role: :owner},
-             action: :set_organization,
-             actor: user
-           ) do
+           CloseTheLoop.Accounts.set_user_organization(
+             user,
+             %{organization_id: org.id, role: :owner}, actor: user) do
       # Seed default categories for this business (best-effort).
       _ = Categories.ensure_defaults(org.tenant_schema)
 

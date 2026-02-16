@@ -10,70 +10,72 @@ defmodule CloseTheLoopWeb.SettingsLive.Index do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="max-w-4xl mx-auto space-y-8">
-      <div>
-        <h1 class="text-2xl font-semibold">Settings</h1>
-        <p class="mt-2 text-sm text-foreground-soft">
-          Manage your organization, account, and inbox configuration.
-        </p>
+    <Layouts.app flash={@flash} current_user={@current_user} current_scope={@current_scope}>
+      <div class="max-w-4xl mx-auto space-y-8">
+        <div>
+          <h1 class="text-2xl font-semibold">Settings</h1>
+          <p class="mt-2 text-sm text-foreground-soft">
+            Manage your organization, account, and inbox configuration.
+          </p>
+        </div>
+
+        <div class="grid gap-6 lg:grid-cols-3">
+          <.link
+            navigate={~p"/app/settings/organization"}
+            class={[
+              "block rounded-2xl border border-base bg-base p-6 shadow-base",
+              "transition hover:bg-accent hover:shadow-lg hover:-translate-y-[1px]"
+            ]}
+          >
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <h2 class="text-sm font-semibold">Organization</h2>
+                <p class="mt-2 text-sm text-foreground-soft">
+                  Name and reporter page branding.
+                </p>
+              </div>
+              <.icon name="hero-building-office-2" class="size-5 text-foreground-soft" />
+            </div>
+          </.link>
+
+          <.link
+            navigate={~p"/app/settings/account"}
+            class={[
+              "block rounded-2xl border border-base bg-base p-6 shadow-base",
+              "transition hover:bg-accent hover:shadow-lg hover:-translate-y-[1px]"
+            ]}
+          >
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <h2 class="text-sm font-semibold">Account</h2>
+                <p class="mt-2 text-sm text-foreground-soft">
+                  Profile, email, password, sign out.
+                </p>
+              </div>
+              <.icon name="hero-user-circle" class="size-5 text-foreground-soft" />
+            </div>
+          </.link>
+
+          <.link
+            navigate={~p"/app/settings/inbox"}
+            class={[
+              "block rounded-2xl border border-base bg-base p-6 shadow-base",
+              "transition hover:bg-accent hover:shadow-lg hover:-translate-y-[1px]"
+            ]}
+          >
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <h2 class="text-sm font-semibold">Inbox configuration</h2>
+                <p class="mt-2 text-sm text-foreground-soft">
+                  Categories and triage settings.
+                </p>
+              </div>
+              <.icon name="hero-adjustments-horizontal" class="size-5 text-foreground-soft" />
+            </div>
+          </.link>
+        </div>
       </div>
-
-      <div class="grid gap-6 lg:grid-cols-3">
-        <.link
-          navigate={~p"/app/settings/organization"}
-          class={[
-            "block rounded-2xl border border-base bg-base p-6 shadow-base",
-            "transition hover:bg-accent hover:shadow-lg hover:-translate-y-[1px]"
-          ]}
-        >
-          <div class="flex items-start justify-between gap-3">
-            <div>
-              <h2 class="text-sm font-semibold">Organization</h2>
-              <p class="mt-2 text-sm text-foreground-soft">
-                Name and reporter page branding.
-              </p>
-            </div>
-            <.icon name="hero-building-office-2" class="size-5 text-foreground-soft" />
-          </div>
-        </.link>
-
-        <.link
-          navigate={~p"/app/settings/account"}
-          class={[
-            "block rounded-2xl border border-base bg-base p-6 shadow-base",
-            "transition hover:bg-accent hover:shadow-lg hover:-translate-y-[1px]"
-          ]}
-        >
-          <div class="flex items-start justify-between gap-3">
-            <div>
-              <h2 class="text-sm font-semibold">Account</h2>
-              <p class="mt-2 text-sm text-foreground-soft">
-                Profile, email, password, sign out.
-              </p>
-            </div>
-            <.icon name="hero-user-circle" class="size-5 text-foreground-soft" />
-          </div>
-        </.link>
-
-        <.link
-          navigate={~p"/app/settings/inbox"}
-          class={[
-            "block rounded-2xl border border-base bg-base p-6 shadow-base",
-            "transition hover:bg-accent hover:shadow-lg hover:-translate-y-[1px]"
-          ]}
-        >
-          <div class="flex items-start justify-between gap-3">
-            <div>
-              <h2 class="text-sm font-semibold">Inbox configuration</h2>
-              <p class="mt-2 text-sm text-foreground-soft">
-                Categories and triage settings.
-              </p>
-            </div>
-            <.icon name="hero-adjustments-horizontal" class="size-5 text-foreground-soft" />
-          </div>
-        </.link>
-      </div>
-    </div>
+    </Layouts.app>
     """
   end
 end

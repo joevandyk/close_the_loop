@@ -3,7 +3,14 @@ defmodule CloseTheLoop.Tenants do
     otp_app: :close_the_loop
 
   resources do
-    resource CloseTheLoop.Tenants.Organization
+    resource CloseTheLoop.Tenants.Organization do
+      define :get_organization_by_id, action: :read, get_by: [:id]
+      define :get_organization_by_tenant_schema, action: :read, get_by: [:tenant_schema]
+
+      define :create_organization, action: :create
+      define :update_organization, action: :update
+      define :destroy_organization, action: :destroy
+    end
   end
 
   @doc """

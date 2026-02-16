@@ -3,14 +3,16 @@ defmodule CloseTheLoopWeb.LocationPosterController do
 
   alias CloseTheLoop.Feedback.Location
   alias CloseTheLoop.Tenants.Organization
+  alias CloseTheLoop.Feedback, as: FeedbackDomain
+  alias CloseTheLoop.Tenants, as: TenantsDomain
 
   def show(conn, %{"id" => id}) do
     user = conn.assigns[:current_user]
 
     with %{organization_id: org_id} when not is_nil(org_id) <- user,
-         {:ok, %Organization{} = org} <- Ash.get(Organization, org_id),
+         {:ok, %Organization{} = org} <- TenantsDomain.get_organization_by_id(org_id),
          tenant when is_binary(tenant) <- org.tenant_schema,
-         {:ok, %Location{} = location} <- Ash.get(Location, id, tenant: tenant) do
+         {:ok, %Location{} = location} <- FeedbackDomain.get_location_by_id(id, tenant: tenant) do
       poster = build_poster(org, tenant, location)
 
       conn

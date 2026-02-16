@@ -2,48 +2,66 @@ defmodule CloseTheLoopWeb.ReportsLive.New do
   use CloseTheLoopWeb, :live_view
   on_mount {CloseTheLoopWeb.LiveUserAuth, :live_org_required}
 
-  import Ash.Expr
-
+  alias CloseTheLoop.Feedback, as: FeedbackDomain
   alias CloseTheLoop.Feedback.{Issue, Location, Report}
   alias CloseTheLoop.Feedback.Intake
   alias CloseTheLoop.Feedback.Text
   alias CloseTheLoop.Messaging.Phone
-  alias CloseTheLoop.Tenants.Organization
-
-  require Ash.Query
 
   @impl true
   def mount(params, _session, socket) do
-    user = socket.assigns.current_user
-
     socket =
       socket
-      |> assign(:tenant, nil)
       |> assign(:locations, [])
       |> assign(:location_options, [])
       |> assign(:selected_location_id, nil)
       |> assign(:selected_location_label, nil)
       |> assign(:issue_options, [])
       |> assign(:error, nil)
-      |> assign(:body, "")
-      |> assign(:reporter_name, "")
-      |> assign(:reporter_email, "")
-      |> assign(:reporter_phone, "")
-      |> assign(:consent, false)
+      |> assign(
+        :manual_form,
+        to_form(
+          %{
+            "location_id" => "",
+            "issue_id" => "",
+            "body" => "",
+            "reporter_name" => "",
+            "reporter_email" => "",
+            "reporter_phone" => "",
+            "consent" => "false"
+          },
+          as: :manual
+        )
+      )
 
-    with {:ok, %Organization{} = org} <- Ash.get(Organization, user.organization_id),
-         tenant when is_binary(tenant) <- org.tenant_schema,
+    tenant = socket.assigns.current_tenant
+
+    with true <- is_binary(tenant) || {:error, :missing_tenant},
          {:ok, locations} <- list_locations(tenant) do
       location_id = params["location_id"]
       selected = find_location(locations, location_id)
 
       socket =
         socket
-        |> assign(:tenant, tenant)
         |> assign(:locations, locations)
         |> assign(:location_options, build_location_options(locations))
         |> assign(:selected_location_id, selected && selected.id)
         |> assign(:selected_location_label, selected && (selected.full_path || selected.name))
+        |> assign(
+          :manual_form,
+          to_form(
+            %{
+              "location_id" => (selected && selected.id) || "",
+              "issue_id" => "",
+              "body" => "",
+              "reporter_name" => "",
+              "reporter_email" => "",
+              "reporter_phone" => "",
+              "consent" => "false"
+            },
+            as: :manual
+          )
+        )
 
       socket =
         case selected do
@@ -63,12 +81,10 @@ defmodule CloseTheLoopWeb.ReportsLive.New do
   end
 
   defp list_locations(tenant) do
-    query =
-      Location
-      |> Ash.Query.sort(full_path: :asc, name: :asc)
-      |> Ash.Query.limit(500)
-
-    Ash.read(query, tenant: tenant)
+    FeedbackDomain.list_locations(
+      tenant: tenant,
+      query: [sort: [full_path: :asc, name: :asc], limit: 500]
+    )
   end
 
   defp build_location_options(locations) do
@@ -86,13 +102,14 @@ defmodule CloseTheLoopWeb.ReportsLive.New do
   end
 
   defp list_issues(tenant, location_id) do
-    query =
-      Issue
-      |> Ash.Query.filter(expr(location_id == ^location_id and is_nil(duplicate_of_issue_id)))
-      |> Ash.Query.sort(inserted_at: :desc)
-      |> Ash.Query.limit(200)
-
-    case Ash.read(query, tenant: tenant) do
+    case FeedbackDomain.list_non_duplicate_issues(
+           tenant: tenant,
+           query: [
+             filter: [location_id: location_id],
+             sort: [inserted_at: :desc],
+             limit: 200
+           ]
+         ) do
       {:ok, issues} -> issues
       _ -> []
     end
@@ -109,168 +126,151 @@ defmodule CloseTheLoopWeb.ReportsLive.New do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="max-w-4xl mx-auto space-y-8">
-      <div class="flex items-start justify-between gap-4">
-        <div>
-          <h1 class="text-2xl font-semibold">New report</h1>
-          <p class="mt-2 text-sm text-foreground-soft">
-            Enter a report you received in person or over the phone. We’ll attach it to the right issue.
-          </p>
+    <Layouts.app flash={@flash} current_user={@current_user} current_scope={@current_scope}>
+      <div class="max-w-4xl mx-auto space-y-8">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h1 class="text-2xl font-semibold">New report</h1>
+            <p class="mt-2 text-sm text-foreground-soft">
+              Enter a report you received in person or over the phone. We’ll attach it to the right issue.
+            </p>
+          </div>
+
+          <.button navigate={~p"/app/reports"} variant="ghost">Back</.button>
         </div>
 
-        <.button navigate={~p"/app/reports"} variant="ghost">Back</.button>
-      </div>
-
-      <div class="rounded-2xl border border-base bg-base p-6 shadow-base">
-        <.form
-          for={%{}}
-          as={:manual}
-          id="manual-report-form"
-          phx-change="change"
-          phx-submit="create"
-          class="space-y-5"
-        >
-          <div class="grid gap-4 lg:grid-cols-2">
-            <%= if @selected_location_id do %>
-              <div class="lg:col-span-2">
-                <div class="text-xs font-medium text-foreground-soft">Location</div>
-                <div class="mt-1 text-sm font-medium">
-                  {@selected_location_label}
+        <div class="rounded-2xl border border-base bg-base p-6 shadow-base">
+          <.form
+            for={@manual_form}
+            id="manual-report-form"
+            phx-change="change"
+            phx-submit="create"
+            class="space-y-5"
+          >
+            <div class="grid gap-4 lg:grid-cols-2">
+              <%= if @selected_location_id do %>
+                <div class="lg:col-span-2">
+                  <div class="text-xs font-medium text-foreground-soft">Location</div>
+                  <div class="mt-1 text-sm font-medium">
+                    {@selected_location_label}
+                  </div>
+                  <input
+                    type="hidden"
+                    name={@manual_form[:location_id].name}
+                    value={@selected_location_id}
+                  />
                 </div>
-                <input type="hidden" name="manual[location_id]" value={@selected_location_id} />
-              </div>
-            <% else %>
+              <% else %>
+                <div class="lg:col-span-2">
+                  <.select
+                    id="manual-location"
+                    field={@manual_form[:location_id]}
+                    label="Location"
+                    options={@location_options}
+                    searchable
+                    placeholder="Select a location"
+                  />
+                </div>
+              <% end %>
+
               <div class="lg:col-span-2">
-                <.select
-                  id="manual-location"
-                  name="manual[location_id]"
-                  label="Location"
-                  options={@location_options}
-                  searchable
-                  placeholder="Select a location"
+                <.textarea
+                  id="manual-body"
+                  field={@manual_form[:body]}
+                  label="What happened?"
+                  rows={6}
+                  placeholder="Customer said the men's showers are cold again."
+                  required
                 />
               </div>
+
+              <div class="lg:col-span-2">
+                <.separator text="Assign (optional)" class="my-2" />
+                <p class="text-sm text-foreground-soft">
+                  Leave this blank to auto-group into an existing open issue (or create a new one).
+                </p>
+
+                <div class="mt-3">
+                  <.select
+                    id="manual-issue"
+                    field={@manual_form[:issue_id]}
+                    label="Attach to existing issue"
+                    options={@issue_options}
+                    searchable
+                    placeholder="Auto (recommended)"
+                  />
+                  <div :if={@selected_location_id == nil} class="mt-1 text-xs text-foreground-soft">
+                    Select a location to see existing issues.
+                  </div>
+                </div>
+              </div>
+
+              <div class="lg:col-span-2">
+                <.separator text="Reporter (optional)" class="my-2" />
+              </div>
+
+              <.input
+                id="manual-reporter-name"
+                field={@manual_form[:reporter_name]}
+                type="text"
+                label="Name"
+                placeholder="Jane Doe"
+              />
+
+              <.input
+                id="manual-reporter-email"
+                field={@manual_form[:reporter_email]}
+                type="email"
+                label="Email"
+                placeholder="jane@example.com"
+                autocomplete="email"
+              />
+
+              <.input
+                id="manual-reporter-phone"
+                field={@manual_form[:reporter_phone]}
+                type="text"
+                label="Phone"
+                placeholder="+15555555555"
+                autocomplete="tel"
+              />
+
+              <div class="lg:col-span-2">
+                <.checkbox
+                  id="manual-consent"
+                  field={@manual_form[:consent]}
+                  label="Reporter consented to receive SMS updates."
+                  description="Requires a phone number."
+                />
+              </div>
+            </div>
+
+            <%= if @error do %>
+              <.alert color="danger" hide_close>{@error}</.alert>
             <% end %>
 
-            <div class="lg:col-span-2">
-              <.textarea
-                id="manual-body"
-                name="manual[body]"
-                label="What happened?"
-                rows={6}
-                value={@body}
-                placeholder="Customer said the men's showers are cold again."
-                required
-              />
+            <div class="flex justify-end">
+              <.button type="submit" variant="solid" color="primary" phx-disable-with="Saving...">
+                Add report
+              </.button>
             </div>
-
-            <div class="lg:col-span-2">
-              <.separator text="Assign (optional)" class="my-2" />
-              <p class="text-sm text-foreground-soft">
-                Leave this blank to auto-group into an existing open issue (or create a new one).
-              </p>
-
-              <div class="mt-3">
-                <.select
-                  id="manual-issue"
-                  name="manual[issue_id]"
-                  label="Attach to existing issue"
-                  options={@issue_options}
-                  searchable
-                  placeholder="Auto (recommended)"
-                />
-                <div :if={@selected_location_id == nil} class="mt-1 text-xs text-foreground-soft">
-                  Select a location to see existing issues.
-                </div>
-              </div>
-            </div>
-
-            <div class="lg:col-span-2">
-              <.separator text="Reporter (optional)" class="my-2" />
-            </div>
-
-            <.input
-              id="manual-reporter-name"
-              name="manual[reporter_name]"
-              type="text"
-              label="Name"
-              value={@reporter_name}
-              placeholder="Jane Doe"
-            />
-
-            <.input
-              id="manual-reporter-email"
-              name="manual[reporter_email]"
-              type="email"
-              label="Email"
-              value={@reporter_email}
-              placeholder="jane@example.com"
-              autocomplete="email"
-            />
-
-            <.input
-              id="manual-reporter-phone"
-              name="manual[reporter_phone]"
-              type="text"
-              label="Phone"
-              value={@reporter_phone}
-              placeholder="+15555555555"
-              autocomplete="tel"
-            />
-
-            <div class="lg:col-span-2">
-              <label class="flex items-start gap-3 text-sm">
-                <input type="hidden" name="manual[consent]" value="false" />
-                <input
-                  id="manual-consent"
-                  type="checkbox"
-                  name="manual[consent]"
-                  value="true"
-                  checked={@consent}
-                  class="mt-0.5"
-                />
-                <span class="text-foreground-soft">
-                  Reporter consented to receive SMS updates (requires a phone number).
-                </span>
-              </label>
-            </div>
-          </div>
-
-          <%= if @error do %>
-            <.alert color="danger" hide_close>{@error}</.alert>
-          <% end %>
-
-          <div class="flex justify-end">
-            <.button type="submit" variant="solid" color="primary" phx-disable-with="Saving...">
-              Add report
-            </.button>
-          </div>
-        </.form>
+          </.form>
+        </div>
       </div>
-    </div>
+    </Layouts.app>
     """
   end
 
   @impl true
   def handle_event("change", %{"manual" => params}, socket) when is_map(params) do
-    tenant = socket.assigns.tenant
+    tenant = socket.assigns.current_tenant
 
     location_id = params |> Map.get("location_id", "") |> to_string() |> String.trim()
-    body = params |> Map.get("body", "") |> to_string()
-    reporter_name = params |> Map.get("reporter_name", "") |> to_string()
-    reporter_email = params |> Map.get("reporter_email", "") |> to_string()
-    reporter_phone = params |> Map.get("reporter_phone", "") |> to_string()
-    consent = Map.get(params, "consent", "false") in ["true", "on", true]
-
     selected = find_location(socket.assigns.locations, location_id)
 
     socket =
       socket
-      |> assign(:body, body)
-      |> assign(:reporter_name, reporter_name)
-      |> assign(:reporter_email, reporter_email)
-      |> assign(:reporter_phone, reporter_phone)
-      |> assign(:consent, consent)
+      |> assign(:manual_form, to_form(params, as: :manual))
       |> assign(:error, nil)
 
     socket =
@@ -290,7 +290,7 @@ defmodule CloseTheLoopWeb.ReportsLive.New do
   end
 
   def handle_event("create", %{"manual" => params}, socket) do
-    tenant = socket.assigns.tenant
+    tenant = socket.assigns.current_tenant
     user = socket.assigns.current_user
 
     location_id = params |> Map.get("location_id", "") |> to_string() |> String.trim()
@@ -302,13 +302,7 @@ defmodule CloseTheLoopWeb.ReportsLive.New do
     reporter_phone_raw = params |> Map.get("reporter_phone", "") |> to_string() |> String.trim()
     consent = Map.get(params, "consent", "false") in ["true", "on", true]
 
-    socket =
-      socket
-      |> assign(:body, body)
-      |> assign(:reporter_name, reporter_name)
-      |> assign(:reporter_email, reporter_email)
-      |> assign(:reporter_phone, reporter_phone_raw)
-      |> assign(:consent, consent)
+    socket = assign(socket, :manual_form, to_form(params, as: :manual))
 
     with true <- location_id != "" || {:error, "Location is required"},
          true <- body != "" || {:error, "Report text is required"},
@@ -319,6 +313,7 @@ defmodule CloseTheLoopWeb.ReportsLive.New do
          {:ok, %{issue: issue}} <-
            create_manual_report(
              tenant,
+             user,
              location_id,
              issue_id,
              %{
@@ -329,8 +324,6 @@ defmodule CloseTheLoopWeb.ReportsLive.New do
                consent: consent
              }
            ) do
-      _ = user
-
       {:noreply,
        socket
        |> put_flash(:info, "Report added.")
@@ -347,20 +340,19 @@ defmodule CloseTheLoopWeb.ReportsLive.New do
     end
   end
 
-  defp create_manual_report(tenant, location_id, "", attrs) do
+  defp create_manual_report(tenant, _actor, location_id, "", attrs) do
     Intake.submit_report(tenant, location_id, Map.put(attrs, :source, :manual))
   end
 
-  defp create_manual_report(tenant, location_id, issue_id, attrs) do
-    with {:ok, %Issue{} = issue} <- Ash.get(Issue, issue_id, tenant: tenant),
+  defp create_manual_report(tenant, actor, location_id, issue_id, attrs) do
+    with {:ok, %Issue{} = issue} <- FeedbackDomain.get_issue_by_id(issue_id, tenant: tenant),
          true <-
            to_string(issue.location_id) == to_string(location_id) ||
              {:error, "Selected issue does not match the location"},
          normalized_body <- Text.normalize_for_dedupe(Map.get(attrs, :body)),
          {:ok, normalized_phone} <- Phone.normalize_e164(Map.get(attrs, :reporter_phone)),
          {:ok, %Report{} = report} <-
-           Ash.create(
-             Report,
+           FeedbackDomain.create_report(
              %{
                location_id: location_id,
                issue_id: issue.id,
@@ -372,7 +364,8 @@ defmodule CloseTheLoopWeb.ReportsLive.New do
                reporter_phone: normalized_phone,
                consent: Map.get(attrs, :consent) and not is_nil(normalized_phone)
              },
-             tenant: tenant
+             tenant: tenant,
+             actor: actor
            ) do
       {:ok, %{issue: issue, report: report}}
     end

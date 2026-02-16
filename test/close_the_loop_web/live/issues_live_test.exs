@@ -2,12 +2,14 @@ defmodule CloseTheLoopWeb.IssuesLiveTest do
   use CloseTheLoopWeb.ConnCase, async: true
 
   import Phoenix.LiveViewTest
+  import CloseTheLoop.TestHelpers, only: [unique_email: 1]
 
   alias CloseTheLoop.Accounts.User
   alias CloseTheLoop.Feedback.{Issue, Location}
 
   test "authenticated user with org can view issues inbox", %{conn: conn} do
     tenant = "public"
+    email = unique_email("owner")
 
     # Avoid triggering `manage_tenant` in tests (it would rerun tenant migrations).
     org_id = Ash.UUID.generate()
@@ -29,7 +31,7 @@ defmodule CloseTheLoopWeb.IssuesLiveTest do
       Ash.create(
         User,
         %{
-          email: "owner@example.com",
+          email: email,
           password: "password1234",
           password_confirmation: "password1234"
         },
@@ -71,6 +73,7 @@ defmodule CloseTheLoopWeb.IssuesLiveTest do
 
   test "authenticated user can add internal comments to an issue", %{conn: conn} do
     tenant = "public"
+    email = unique_email("owner")
 
     # Avoid triggering `manage_tenant` in tests (it would rerun tenant migrations).
     org_id = Ash.UUID.generate()
@@ -92,7 +95,7 @@ defmodule CloseTheLoopWeb.IssuesLiveTest do
       Ash.create(
         User,
         %{
-          email: "owner@example.com",
+          email: email,
           password: "password1234",
           password_confirmation: "password1234"
         },
@@ -140,11 +143,13 @@ defmodule CloseTheLoopWeb.IssuesLiveTest do
   end
 
   test "dangling org_id does not crash issues page", %{conn: conn} do
+    email = unique_email("dangling")
+
     {:ok, user} =
       Ash.create(
         User,
         %{
-          email: "dangling@example.com",
+          email: email,
           password: "password1234",
           password_confirmation: "password1234"
         },
@@ -173,6 +178,7 @@ defmodule CloseTheLoopWeb.IssuesLiveTest do
 
   test "owner can edit an issue title and description", %{conn: conn} do
     tenant = "public"
+    email = unique_email("owner")
 
     # Avoid triggering `manage_tenant` in tests (it would rerun tenant migrations).
     org_id = Ash.UUID.generate()
@@ -194,7 +200,7 @@ defmodule CloseTheLoopWeb.IssuesLiveTest do
       Ash.create(
         User,
         %{
-          email: "owner2@example.com",
+          email: email,
           password: "password1234",
           password_confirmation: "password1234"
         },
@@ -251,6 +257,7 @@ defmodule CloseTheLoopWeb.IssuesLiveTest do
 
   test "staff cannot see issue edit controls", %{conn: conn} do
     tenant = "public"
+    email = unique_email("staff")
 
     # Avoid triggering `manage_tenant` in tests (it would rerun tenant migrations).
     org_id = Ash.UUID.generate()
@@ -272,7 +279,7 @@ defmodule CloseTheLoopWeb.IssuesLiveTest do
       Ash.create(
         User,
         %{
-          email: "staff@example.com",
+          email: email,
           password: "password1234",
           password_confirmation: "password1234"
         },

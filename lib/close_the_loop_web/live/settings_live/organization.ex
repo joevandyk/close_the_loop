@@ -3,22 +3,34 @@ defmodule CloseTheLoopWeb.SettingsLive.Organization do
   on_mount {CloseTheLoopWeb.LiveUserAuth, :live_org_required}
 
   alias CloseTheLoop.Tenants.Organization
+  alias CloseTheLoop.Tenants
 
   @impl true
   def mount(_params, _session, socket) do
-    user = socket.assigns.current_user
+    org = socket.assigns.current_org
+    tenant = socket.assigns.current_tenant
 
-    case Ash.get(Organization, user.organization_id) do
-      {:ok, %Organization{} = org} ->
+    case org do
+      %Organization{} = org ->
+        org_form = to_form(%{"name" => org.name || ""}, as: :org)
+
+        brand_form =
+          to_form(
+            %{
+              "public_display_name" => org.public_display_name || "",
+              "reporter_tagline" => org.reporter_tagline || "",
+              "reporter_footer_note" => org.reporter_footer_note || ""
+            },
+            as: :brand
+          )
+
         {:ok,
          socket
          |> assign(:org, org)
-         |> assign(:tenant, org.tenant_schema)
+         |> assign(:tenant, tenant)
          |> assign(:error, nil)
-         |> assign(:org_name, org.name)
-         |> assign(:public_display_name, org.public_display_name || "")
-         |> assign(:reporter_tagline, org.reporter_tagline || "")
-         |> assign(:reporter_footer_note, org.reporter_footer_note || "")}
+         |> assign(:org_form, org_form)
+         |> assign(:brand_form, brand_form)}
 
       _ ->
         {:ok, put_flash(socket, :error, "Failed to load organization settings")}
@@ -28,122 +40,122 @@ defmodule CloseTheLoopWeb.SettingsLive.Organization do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="max-w-4xl mx-auto space-y-8">
-      <div class="flex items-start justify-between gap-4">
-        <div>
-          <h1 class="text-2xl font-semibold">Organization</h1>
-          <p class="mt-2 text-sm text-foreground-soft">
-            Manage your organization details and reporter page branding.
-          </p>
-        </div>
-
-        <.button navigate={~p"/app/settings"} variant="ghost">Back</.button>
-      </div>
-
-      <div class="rounded-2xl border border-base bg-base p-6 shadow-base">
-        <h2 class="text-sm font-semibold">Basics</h2>
-
-        <.form
-          for={%{}}
-          as={:org}
-          id="org-basics-form"
-          phx-submit="save_basics"
-          class="mt-4 space-y-4"
-        >
-          <.input id="org_name" name="name" type="text" label="Name" value={@org_name} required />
-
-          <div class="text-xs text-foreground-soft">
-            Tenant: <span class="font-mono">{@tenant}</span>
+    <Layouts.app flash={@flash} current_user={@current_user} current_scope={@current_scope}>
+      <div class="max-w-4xl mx-auto space-y-8">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h1 class="text-2xl font-semibold">Organization</h1>
+            <p class="mt-2 text-sm text-foreground-soft">
+              Manage your organization details and reporter page branding.
+            </p>
           </div>
 
-          <%= if @error do %>
-            <.alert color="danger" hide_close>{@error}</.alert>
-          <% end %>
+          <.button navigate={~p"/app/settings"} variant="ghost">Back</.button>
+        </div>
 
-          <.button
-            type="submit"
-            variant="solid"
-            color="primary"
-            class="w-full"
-            phx-disable-with="Saving..."
+        <div class="rounded-2xl border border-base bg-base p-6 shadow-base">
+          <h2 class="text-sm font-semibold">Basics</h2>
+
+          <.form
+            for={@org_form}
+            id="org-basics-form"
+            phx-submit="save_basics"
+            class="mt-4 space-y-4"
           >
-            Save
-          </.button>
-        </.form>
-      </div>
+            <.input id="org_name" field={@org_form[:name]} type="text" label="Name" required />
 
-      <div class="rounded-2xl border border-base bg-base p-6 shadow-base">
-        <h2 class="text-sm font-semibold">Reporter page branding</h2>
-        <p class="mt-2 text-sm text-foreground-soft">
-          This affects the public page reporters see at <span class="font-mono">/r/&lt;tenant&gt;/&lt;location&gt;</span>.
-        </p>
+            <div class="text-xs text-foreground-soft">
+              Tenant: <span class="font-mono">{@tenant}</span>
+            </div>
 
-        <.form
-          for={%{}}
-          as={:brand}
-          id="org-branding-form"
-          phx-submit="save_branding"
-          class="mt-4 space-y-4"
-        >
-          <.input
-            id="org_public_display_name"
-            name="public_display_name"
-            type="text"
-            label="Public display name"
-            value={@public_display_name}
-            placeholder={@org_name}
-            help_text="Shown to reporters. Leave blank to use your organization name."
-          />
+            <%= if @error do %>
+              <.alert color="danger" hide_close>{@error}</.alert>
+            <% end %>
 
-          <.input
-            id="org_reporter_tagline"
-            name="reporter_tagline"
-            type="text"
-            label="Tagline"
-            value={@reporter_tagline}
-            placeholder="e.g. Thanks for helping us keep the gym in top shape."
-          />
+            <.button
+              type="submit"
+              variant="solid"
+              color="primary"
+              class="w-full"
+              phx-disable-with="Saving..."
+            >
+              Save
+            </.button>
+          </.form>
+        </div>
 
-          <.textarea
-            id="org_reporter_footer_note"
-            name="reporter_footer_note"
-            label="Footer note"
-            value={@reporter_footer_note}
-            rows={3}
-            placeholder="Optional. For example: For emergencies, call the front desk."
-          />
+        <div class="rounded-2xl border border-base bg-base p-6 shadow-base">
+          <h2 class="text-sm font-semibold">Reporter page branding</h2>
+          <p class="mt-2 text-sm text-foreground-soft">
+            This affects the public page reporters see at <span class="font-mono">/r/&lt;tenant&gt;/&lt;location&gt;</span>.
+          </p>
 
-          <%= if @error do %>
-            <.alert color="danger" hide_close>{@error}</.alert>
-          <% end %>
-
-          <.button
-            type="submit"
-            variant="solid"
-            color="primary"
-            class="w-full"
-            phx-disable-with="Saving..."
+          <.form
+            for={@brand_form}
+            id="org-branding-form"
+            phx-submit="save_branding"
+            class="mt-4 space-y-4"
           >
-            Save branding
-          </.button>
-        </.form>
+            <.input
+              id="org_public_display_name"
+              field={@brand_form[:public_display_name]}
+              type="text"
+              label="Public display name"
+              placeholder={@org.name}
+              help_text="Shown to reporters. Leave blank to use your organization name."
+            />
+
+            <.input
+              id="org_reporter_tagline"
+              field={@brand_form[:reporter_tagline]}
+              type="text"
+              label="Tagline"
+              placeholder="e.g. Thanks for helping us keep the gym in top shape."
+            />
+
+            <.textarea
+              id="org_reporter_footer_note"
+              field={@brand_form[:reporter_footer_note]}
+              label="Footer note"
+              rows={3}
+              placeholder="Optional. For example: For emergencies, call the front desk."
+            />
+
+            <%= if @error do %>
+              <.alert color="danger" hide_close>{@error}</.alert>
+            <% end %>
+
+            <.button
+              type="submit"
+              variant="solid"
+              color="primary"
+              class="w-full"
+              phx-disable-with="Saving..."
+            >
+              Save branding
+            </.button>
+          </.form>
+        </div>
       </div>
-    </div>
+    </Layouts.app>
     """
   end
 
   @impl true
-  def handle_event("save_basics", %{"name" => name}, socket) do
+  def handle_event("save_basics", %{"org" => %{"name" => name}}, socket) do
     org = socket.assigns.org
+    user = socket.assigns.current_user
     name = String.trim(name || "")
+    socket = assign(socket, :org_form, to_form(%{"name" => name}, as: :org))
 
     with true <- name != "" || {:error, "Name is required"},
-         {:ok, %Organization{} = org} <- Ash.update(org, %{name: name}) do
+         {:ok, %Organization{} = org} <-
+           Tenants.update_organization(org, %{name: name}, actor: user) do
       {:noreply,
        socket
        |> put_flash(:info, "Organization updated.")
        |> assign(:org, org)
-       |> assign(:org_name, org.name)
+       |> assign(:org_form, to_form(%{"name" => org.name || ""}, as: :org))
        |> assign(:error, nil)}
     else
       {:error, msg} when is_binary(msg) ->
@@ -158,8 +170,10 @@ defmodule CloseTheLoopWeb.SettingsLive.Organization do
   end
 
   @impl true
-  def handle_event("save_branding", params, socket) do
+  def handle_event("save_branding", %{"brand" => params}, socket) when is_map(params) do
     org = socket.assigns.org
+    user = socket.assigns.current_user
+    socket = assign(socket, :brand_form, to_form(params, as: :brand))
 
     public_display_name =
       params |> Map.get("public_display_name", "") |> to_string() |> String.trim()
@@ -172,19 +186,29 @@ defmodule CloseTheLoopWeb.SettingsLive.Organization do
       |> to_string()
       |> String.trim()
 
-    case Ash.update(org, %{
-           public_display_name: blank_to_nil(public_display_name),
-           reporter_tagline: blank_to_nil(reporter_tagline),
-           reporter_footer_note: blank_to_nil(reporter_footer_note)
-         }) do
+    case Tenants.update_organization(
+           org,
+           %{
+             public_display_name: blank_to_nil(public_display_name),
+             reporter_tagline: blank_to_nil(reporter_tagline),
+             reporter_footer_note: blank_to_nil(reporter_footer_note)
+           }, actor: user) do
       {:ok, %Organization{} = org} ->
         {:noreply,
          socket
          |> put_flash(:info, "Branding updated.")
          |> assign(:org, org)
-         |> assign(:public_display_name, org.public_display_name || "")
-         |> assign(:reporter_tagline, org.reporter_tagline || "")
-         |> assign(:reporter_footer_note, org.reporter_footer_note || "")
+         |> assign(
+           :brand_form,
+           to_form(
+             %{
+               "public_display_name" => org.public_display_name || "",
+               "reporter_tagline" => org.reporter_tagline || "",
+               "reporter_footer_note" => org.reporter_footer_note || ""
+             },
+             as: :brand
+           )
+         )
          |> assign(:error, nil)}
 
       {:error, msg} when is_binary(msg) ->
