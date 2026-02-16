@@ -1,0 +1,604 @@
+{
+  "ai_business_context": "Sudzy Laundromat is a self-service laundromat with washers, dryers, folding tables, seating, restrooms, vending/soap dispensers, and change/payment machines. Customers commonly report broken or malfunctioning equipment, leaks/water issues, cleanliness problems, and occasional safety/access concerns.",
+  "ai_categorization_instructions": "Prefer specific categories (e.g., washer_out_of_order vs. general equipment). When unsure, use `other` and add a short note to internal context in the issue description.",
+  "issue_categories": [
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "washer, washing machine, spin, cycle, door, won’t start, error code, out of order",
+      "description": "Washers not working correctly (won’t start, error codes, door issues, poor spin, etc.).",
+      "key": "washer_out_of_order",
+      "label": "Washer out of order"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "dryer, drying, heat, no heat, won’t start, timer, lint, squeal",
+      "description": "Dryers not working correctly (no heat, won’t start, loud noise, timer issues).",
+      "key": "dryer_out_of_order",
+      "label": "Dryer out of order"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "change machine, coin machine, bill, dollar, quarters, stuck, ate my money, refund",
+      "description": "Change machine problems (won’t accept bills, stuck, incorrect payout).",
+      "key": "change_machine_issue",
+      "label": "Change machine issue"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "card reader, tap, chip, payment, app, kiosk, credit, debit",
+      "description": "Payment system issues (card readers, kiosks, app-based payment).",
+      "key": "payment_system_issue",
+      "label": "Payment system issue"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "leak, water, puddle, flooding, drip, hose, drain, overflow",
+      "description": "Leaks, puddles, drainage problems, or water damage concerns.",
+      "key": "leak_or_water_issue",
+      "label": "Leak / water issue"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "dirty, mess, spill, trash, sticky, floor, wipe, mop, smell",
+      "description": "General cleanliness issues in customer areas (floors, tables, seating).",
+      "key": "general_cleanliness",
+      "label": "General cleanliness"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "restroom, bathroom, toilet, sink, soap, paper towels, hand dryer",
+      "description": "Restroom cleanliness or fixture/supply issues.",
+      "key": "restroom_issue",
+      "label": "Restroom issue"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "trash can, overflowing, bin, garbage",
+      "description": "Trash/garbage overflow or missing bins/liners.",
+      "key": "trash_overflow",
+      "label": "Trash overflow"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "soap dispenser, vending, detergent, softener, machine ate money, out of stock",
+      "description": "Vending/soap dispenser issues (out of stock, jammed, ate money).",
+      "key": "vending_or_soap_dispenser",
+      "label": "Vending / soap dispenser"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "door, lock, lighting, light, AC, heat, temperature, fan, outlet, plug",
+      "description": "Facility maintenance issues (doors, lighting, HVAC, outlets).",
+      "key": "facility_maintenance",
+      "label": "Facility maintenance"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "unsafe, slippery, hazard, broken glass, exposed wire, smell gas",
+      "description": "Safety hazards requiring prompt attention.",
+      "key": "safety_hazard",
+      "label": "Safety hazard"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "parking, lot, outside, entrance, sidewalk",
+      "description": "Exterior/parking lot issues.",
+      "key": "exterior_parking",
+      "label": "Exterior / parking"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": null,
+      "description": "Use when no other category fits. Add a short internal note in the issue description.",
+      "key": "other",
+      "label": "Other"
+    }
+  ],
+  "issues": [
+    {
+      "category_key": "washer_out_of_order",
+      "comments": [
+        {
+          "author_email": "maria.perez@example.com",
+          "body": "Thanks for looking into it—please post a note on the machine when it’s back up so we know it’s safe to use.",
+          "days_ago": 11,
+          "key": "cmt_washer12_1"
+        }
+      ],
+      "days_ago": 14,
+      "description": "Washer #12 (front-load) starts filling then stops and flashes an error. Door stays locked for several minutes after it stops.",
+      "key": "iss_washer_12_error",
+      "location_key": "loc_washers_row_a",
+      "reports": [
+        {
+          "body": "Machine 12 took my payment, started, then stopped mid-fill with an error. Had to wait for the door to unlock.",
+          "consent": true,
+          "days_ago": 14,
+          "key": "rpt_washer12_1",
+          "reporter_phone": "+15551230041",
+          "source": "qr"
+        },
+        {
+          "body": "Same washer #12 is still acting up—stops after a minute and won’t run the cycle.",
+          "consent": false,
+          "days_ago": 13,
+          "key": "rpt_washer12_2",
+          "reporter_phone": null,
+          "source": "sms"
+        }
+      ],
+      "status": "in_progress",
+      "updates": [
+        {
+          "days_ago": 12,
+          "key": "upd_washer12_1",
+          "message": "Technician scheduled; machine tagged OUT OF ORDER to prevent use."
+        },
+        {
+          "days_ago": 10,
+          "key": "upd_washer12_2",
+          "message": "Diagnosed intermittent door lock sensor; parts ordered."
+        }
+      ]
+    },
+    {
+      "category_key": "dryer_out_of_order",
+      "comments": [],
+      "days_ago": 27,
+      "description": "Dryer #7 runs but produces little/no heat. Clothes still damp after two cycles.",
+      "key": "iss_dryer7_no_heat",
+      "location_key": "loc_dryers_row_1",
+      "reports": [
+        {
+          "body": "Dryer 7 spins but there’s basically no heat. Wasted $3 trying to dry towels.",
+          "consent": true,
+          "days_ago": 27,
+          "key": "rpt_dryer7_1",
+          "reporter_phone": null,
+          "source": "qr"
+        }
+      ],
+      "status": "acknowledged",
+      "updates": [
+        {
+          "days_ago": 26,
+          "key": "upd_dryer7_1",
+          "message": "Logged for service; checking heating element/thermostat and lint airflow."
+        }
+      ]
+    },
+    {
+      "category_key": "change_machine_issue",
+      "comments": [
+        {
+          "author_email": null,
+          "body": "It finally worked after I tried a different bill, but it still shouldn’t reject clean $10s.",
+          "days_ago": 44,
+          "key": "cmt_change_1"
+        }
+      ],
+      "days_ago": 46,
+      "description": "Change machine near entrance rejecting multiple bills and occasionally not dispensing quarters after accepting.",
+      "key": "iss_change_machine_rejecting",
+      "location_key": "loc_change_machine_1",
+      "reports": [
+        {
+          "body": "Change machine by the front door kept spitting back my $10 (not ripped). After it accepted once, it didn’t give quarters.",
+          "consent": true,
+          "days_ago": 46,
+          "key": "rpt_change_1",
+          "reporter_phone": "+15551230088",
+          "source": "sms"
+        },
+        {
+          "body": "Same issue—accepted a $5 and only gave some of the quarters. Please check it.",
+          "consent": false,
+          "days_ago": 45,
+          "key": "rpt_change_2",
+          "reporter_phone": null,
+          "source": "manual"
+        }
+      ],
+      "status": "fixed",
+      "updates": [
+        {
+          "days_ago": 45,
+          "key": "upd_change_1",
+          "message": "Cleared bill validator path and refilled hopper; monitoring for short-dispense."
+        },
+        {
+          "days_ago": 43,
+          "key": "upd_change_2",
+          "message": "Replaced worn belts in validator; test transactions successful."
+        }
+      ]
+    },
+    {
+      "category_key": "leak_or_water_issue",
+      "comments": [],
+      "days_ago": 9,
+      "description": "Puddle forming under/near the large-capacity washers on Row B. Floor is slick and looks like it’s spreading toward the aisle.",
+      "key": "iss_rowb_puddle",
+      "location_key": "loc_washers_row_b",
+      "reports": [
+        {
+          "body": "There’s a big puddle by the big washers (Row B). Almost slipped walking past with my basket.",
+          "consent": true,
+          "days_ago": 9,
+          "key": "rpt_rowb_1",
+          "reporter_phone": null,
+          "source": "qr"
+        }
+      ],
+      "status": "in_progress",
+      "updates": [
+        {
+          "days_ago": 9,
+          "key": "upd_rowb_1",
+          "message": "Wet floor sign placed; staff mopped and is checking for active leak source."
+        },
+        {
+          "days_ago": 8,
+          "key": "upd_rowb_2",
+          "message": "Suspected drain/standpipe backup during high-volume cycles; plumber requested."
+        }
+      ]
+    },
+    {
+      "category_key": "general_cleanliness",
+      "comments": [
+        {
+          "author_email": "kevin.lee@example.com",
+          "body": "Appreciate it—tables looked much better later that day.",
+          "days_ago": 33,
+          "key": "cmt_tables_1"
+        }
+      ],
+      "days_ago": 35,
+      "description": "Folding tables have detergent residue and lint buildup; surfaces feel sticky.",
+      "key": "iss_folding_tables_dirty",
+      "location_key": "loc_folding_area",
+      "reports": [
+        {
+          "body": "The folding tables are sticky and covered in lint. Hard to fold clean clothes on them.",
+          "consent": true,
+          "days_ago": 35,
+          "key": "rpt_tables_1",
+          "reporter_phone": null,
+          "source": "qr"
+        }
+      ],
+      "status": "fixed",
+      "updates": [
+        {
+          "days_ago": 34,
+          "key": "upd_tables_1",
+          "message": "Deep-cleaned folding tables and wiped down surrounding ledges; added mid-day wipe schedule."
+        }
+      ]
+    },
+    {
+      "category_key": "restroom_issue",
+      "comments": [],
+      "days_ago": 22,
+      "description": "Restroom sink faucet handle is loose and hard to turn off fully; water drips continuously.",
+      "key": "iss_restroom_faucet_drip",
+      "location_key": "loc_restroom",
+      "reports": [
+        {
+          "body": "Bathroom sink handle is loose and the faucet keeps dripping even when you try to shut it off.",
+          "consent": true,
+          "days_ago": 22,
+          "key": "rpt_faucet_1",
+          "reporter_phone": null,
+          "source": "sms"
+        }
+      ],
+      "status": "acknowledged",
+      "updates": [
+        {
+          "days_ago": 21,
+          "key": "upd_faucet_1",
+          "message": "Maintenance notified; planning to tighten handle and replace cartridge if needed."
+        }
+      ]
+    },
+    {
+      "category_key": "trash_overflow",
+      "comments": [],
+      "days_ago": 6,
+      "description": "Trash can near the dryers is overflowing with lint sheets and cups; debris on floor nearby.",
+      "key": "iss_trash_overflow_dryers",
+      "location_key": "loc_dryers_row_2",
+      "reports": [
+        {
+          "body": "Trash by the dryers is completely full and stuff is falling onto the floor.",
+          "consent": false,
+          "days_ago": 6,
+          "key": "rpt_trash_1",
+          "reporter_phone": null,
+          "source": "qr"
+        }
+      ],
+      "status": "fixed",
+      "updates": [
+        {
+          "days_ago": 6,
+          "key": "upd_trash_1",
+          "message": "Trash emptied and area swept; added extra liner and moved a second bin closer to lint disposal."
+        }
+      ]
+    },
+    {
+      "category_key": "vending_or_soap_dispenser",
+      "comments": [],
+      "days_ago": 58,
+      "description": "Soap vending machine is out of stock for detergent pods; selection button lights but nothing dispenses.",
+      "key": "iss_vending_out_of_stock",
+      "location_key": "loc_vending_area",
+      "reports": [
+        {
+          "body": "Tried to buy detergent pods from the vending machine—button lights up but it says sold out / nothing comes out.",
+          "consent": true,
+          "days_ago": 58,
+          "key": "rpt_vending_1",
+          "reporter_phone": null,
+          "source": "manual"
+        }
+      ],
+      "status": "fixed",
+      "updates": [
+        {
+          "days_ago": 57,
+          "key": "upd_vending_1",
+          "message": "Restocked detergent pods and tested vend; updated inventory labels."
+        }
+      ]
+    },
+    {
+      "category_key": "facility_maintenance",
+      "comments": [],
+      "days_ago": 18,
+      "description": "Several ceiling lights flickering over the center aisle; area feels dim at night.",
+      "key": "iss_lights_flicker_center",
+      "location_key": "loc_center_aisle",
+      "reports": [
+        {
+          "body": "Lights are flickering in the middle of the laundromat. Makes it hard to see if machines are clean.",
+          "consent": true,
+          "days_ago": 18,
+          "key": "rpt_lights_1",
+          "reporter_phone": null,
+          "source": "qr"
+        }
+      ],
+      "status": "in_progress",
+      "updates": [
+        {
+          "days_ago": 17,
+          "key": "upd_lights_1",
+          "message": "Identified 3 failing tubes/ballasts; replacement parts ordered."
+        }
+      ]
+    },
+    {
+      "category_key": "safety_hazard",
+      "comments": [
+        {
+          "author_email": null,
+          "body": "Thank you for putting the sign out quickly—someone could’ve really gotten hurt.",
+          "days_ago": 8,
+          "key": "cmt_safety_1"
+        }
+      ],
+      "days_ago": 9,
+      "description": "Slip hazard from water near Row B aisle. (Related to puddle report; treat as safety priority.)",
+      "key": "iss_slip_hazard_rowb",
+      "location_key": "loc_center_aisle",
+      "reports": [
+        {
+          "body": "The floor is super slippery near the big washers—please put a caution sign or mop ASAP.",
+          "consent": true,
+          "days_ago": 9,
+          "key": "rpt_safety_1",
+          "reporter_phone": null,
+          "source": "sms"
+        }
+      ],
+      "status": "acknowledged",
+      "updates": [
+        {
+          "days_ago": 9,
+          "key": "upd_safety_1",
+          "message": "Caution signage placed and area cordoned with cones while investigating leak source."
+        }
+      ]
+    },
+    {
+      "category_key": "payment_system_issue",
+      "comments": [],
+      "days_ago": 63,
+      "description": "Card reader on Dryer #14 intermittently declines cards; works after multiple retries.",
+      "key": "iss_card_reader_dryer14",
+      "location_key": "loc_dryers_row_2",
+      "reports": [
+        {
+          "body": "Tried to pay with tap on dryer 14 and it kept declining. Worked on the 4th try.",
+          "consent": true,
+          "days_ago": 63,
+          "key": "rpt_card_1",
+          "reporter_phone": null,
+          "source": "qr"
+        },
+        {
+          "body": "Dryer 14 card reader is still flaky—chip reads then errors out.",
+          "consent": false,
+          "days_ago": 62,
+          "key": "rpt_card_2",
+          "reporter_phone": null,
+          "source": "sms"
+        }
+      ],
+      "status": "fixed",
+      "updates": [
+        {
+          "days_ago": 61,
+          "key": "upd_card_1",
+          "message": "Rebooted reader and reseated network cable; updated firmware; test payments successful."
+        }
+      ]
+    },
+    {
+      "category_key": "exterior_parking",
+      "comments": [],
+      "days_ago": 74,
+      "description": "Parking lot light near the entrance is out; front area is dark after sunset.",
+      "key": "iss_parking_light_out",
+      "location_key": "loc_parking_lot",
+      "reports": [
+        {
+          "body": "The light in the parking lot by the front door is out. It’s really dark at night.",
+          "consent": true,
+          "days_ago": 74,
+          "key": "rpt_parking_1",
+          "reporter_phone": null,
+          "source": "manual"
+        }
+      ],
+      "status": "acknowledged",
+      "updates": [
+        {
+          "days_ago": 72,
+          "key": "upd_parking_1",
+          "message": "Reported to electrician/landlord for fixture check; awaiting service date."
+        }
+      ]
+    },
+    {
+      "category_key": "other",
+      "comments": [],
+      "days_ago": 29,
+      "description": "Other (note: unclear if policy or equipment): Customer requested clearer signage about last wash/last dry times; several people unsure when attendants stop assisting.",
+      "key": "iss_signage_last_call",
+      "location_key": "loc_front_entrance",
+      "reports": [
+        {
+          "body": "Can you add a sign for last wash/last dry? I wasn’t sure if I could start a load at 8:45.",
+          "consent": true,
+          "days_ago": 29,
+          "key": "rpt_signage_1",
+          "reporter_phone": null,
+          "source": "qr"
+        }
+      ],
+      "status": "new",
+      "updates": []
+    }
+  ],
+  "locations": [
+    {
+      "full_path": "Sudzy Laundromat",
+      "key": "loc_root",
+      "name": "Sudzy Laundromat"
+    },
+    {
+      "full_path": "Sudzy Laundromat / Front Entrance",
+      "key": "loc_front_entrance",
+      "name": "Front Entrance"
+    },
+    {
+      "full_path": "Sudzy Laundromat / Customer Service Counter",
+      "key": "loc_service_counter",
+      "name": "Customer Service Counter"
+    },
+    {
+      "full_path": "Sudzy Laundromat / Change Machine Area",
+      "key": "loc_change_area",
+      "name": "Change Machine Area"
+    },
+    {
+      "full_path": "Sudzy Laundromat / Change Machine Area / Change Machine #1",
+      "key": "loc_change_machine_1",
+      "name": "Change Machine #1"
+    },
+    {
+      "full_path": "Sudzy Laundromat / Washers",
+      "key": "loc_washers",
+      "name": "Washers"
+    },
+    {
+      "full_path": "Sudzy Laundromat / Washers / Washer Row A",
+      "key": "loc_washers_row_a",
+      "name": "Washer Row A"
+    },
+    {
+      "full_path": "Sudzy Laundromat / Washers / Washer Row B (Large Capacity)",
+      "key": "loc_washers_row_b",
+      "name": "Washer Row B (Large Capacity)"
+    },
+    {
+      "full_path": "Sudzy Laundromat / Dryers",
+      "key": "loc_dryers",
+      "name": "Dryers"
+    },
+    {
+      "full_path": "Sudzy Laundromat / Dryers / Dryer Row 1",
+      "key": "loc_dryers_row_1",
+      "name": "Dryer Row 1"
+    },
+    {
+      "full_path": "Sudzy Laundromat / Dryers / Dryer Row 2",
+      "key": "loc_dryers_row_2",
+      "name": "Dryer Row 2"
+    },
+    {
+      "full_path": "Sudzy Laundromat / Folding Area",
+      "key": "loc_folding_area",
+      "name": "Folding Area"
+    },
+    {
+      "full_path": "Sudzy Laundromat / Seating Area",
+      "key": "loc_seating_area",
+      "name": "Seating Area"
+    },
+    {
+      "full_path": "Sudzy Laundromat / Center Aisle",
+      "key": "loc_center_aisle",
+      "name": "Center Aisle"
+    },
+    {
+      "full_path": "Sudzy Laundromat / Restroom",
+      "key": "loc_restroom",
+      "name": "Restroom"
+    },
+    {
+      "full_path": "Sudzy Laundromat / Vending & Supplies",
+      "key": "loc_vending_area",
+      "name": "Vending & Supplies"
+    },
+    {
+      "full_path": "Sudzy Laundromat / Utility Closet (Staff Only)",
+      "key": "loc_utility_closet",
+      "name": "Utility Closet (Staff Only)"
+    },
+    {
+      "full_path": "Sudzy Laundromat / Parking Lot",
+      "key": "loc_parking_lot",
+      "name": "Parking Lot"
+    }
+  ],
+  "organization_name": "Sudzy Laundromat"
+}

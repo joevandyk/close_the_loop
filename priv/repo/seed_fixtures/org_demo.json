@@ -1,416 +1,681 @@
 {
-  "ai_business_context": "Demo Organization is a demo environment where staff practice triaging, assigning, and closing the loop on facility feedback across a small set of realistic facility locations (restrooms, break areas, offices, lobby, and exterior).",
+  "ai_business_context": "A demo environment for staff to triage and close the loop on facility feedback.",
   "ai_categorization_instructions": "Prefer specific categories. When unsure, use `other` and add a short note to internal context.",
-  "inbox_entries": [
+  "issue_categories": [
     {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "spill, leak, wet floor, slippery, puddle, mop, flooding",
+      "description": "Spills, leaks, wet floors, and slip hazards.",
+      "key": "spill_slip_hazard",
+      "label": "Spill / Slip Hazard"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "toilet, urinal, sink, faucet, hand dryer, soap, paper towel, restroom, bathroom",
+      "description": "Restroom fixtures, supplies, and cleanliness issues.",
+      "key": "restroom",
+      "label": "Restroom"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "trash, garbage, bin, overflowing, recycling, litter",
+      "description": "Trash, recycling, and waste management issues.",
+      "key": "trash_recycling",
+      "label": "Trash & Recycling"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "hvac, air conditioning, ac, heat, heating, thermostat, too hot, too cold, ventilation",
+      "description": "Heating, cooling, and ventilation comfort issues.",
+      "key": "hvac_temperature",
+      "label": "HVAC / Temperature"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "light, lighting, bulb, flicker, dark, lamp, emergency light",
+      "description": "Lighting outages, flickering, and visibility issues.",
+      "key": "lighting",
+      "label": "Lighting"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "door, lock, badge, access, keycard, gate, broken latch",
+      "description": "Doors, locks, access control, and entry issues.",
+      "key": "doors_access",
+      "label": "Doors & Access"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "elevator, lift, stuck, out of service, call button",
+      "description": "Elevator availability and safety issues.",
+      "key": "elevator",
+      "label": "Elevator"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "stairs, handrail, step, trip, uneven, carpet edge, threshold",
+      "description": "Trip hazards and walking surface issues.",
+      "key": "trip_hazard",
+      "label": "Trip Hazard / Walking Surface"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "noise, loud, music, construction, vibration",
+      "description": "Noise complaints affecting comfort or work.",
+      "key": "noise",
+      "label": "Noise"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "wifi, internet, network, printer, kiosk, screen, tablet, qr code",
+      "description": "Connectivity and shared equipment issues (printers, kiosks).",
+      "key": "it_equipment",
+      "label": "IT / Equipment"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "sign, signage, wayfinding, label, map",
+      "description": "Wayfinding and signage issues.",
+      "key": "signage_wayfinding",
+      "label": "Signage / Wayfinding"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "parking, garage, lot, pothole, stripe, charging, ev",
+      "description": "Parking areas, markings, and related amenities.",
+      "key": "parking",
+      "label": "Parking"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "safety, fire extinguisher, alarm, exit, emergency, first aid",
+      "description": "Safety equipment and emergency readiness issues.",
+      "key": "safety_emergency",
+      "label": "Safety / Emergency"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "clean, dirty, dust, vacuum, stain, odor, smell",
+      "description": "General cleanliness and odor issues outside restrooms.",
+      "key": "cleanliness",
+      "label": "Cleanliness"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": null,
+      "description": "Use when no other category fits. (When unsure, choose this and add a short note to internal context.)",
+      "key": "other",
+      "label": "Other"
+    }
+  ],
+  "issues": [
+    {
+      "category_key": "restroom",
       "comments": [
         {
-          "author_email": "jordan.lee@demo.org",
-          "body": "Thanks for jumping on this—people were slipping a bit near the sink.",
-          "days_ago": 11
+          "author_email": "maria.gomez@demo.org",
+          "body": "Thanks—this is the main restroom for visitors, so quick turnaround would be appreciated.",
+          "days_ago": 11,
+          "key": "cmt_001"
         }
       ],
-      "issue": {
-        "category": "plumbing",
-        "days_ago": 14,
-        "description": "Men’s restroom sink faucet is dripping steadily; water pooling on counter and floor near the left sink.",
-        "status": "fixed"
-      },
-      "location_full_path": "HQ / Floor 1 / Restrooms / Men's Restroom",
+      "days_ago": 12,
+      "description": "Women's restroom (1st floor) is out of paper towels; dispenser is empty and the backup stack is gone.",
+      "key": "iss_001",
+      "location_key": "loc_hq_1f_restrooms_womens",
       "reports": [
         {
-          "body": "Left sink faucet won’t fully shut off—constant drip and the counter is soaked.",
-          "days_ago": 14,
+          "body": "No paper towels in the women's restroom. Hand dryer works but a lot of people prefer towels.",
+          "consent": true,
+          "days_ago": 12,
+          "key": "rep_001a",
+          "reporter_phone": null,
           "source": "qr"
-        },
-        {
-          "body": "Still dripping today; there’s a small puddle forming on the floor by the sinks.",
-          "days_ago": 13,
-          "source": "sms"
         }
       ],
+      "status": "fixed",
       "updates": [
         {
-          "days_ago": 13,
-          "message": "Acknowledged. Placing a wet floor sign and scheduling maintenance to replace the faucet cartridge."
-        },
-        {
           "days_ago": 12,
-          "message": "Maintenance in progress: shut off water briefly and replaced cartridge/washer; tested for leaks."
+          "key": "upd_001a",
+          "message": "Acknowledged—routing to janitorial restock."
         },
         {
           "days_ago": 11,
-          "message": "Resolved. Faucet no longer drips and area dried/mopped."
+          "key": "upd_001b",
+          "message": "Restocked paper towels and added an extra backup pack in the cabinet."
         }
       ]
     },
     {
-      "comments": [
-        {
-          "author_email": "samir.patel@demo.org",
-          "body": "If we can keep a spare toner on hand in the nook, that would help too.",
-          "days_ago": 6
-        }
-      ],
-      "issue": {
-        "category": "equipment",
-        "days_ago": 9,
-        "description": "Printer in the Print & Copy Nook is leaving streaks/lines on pages; likely needs toner or drum cleaning.",
-        "status": "in_progress"
-      },
-      "location_full_path": "HQ / Floor 2 / Open Office / Print & Copy Nook",
+      "category_key": "lighting",
+      "comments": [],
+      "days_ago": 27,
+      "description": "Two overhead lights are flickering in the 2nd floor open office near the north windows.",
+      "key": "iss_002",
+      "location_key": "loc_hq_2f_open_office_north",
       "reports": [
         {
-          "body": "Printouts have a vertical black line down the left side. Happens on multiple docs.",
-          "days_ago": 9,
+          "body": "Lights flicker intermittently (especially in the afternoon). It's distracting during calls.",
+          "consent": true,
+          "days_ago": 27,
+          "key": "rep_002a",
+          "reporter_phone": null,
           "source": "qr"
         },
         {
-          "body": "Tried reprinting and it’s still streaky. Might be low toner or dirty drum.",
-          "days_ago": 8,
+          "body": "Same area—noticed one fixture is dim and then flashes bright.",
+          "consent": false,
+          "days_ago": 26,
+          "key": "rep_002b",
+          "reporter_phone": null,
           "source": "manual"
         }
       ],
+      "status": "in_progress",
       "updates": [
         {
-          "days_ago": 8,
-          "message": "Acknowledged. Ordered replacement toner and scheduled quick service check for drum/rollers."
+          "days_ago": 26,
+          "key": "upd_002a",
+          "message": "Facilities notified; ordering replacement ballast/LED driver for fixture."
         },
         {
-          "days_ago": 6,
-          "message": "In progress: toner replaced; running calibration and cleaning cycle. Monitoring next 24 hours for recurrence."
+          "days_ago": 23,
+          "key": "upd_002b",
+          "message": "Technician scheduled for this week; may require ladder access after hours."
         }
       ]
     },
     {
-      "comments": [
-        {
-          "author_email": "taylor.nguyen@demo.org",
-          "body": "It’s been pretty noticeable during afternoon meetings—thanks for addressing.",
-          "days_ago": 2
-        }
-      ],
-      "issue": {
-        "category": "electrical",
-        "days_ago": 5,
-        "description": "Conference Room A ceiling lights flicker intermittently; one panel occasionally goes dim then returns.",
-        "status": "acknowledged"
-      },
-      "location_full_path": "HQ / Floor 2 / Conference Rooms / Conference Room A",
-      "reports": [
-        {
-          "body": "Lights flicker during meetings (especially the panel closest to the door).",
-          "days_ago": 5,
-          "source": "qr"
-        },
-        {
-          "body": "Not constant, but it’s distracting on video calls. Seems worse when the room is first turned on.",
-          "days_ago": 4,
-          "source": "sms"
-        }
-      ],
-      "updates": [
-        {
-          "days_ago": 4,
-          "message": "Acknowledged. Suspected loose ballast/driver or failing LED panel. Electrician visit scheduled; please use alternate room if flicker worsens."
-        }
-      ]
-    },
-    {
+      "category_key": "spill_slip_hazard",
       "comments": [
         {
           "author_email": null,
-          "body": "Appreciate the quick cleanup—smell is gone now.",
-          "days_ago": 20
+          "body": "I put a wet floor sign there but it got moved—please keep one nearby.",
+          "days_ago": 44,
+          "key": "cmt_003"
         }
       ],
-      "issue": {
-        "category": "cleaning",
-        "days_ago": 24,
-        "description": "Main Kitchenette has overflowing trash and sticky residue on the counter near the coffee station.",
-        "status": "fixed"
-      },
-      "location_full_path": "HQ / Floor 1 / Break Areas / Main Kitchenette",
+      "days_ago": 45,
+      "description": "Water pooling near the lobby entrance on rainy days; floor gets slippery by the mat edge.",
+      "key": "iss_003",
+      "location_key": "loc_hq_1f_lobby",
       "reports": [
         {
-          "body": "Trash is overflowing and there’s spilled coffee/sugar on the counter—ants might show up if it sits.",
-          "days_ago": 24,
-          "source": "qr"
+          "body": "Rainwater is getting past the mat and pooling. Almost slipped walking in.",
+          "consent": true,
+          "days_ago": 45,
+          "key": "rep_003a",
+          "reporter_phone": "+1-555-013-2290",
+          "source": "sms"
         }
       ],
+      "status": "fixed",
       "updates": [
         {
-          "days_ago": 23,
-          "message": "Acknowledged. Notified cleaning team for same-day pickup and wipe-down."
+          "days_ago": 45,
+          "key": "upd_003a",
+          "message": "Acknowledged—placing additional absorbent mats and wet floor signage."
         },
         {
-          "days_ago": 22,
-          "message": "Resolved. Trash removed, counters disinfected, and floor spot-mopped around coffee station."
+          "days_ago": 43,
+          "key": "upd_003b",
+          "message": "Added a second mat and adjusted door sweep; monitoring during next rain."
+        },
+        {
+          "days_ago": 40,
+          "key": "upd_003c",
+          "message": "No pooling observed after adjustments; closing out."
         }
       ]
     },
     {
-      "comments": [
-        {
-          "author_email": "alex.morgan@demo.org",
-          "body": "Could we also add a small sign reminding visitors where to check in? Might reduce confusion.",
-          "days_ago": 28
-        }
-      ],
-      "issue": {
-        "category": "suggestion",
-        "days_ago": 33,
-        "description": "Add clearer wayfinding at Main Entrance directing visitors to Reception Desk (people keep walking into the lobby unsure where to go).",
-        "status": "new"
-      },
-      "location_full_path": "HQ / Floor 1 / Lobby / Main Entrance",
+      "category_key": "hvac_temperature",
+      "comments": [],
+      "days_ago": 8,
+      "description": "Conference Room B runs very cold during meetings; thermostat seems unresponsive.",
+      "key": "iss_004",
+      "location_key": "loc_hq_2f_conf_b",
       "reports": [
         {
-          "body": "Visitors keep stopping at the doors and looking around. A sign pointing to reception would help.",
+          "body": "Room B is freezing even when set to 72. Feels like air is blasting constantly.",
+          "consent": true,
+          "days_ago": 8,
+          "key": "rep_004a",
+          "reporter_phone": null,
+          "source": "qr"
+        }
+      ],
+      "status": "acknowledged",
+      "updates": [
+        {
+          "days_ago": 7,
+          "key": "upd_004a",
+          "message": "Acknowledged—checking VAV box and thermostat calibration."
+        }
+      ]
+    },
+    {
+      "category_key": "trash_recycling",
+      "comments": [],
+      "days_ago": 19,
+      "description": "Recycling bin overflowing in the 3rd floor breakroom; cardboard stacked next to it.",
+      "key": "iss_005",
+      "location_key": "loc_hq_3f_breakroom",
+      "reports": [
+        {
+          "body": "Recycling is full and people are leaving boxes on the floor. Smells a bit too.",
+          "consent": true,
+          "days_ago": 19,
+          "key": "rep_005a",
+          "reporter_phone": null,
+          "source": "qr"
+        }
+      ],
+      "status": "fixed",
+      "updates": [
+        {
+          "days_ago": 19,
+          "key": "upd_005a",
+          "message": "Janitorial notified for immediate pickup; adding extra cardboard pickup on Fridays."
+        },
+        {
+          "days_ago": 18,
+          "key": "upd_005b",
+          "message": "Cleared overflow and removed cardboard; bin liner replaced."
+        }
+      ]
+    },
+    {
+      "category_key": "doors_access",
+      "comments": [
+        {
+          "author_email": "security@demo.org",
+          "body": "If this happens again, please note the time so we can pull access logs.",
           "days_ago": 33,
+          "key": "cmt_006"
+        }
+      ],
+      "days_ago": 35,
+      "description": "Badge reader at the side entrance intermittently fails; requires multiple taps to unlock.",
+      "key": "iss_006",
+      "location_key": "loc_hq_1f_side_entrance",
+      "reports": [
+        {
+          "body": "Badge reader flashes red even with valid badge. Took 5 tries this morning.",
+          "consent": true,
+          "days_ago": 35,
+          "key": "rep_006a",
+          "reporter_phone": null,
           "source": "manual"
         },
         {
-          "body": "Had two deliveries today ask where to check in—maybe add a stand sign by the entrance.",
-          "days_ago": 31,
-          "source": "sms"
+          "body": "Same issue at ~8:40am. Eventually worked but seems flaky.",
+          "consent": false,
+          "days_ago": 34,
+          "key": "rep_006b",
+          "reporter_phone": null,
+          "source": "qr"
         }
       ],
+      "status": "in_progress",
+      "updates": [
+        {
+          "days_ago": 34,
+          "key": "upd_006a",
+          "message": "Acknowledged—security vendor contacted to inspect reader and wiring."
+        },
+        {
+          "days_ago": 31,
+          "key": "upd_006b",
+          "message": "Temporary fix applied (cleaned contacts, reseated connector). Monitoring for recurrence."
+        }
+      ]
+    },
+    {
+      "category_key": "it_equipment",
+      "comments": [],
+      "days_ago": 3,
+      "description": "Lobby QR code poster links to an old form; users get a 404 page.",
+      "key": "iss_007",
+      "location_key": "loc_hq_1f_lobby",
+      "reports": [
+        {
+          "body": "Scanned the QR in the lobby and it goes to a dead link (404).",
+          "consent": true,
+          "days_ago": 3,
+          "key": "rep_007a",
+          "reporter_phone": null,
+          "source": "qr"
+        }
+      ],
+      "status": "new",
       "updates": []
     },
     {
-      "comments": [
-        {
-          "author_email": "casey.chen@demo.org",
-          "body": "The soap dispenser is working now—thank you.",
-          "days_ago": 44
-        }
-      ],
-      "issue": {
-        "category": "plumbing",
-        "days_ago": 49,
-        "description": "Women’s restroom soap dispenser at the middle sink appears empty or clogged; no soap dispenses.",
-        "status": "fixed"
-      },
-      "location_full_path": "HQ / Floor 1 / Restrooms / Women's Restroom",
+      "category_key": "cleanliness",
+      "comments": [],
+      "days_ago": 61,
+      "description": "Carpet stain in the 2nd floor hallway near Conference Room A; looks like old coffee spill.",
+      "key": "iss_008",
+      "location_key": "loc_hq_2f_hallway_east",
       "reports": [
         {
-          "body": "Soap dispenser at the middle sink isn’t dispensing anything (pumps but nothing comes out).",
-          "days_ago": 49,
+          "body": "There’s a noticeable brown stain in the hallway carpet by Conf A. Been there for weeks.",
+          "consent": true,
+          "days_ago": 61,
+          "key": "rep_008a",
+          "reporter_phone": null,
           "source": "qr"
-        },
-        {
-          "body": "Still no soap this morning; had to use the far-right sink dispenser.",
-          "days_ago": 48,
-          "source": "sms"
         }
       ],
+      "status": "fixed",
       "updates": [
         {
-          "days_ago": 48,
-          "message": "Acknowledged. Checking for empty cartridge vs. clogged pump."
+          "days_ago": 60,
+          "key": "upd_008a",
+          "message": "Added to carpet spot-cleaning list for this week."
+        },
+        {
+          "days_ago": 56,
+          "key": "upd_008b",
+          "message": "Spot cleaned; stain significantly reduced. Scheduling deeper extraction next monthly clean."
+        },
+        {
+          "days_ago": 30,
+          "key": "upd_008c",
+          "message": "Deep extraction completed; stain removed."
+        }
+      ]
+    },
+    {
+      "category_key": "elevator",
+      "comments": [],
+      "days_ago": 22,
+      "description": "Elevator call button on 1st floor is sticky; sometimes doesn't register a press.",
+      "key": "iss_009",
+      "location_key": "loc_hq_1f_elevator_lobby",
+      "reports": [
+        {
+          "body": "The up button feels stuck and doesn't always light up when pressed.",
+          "consent": true,
+          "days_ago": 22,
+          "key": "rep_009a",
+          "reporter_phone": null,
+          "source": "qr"
+        }
+      ],
+      "status": "acknowledged",
+      "updates": [
+        {
+          "days_ago": 21,
+          "key": "upd_009a",
+          "message": "Acknowledged—submitted service request to elevator maintenance vendor."
+        }
+      ]
+    },
+    {
+      "category_key": "parking",
+      "comments": [],
+      "days_ago": 74,
+      "description": "Pothole forming near the garage exit lane; drivers swerve to avoid it.",
+      "key": "iss_010",
+      "location_key": "loc_parking_garage_level1",
+      "reports": [
+        {
+          "body": "Pothole near the exit is getting bigger. Could damage tires.",
+          "consent": true,
+          "days_ago": 74,
+          "key": "rep_010a",
+          "reporter_phone": null,
+          "source": "manual"
+        }
+      ],
+      "status": "in_progress",
+      "updates": [
+        {
+          "days_ago": 73,
+          "key": "upd_010a",
+          "message": "Acknowledged—getting quote from paving contractor; placed cone as temporary warning."
+        },
+        {
+          "days_ago": 65,
+          "key": "upd_010b",
+          "message": "Contractor scheduled for patch repair next available window (weather dependent)."
+        }
+      ]
+    },
+    {
+      "category_key": "signage_wayfinding",
+      "comments": [],
+      "days_ago": 14,
+      "description": "Wayfinding sign to 'Training Room' points the wrong direction on 2nd floor.",
+      "key": "iss_011",
+      "location_key": "loc_hq_2f_hallway_west",
+      "reports": [
+        {
+          "body": "The arrow for Training Room sends people toward the stairwell instead of the west corridor.",
+          "consent": true,
+          "days_ago": 14,
+          "key": "rep_011a",
+          "reporter_phone": null,
+          "source": "qr"
+        }
+      ],
+      "status": "fixed",
+      "updates": [
+        {
+          "days_ago": 13,
+          "key": "upd_011a",
+          "message": "Confirmed incorrect arrow; ordering replacement insert."
+        },
+        {
+          "days_ago": 9,
+          "key": "upd_011b",
+          "message": "Replaced sign insert; verified direction from both ends of hallway."
+        }
+      ]
+    },
+    {
+      "category_key": "safety_emergency",
+      "comments": [],
+      "days_ago": 6,
+      "description": "Fire extinguisher cabinet in 3rd floor hallway appears empty (no extinguisher visible).",
+      "key": "iss_012",
+      "location_key": "loc_hq_3f_hallway",
+      "reports": [
+        {
+          "body": "Cabinet glass shows no extinguisher inside. Not sure if it's missing or relocated.",
+          "consent": true,
+          "days_ago": 6,
+          "key": "rep_012a",
+          "reporter_phone": null,
+          "source": "qr"
+        }
+      ],
+      "status": "acknowledged",
+      "updates": [
+        {
+          "days_ago": 5,
+          "key": "upd_012a",
+          "message": "Acknowledged—checking inspection tags and confirming with safety vendor; will replace immediately if missing."
+        }
+      ]
+    },
+    {
+      "category_key": "noise",
+      "comments": [
+        {
+          "author_email": "facilities@demo.org",
+          "body": "If you can, please share the approximate time window so we can correlate with mechanical cycles.",
+          "days_ago": 50,
+          "key": "cmt_013"
+        }
+      ],
+      "days_ago": 52,
+      "description": "Intermittent loud rattling noise from ceiling vent near the 2nd floor kitchenette.",
+      "key": "iss_013",
+      "location_key": "loc_hq_2f_kitchenette",
+      "reports": [
+        {
+          "body": "Rattling/buzzing from the vent for ~10 minutes at a time. Happens a few times a day.",
+          "consent": true,
+          "days_ago": 52,
+          "key": "rep_013a",
+          "reporter_phone": null,
+          "source": "qr"
+        }
+      ],
+      "status": "fixed",
+      "updates": [
+        {
+          "days_ago": 51,
+          "key": "upd_013a",
+          "message": "Inspected vent grille; found loose fastener. Tightened and added foam tape to reduce vibration."
         },
         {
           "days_ago": 47,
-          "message": "In progress: replaced soap cartridge and cleared pump blockage; tested multiple pumps."
-        },
-        {
-          "days_ago": 45,
-          "message": "Resolved. Dispenser refilled and functioning normally."
+          "key": "upd_013b",
+          "message": "No further noise reported; closing."
         }
       ]
     },
     {
-      "comments": [
-        {
-          "author_email": "maria.santos@demo.org",
-          "body": "If it keeps happening, maybe the sensor needs replacement?",
-          "days_ago": 63
-        }
-      ],
-      "issue": {
-        "category": "electrical",
-        "days_ago": 67,
-        "description": "Lobby reception desk monitor power intermittently cuts out; likely loose power cable or failing power strip.",
-        "status": "in_progress"
-      },
-      "location_full_path": "HQ / Floor 1 / Lobby / Reception Desk",
+      "category_key": "trip_hazard",
+      "comments": [],
+      "days_ago": 2,
+      "description": "Loose floor transition strip at the 1st floor corridor near the mailroom; edge is lifting.",
+      "key": "iss_014",
+      "location_key": "loc_hq_1f_corridor_mailroom",
       "reports": [
         {
-          "body": "Reception monitor went black twice today; wiggling the power cable brought it back.",
-          "days_ago": 67,
-          "source": "manual"
-        },
-        {
-          "body": "Happened again—seems like the power strip under the desk is loose or overloaded.",
-          "days_ago": 66,
-          "source": "sms"
-        }
-      ],
-      "updates": [
-        {
-          "days_ago": 66,
-          "message": "Acknowledged. Checked cable seating and reduced load on the strip; monitoring for recurrence."
-        },
-        {
-          "days_ago": 64,
-          "message": "In progress: replacing power strip and adding cable management to prevent strain on connectors."
-        }
-      ]
-    },
-    {
-      "comments": [
-        {
-          "author_email": "devon.wright@demo.org",
-          "body": "Thanks—dock is safer now.",
-          "days_ago": 77
-        }
-      ],
-      "issue": {
-        "category": "cleaning",
-        "days_ago": 82,
-        "description": "Loading Dock has debris (broken pallet wood and plastic wrap) creating a trip hazard near the bay door.",
-        "status": "fixed"
-      },
-      "location_full_path": "HQ / Exterior / Loading Dock",
-      "reports": [
-        {
-          "body": "There’s broken pallet wood and plastic wrap scattered by the loading bay—easy to trip.",
-          "days_ago": 82,
+          "body": "Metal strip between tile and carpet is lifting. Caught my shoe on it.",
+          "consent": true,
+          "days_ago": 2,
+          "key": "rep_014a",
+          "reporter_phone": null,
           "source": "qr"
-        },
-        {
-          "body": "Debris still there this morning; please clear before next delivery.",
-          "days_ago": 81,
-          "source": "sms"
         }
       ],
-      "updates": [
-        {
-          "days_ago": 81,
-          "message": "Acknowledged. Facilities to clear debris and sweep dock area today."
-        },
-        {
-          "days_ago": 80,
-          "message": "Resolved. Debris removed, area swept, and a reminder sent to vendors to break down pallets properly."
-        }
-      ]
+      "status": "new",
+      "updates": []
     }
   ],
-  "issue_category_guidance": [
+  "locations": [
     {
-      "ai_exclude_keywords": null,
-      "ai_include_keywords": "leak, dripping, faucet, toilet, flush, clogged, drain, sink, water, soap dispenser",
-      "description": "Water, drains, toilets, sinks, leaks, clogs, and restroom/kitchen plumbing fixtures.",
-      "key": "plumbing"
+      "full_path": "HQ",
+      "key": "loc_hq",
+      "name": "HQ"
     },
     {
-      "ai_exclude_keywords": null,
-      "ai_include_keywords": "light, flicker, outlet, power, breaker, switch, wiring, panel, sensor",
-      "description": "Lighting, outlets, power issues, switches, breakers, and other electrical faults.",
-      "key": "electrical"
+      "full_path": "HQ / 1st Floor",
+      "key": "loc_hq_1f",
+      "name": "1st Floor"
     },
     {
-      "ai_exclude_keywords": null,
-      "ai_include_keywords": "trash, spill, dirty, odor, sticky, mop, disinfect, debris, dust",
-      "description": "Janitorial needs: trash removal, spills, odors, debris, and general cleanliness.",
-      "key": "cleaning"
+      "full_path": "HQ / 1st Floor / Lobby",
+      "key": "loc_hq_1f_lobby",
+      "name": "Lobby"
     },
     {
-      "ai_exclude_keywords": null,
-      "ai_include_keywords": "printer, copier, HVAC, thermostat, fridge, microwave, dispenser, monitor",
-      "description": "Non-plumbing/electrical equipment problems (office and breakroom equipment).",
-      "key": "equipment"
+      "full_path": "HQ / 1st Floor / Elevator Lobby",
+      "key": "loc_hq_1f_elevator_lobby",
+      "name": "Elevator Lobby"
     },
     {
-      "ai_exclude_keywords": null,
-      "ai_include_keywords": "add, improve, suggestion, would be nice, consider, signage, wayfinding",
-      "description": "Requests to improve the space or process (non-urgent enhancements).",
-      "key": "suggestion"
+      "full_path": "HQ / 1st Floor / Side Entrance",
+      "key": "loc_hq_1f_side_entrance",
+      "name": "Side Entrance"
     },
     {
-      "ai_exclude_keywords": null,
-      "ai_include_keywords": null,
-      "description": "Use when unsure; add a short note to internal context about why categorization is unclear.",
-      "key": "other"
-    }
-  ],
-  "location_specs": [
-    {
-      "name": "HQ",
-      "parent_path": null
+      "full_path": "HQ / 1st Floor / Corridor (Mailroom)",
+      "key": "loc_hq_1f_corridor_mailroom",
+      "name": "Corridor (Mailroom)"
     },
     {
-      "name": "Floor 1",
-      "parent_path": "HQ"
+      "full_path": "HQ / 1st Floor / Restrooms",
+      "key": "loc_hq_1f_restrooms",
+      "name": "Restrooms"
     },
     {
-      "name": "Floor 2",
-      "parent_path": "HQ"
+      "full_path": "HQ / 1st Floor / Restrooms / Women's",
+      "key": "loc_hq_1f_restrooms_womens",
+      "name": "Women's"
     },
     {
-      "name": "Lobby",
-      "parent_path": "HQ / Floor 1"
+      "full_path": "HQ / 2nd Floor",
+      "key": "loc_hq_2f",
+      "name": "2nd Floor"
     },
     {
-      "name": "Main Entrance",
-      "parent_path": "HQ / Floor 1 / Lobby"
+      "full_path": "HQ / 2nd Floor / Open Office (North)",
+      "key": "loc_hq_2f_open_office_north",
+      "name": "Open Office (North)"
     },
     {
-      "name": "Reception Desk",
-      "parent_path": "HQ / Floor 1 / Lobby"
+      "full_path": "HQ / 2nd Floor / Hallway (East)",
+      "key": "loc_hq_2f_hallway_east",
+      "name": "Hallway (East)"
     },
     {
-      "name": "Restrooms",
-      "parent_path": "HQ / Floor 1"
+      "full_path": "HQ / 2nd Floor / Hallway (West)",
+      "key": "loc_hq_2f_hallway_west",
+      "name": "Hallway (West)"
     },
     {
-      "name": "Men's Restroom",
-      "parent_path": "HQ / Floor 1 / Restrooms"
+      "full_path": "HQ / 2nd Floor / Kitchenette",
+      "key": "loc_hq_2f_kitchenette",
+      "name": "Kitchenette"
     },
     {
-      "name": "Women's Restroom",
-      "parent_path": "HQ / Floor 1 / Restrooms"
+      "full_path": "HQ / 2nd Floor / Conference Rooms",
+      "key": "loc_hq_2f_conf",
+      "name": "Conference Rooms"
     },
     {
-      "name": "Break Areas",
-      "parent_path": "HQ / Floor 1"
+      "full_path": "HQ / 2nd Floor / Conference Rooms / Conference Room B",
+      "key": "loc_hq_2f_conf_b",
+      "name": "Conference Room B"
     },
     {
-      "name": "Main Kitchenette",
-      "parent_path": "HQ / Floor 1 / Break Areas"
+      "full_path": "HQ / 3rd Floor",
+      "key": "loc_hq_3f",
+      "name": "3rd Floor"
     },
     {
-      "name": "Open Office",
-      "parent_path": "HQ / Floor 2"
+      "full_path": "HQ / 3rd Floor / Breakroom",
+      "key": "loc_hq_3f_breakroom",
+      "name": "Breakroom"
     },
     {
-      "name": "North Zone",
-      "parent_path": "HQ / Floor 2 / Open Office"
+      "full_path": "HQ / 3rd Floor / Hallway",
+      "key": "loc_hq_3f_hallway",
+      "name": "Hallway"
     },
     {
-      "name": "Print & Copy Nook",
-      "parent_path": "HQ / Floor 2 / Open Office"
+      "full_path": "Parking",
+      "key": "loc_parking",
+      "name": "Parking"
     },
     {
-      "name": "Conference Rooms",
-      "parent_path": "HQ / Floor 2"
-    },
-    {
-      "name": "Conference Room A",
-      "parent_path": "HQ / Floor 2 / Conference Rooms"
-    },
-    {
-      "name": "Huddle Room 2B",
-      "parent_path": "HQ / Floor 2 / Conference Rooms"
-    },
-    {
-      "name": "Exterior",
-      "parent_path": "HQ"
-    },
-    {
-      "name": "Loading Dock",
-      "parent_path": "HQ / Exterior"
+      "full_path": "Parking / Garage (Level 1)",
+      "key": "loc_parking_garage_level1",
+      "name": "Garage (Level 1)"
     }
   ],
   "organization_name": "Demo Organization"

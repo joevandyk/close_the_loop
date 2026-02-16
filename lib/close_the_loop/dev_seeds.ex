@@ -8,10 +8,7 @@ defmodule CloseTheLoop.DevSeeds do
 
   import Ecto.Query
 
-  require Ash.Query
-
   alias CloseTheLoop.Accounts.User
-  alias CloseTheLoop.Feedback
   alias CloseTheLoop.Feedback.{Issue, IssueCategory, IssueComment, IssueUpdate, Location, Report}
   alias CloseTheLoop.Repo
   alias CloseTheLoop.Tenants.Organization
@@ -59,141 +56,107 @@ defmodule CloseTheLoop.DevSeeds do
   end
 
   defp parse_fixture(
-         %{"location_specs" => loc_specs, "inbox_entries" => entries} = json,
+         %{
+           "issue_categories" => issue_categories,
+           "locations" => locations,
+           "issues" => issues
+         } = json,
          tenant_schema
        )
-       when is_list(loc_specs) and is_list(entries) do
-    if blank?(json["organization_name"]) or blank?(json["ai_business_context"]) do
-      nil
-    else
-      now = DateTime.utc_now()
-
-      location_specs =
-        Enum.map(loc_specs, fn s ->
-          %{
-            name: s["name"],
-            parent_path: s["parent_path"]
-          }
-        end)
-
-      inbox_entries =
-        Enum.map(entries, fn entry ->
-          parse_inbox_entry(entry, now)
-        end)
-
-      issue_category_guidance =
-        parse_issue_category_guidance(Map.get(json, "issue_category_guidance"))
-
-      %{
-        tenant_schema: tenant_schema,
-        organization_name: json["organization_name"],
-        ai_business_context: json["ai_business_context"],
-        ai_categorization_instructions: json["ai_categorization_instructions"],
-        location_specs: location_specs,
-        inbox_entries: inbox_entries,
-        issue_category_guidance: issue_category_guidance
-      }
-    end
-  end
-
-  defp parse_fixture(_, _), do: nil
-
-  defp blank?(nil), do: true
-  defp blank?(s) when is_binary(s), do: String.trim(s) == ""
-  defp blank?(_), do: false
-
-  defp parse_issue_category_guidance(nil), do: %{}
-
-  defp parse_issue_category_guidance(guidance) when is_map(guidance) do
-    Enum.reduce(guidance, %{}, fn {key, val}, acc ->
-      if is_map(val) do
-        Map.put(acc, key, %{
-          description: val["description"],
-          ai_include_keywords: val["ai_include_keywords"],
-          ai_exclude_keywords: val["ai_exclude_keywords"]
-        })
-      else
-        acc
-      end
-    end)
-  end
-
-  # New fixture format: list of objects with a "key" field.
-  defp parse_issue_category_guidance(guidance) when is_list(guidance) do
-    Enum.reduce(guidance, %{}, fn item, acc ->
-      if is_map(item) and is_binary(item["key"]) do
-        Map.put(acc, item["key"], %{
-          description: item["description"],
-          ai_include_keywords: item["ai_include_keywords"],
-          ai_exclude_keywords: item["ai_exclude_keywords"]
-        })
-      else
-        acc
-      end
-    end)
-  end
-
-  defp parse_inbox_entry(entry, now) do
-    issue = entry["issue"] || %{}
-    days_ago = issue["days_ago"]
-    inserted_at = if days_ago, do: DateTime.add(now, -days_ago, :day), else: nil
-
-    issue_map = %{
-      description: issue["description"],
-      status: string_to_status(issue["status"]),
-      category: issue["category"],
-      inserted_at: inserted_at
-    }
-
-    reports = Enum.map(entry["reports"] || [], fn r -> parse_report(r, now) end)
-    updates = Enum.map(entry["updates"] || [], fn u -> parse_update(u, now) end)
-    comments = Enum.map(entry["comments"] || [], fn c -> parse_comment(c, now) end)
+       when is_list(issue_categories) and is_list(locations) and is_list(issues) do
+    now = DateTime.utc_now()
 
     %{
-      location_full_path: entry["location_full_path"],
-      issue: issue_map,
-      reports: reports,
-      updates: updates,
-      comments: comments
+      tenant_schema: tenant_schema,
+      organization_name: Map.fetch!(json, "organization_name"),
+      ai_business_context: Map.fetch!(json, "ai_business_context"),
+      ai_categorization_instructions: Map.fetch!(json, "ai_categorization_instructions"),
+      issue_categories: Enum.map(issue_categories, &parse_issue_category!/1),
+      locations: Enum.map(locations, &parse_location!/1),
+      issues: Enum.map(issues, fn issue -> parse_issue!(issue, now) end)
     }
   end
 
-  defp string_to_status(nil), do: :new
-  defp string_to_status("new"), do: :new
-  defp string_to_status("acknowledged"), do: :acknowledged
-  defp string_to_status("in_progress"), do: :in_progress
-  defp string_to_status("fixed"), do: :fixed
-  defp string_to_status(_), do: :new
+  defp parse_issue_category!(category) when is_map(category) do
+    %{
+      key: Map.fetch!(category, "key"),
+      label: Map.fetch!(category, "label"),
+      description: Map.fetch!(category, "description"),
+      ai_include_keywords: Map.fetch!(category, "ai_include_keywords"),
+      ai_exclude_keywords: Map.fetch!(category, "ai_exclude_keywords"),
+      active: Map.fetch!(category, "active")
+    }
+  end
 
-  defp string_to_source(nil), do: :qr
-  defp string_to_source("qr"), do: :qr
-  defp string_to_source("sms"), do: :sms
-  defp string_to_source("manual"), do: :manual
-  defp string_to_source(_), do: :qr
+  defp parse_location!(location) when is_map(location) do
+    %{
+      key: Map.fetch!(location, "key"),
+      name: Map.fetch!(location, "name"),
+      full_path: Map.fetch!(location, "full_path")
+    }
+  end
 
-  defp parse_report(r, now) do
-    days_ago = r["days_ago"]
-    inserted_at = if days_ago, do: DateTime.add(now, -days_ago, :day), else: nil
+  defp parse_issue!(issue, now) when is_map(issue) do
+    days_ago = Map.fetch!(issue, "days_ago")
+    inserted_at = DateTime.add(now, -days_ago, :day)
 
     %{
-      body: r["body"],
-      source: string_to_source(r["source"]),
-      consent: Map.get(r, "consent", false),
-      reporter_phone: r["reporter_phone"],
+      key: Map.fetch!(issue, "key"),
+      location_key: Map.fetch!(issue, "location_key"),
+      description: Map.fetch!(issue, "description"),
+      status: string_to_status!(Map.fetch!(issue, "status")),
+      category: Map.fetch!(issue, "category_key"),
+      inserted_at: inserted_at,
+      reports: Enum.map(Map.fetch!(issue, "reports"), fn r -> parse_report!(r, now) end),
+      updates: Enum.map(Map.fetch!(issue, "updates"), fn u -> parse_update!(u, now) end),
+      comments: Enum.map(Map.fetch!(issue, "comments"), fn c -> parse_comment!(c, now) end)
+    }
+  end
+
+  defp string_to_status!("new"), do: :new
+  defp string_to_status!("acknowledged"), do: :acknowledged
+  defp string_to_status!("in_progress"), do: :in_progress
+  defp string_to_status!("fixed"), do: :fixed
+
+  defp string_to_source!("qr"), do: :qr
+  defp string_to_source!("sms"), do: :sms
+  defp string_to_source!("manual"), do: :manual
+
+  defp parse_report!(report, now) when is_map(report) do
+    days_ago = Map.fetch!(report, "days_ago")
+    inserted_at = DateTime.add(now, -days_ago, :day)
+
+    %{
+      key: Map.fetch!(report, "key"),
+      body: Map.fetch!(report, "body"),
+      source: string_to_source!(Map.fetch!(report, "source")),
+      consent: Map.fetch!(report, "consent"),
+      reporter_phone: Map.fetch!(report, "reporter_phone"),
       inserted_at: inserted_at
     }
   end
 
-  defp parse_update(u, now) when is_map(u) do
-    days_ago = u["days_ago"]
-    inserted_at = if days_ago, do: DateTime.add(now, -days_ago, :day), else: nil
-    %{message: u["message"], inserted_at: inserted_at}
+  defp parse_update!(update, now) when is_map(update) do
+    days_ago = Map.fetch!(update, "days_ago")
+    inserted_at = DateTime.add(now, -days_ago, :day)
+
+    %{
+      key: Map.fetch!(update, "key"),
+      message: Map.fetch!(update, "message"),
+      inserted_at: inserted_at
+    }
   end
 
-  defp parse_comment(c, now) when is_map(c) do
-    days_ago = c["days_ago"]
-    inserted_at = if days_ago, do: DateTime.add(now, -days_ago, :day), else: nil
-    %{body: c["body"], author_email: c["author_email"], inserted_at: inserted_at}
+  defp parse_comment!(comment, now) when is_map(comment) do
+    days_ago = Map.fetch!(comment, "days_ago")
+    inserted_at = DateTime.add(now, -days_ago, :day)
+
+    %{
+      key: Map.fetch!(comment, "key"),
+      body: Map.fetch!(comment, "body"),
+      author_email: Map.fetch!(comment, "author_email"),
+      inserted_at: inserted_at
+    }
   end
 
   @doc """
@@ -290,77 +253,113 @@ defmodule CloseTheLoop.DevSeeds do
   end
 
   defp seed_tenant!(tenant, config) when is_binary(tenant) and is_map(config) do
-    :ok = Feedback.Categories.ensure_defaults(tenant)
-    :ok = seed_issue_category_guidance!(tenant, Map.get(config, :issue_category_guidance, %{}))
-
-    locations_by_path = seed_locations!(tenant, config.location_specs)
-    seed_inbox_examples!(tenant, locations_by_path, config.inbox_entries)
+    seed_issue_categories!(tenant, config.issue_categories)
+    locations_by_key = seed_locations_from_keyed_list!(tenant, config.locations)
+    seed_issues!(tenant, locations_by_key, config.issues)
 
     :ok
   end
 
-  defp seed_locations!(tenant, location_specs) do
-    Enum.reduce(location_specs, %{}, fn spec, acc ->
-      full_path = if spec.parent_path, do: spec.parent_path <> " / " <> spec.name, else: spec.name
-      parent_id = if spec.parent_path, do: Map.get(acc, spec.parent_path).id, else: nil
-      attrs = %{name: spec.name, full_path: full_path} |> maybe_put(:parent_id, parent_id)
-      location = Ash.create!(Location, attrs, tenant: tenant)
-      Map.put(acc, full_path, location)
+  defp seed_issue_categories!(tenant, issue_categories) when is_list(issue_categories) do
+    Enum.each(issue_categories, fn attrs ->
+      Ash.create!(IssueCategory, attrs, tenant: tenant)
     end)
+
+    :ok
+  end
+
+  defp seed_locations_from_keyed_list!(tenant, locations) when is_list(locations) do
+    keyed_by_full_path = Map.new(locations, &{&1.full_path, &1})
+
+    all_paths =
+      locations
+      |> Enum.flat_map(&location_prefixes(&1.full_path))
+      |> Enum.uniq()
+      |> Enum.sort_by(fn path -> path |> String.split(" / ", trim: true) |> length() end)
+
+    {by_key, _by_full_path} =
+      Enum.reduce(all_paths, {%{}, %{}}, fn full_path, {by_key, by_full_path} ->
+        parts = String.split(full_path, " / ", trim: true)
+
+        parent_full_path =
+          case parts do
+            [_] -> nil
+            _ -> parts |> Enum.drop(-1) |> Enum.join(" / ")
+          end
+
+        parent_id =
+          if parent_full_path do
+            Map.fetch!(by_full_path, parent_full_path).id
+          else
+            nil
+          end
+
+        name =
+          case Map.get(keyed_by_full_path, full_path) do
+            nil -> List.last(parts)
+            loc -> loc.name
+          end
+
+        attrs =
+          %{name: name, full_path: full_path}
+          |> maybe_put(:parent_id, parent_id)
+
+        created = Ash.create!(Location, attrs, tenant: tenant)
+        by_full_path = Map.put(by_full_path, full_path, created)
+
+        by_key =
+          case Map.get(keyed_by_full_path, full_path) do
+            nil -> by_key
+            loc -> Map.put(by_key, loc.key, created)
+          end
+
+        {by_key, by_full_path}
+      end)
+
+    by_key
+  end
+
+  defp location_prefixes(full_path) when is_binary(full_path) do
+    parts = String.split(full_path, " / ", trim: true)
+
+    {prefixes, _} =
+      Enum.reduce(parts, {[], ""}, fn part, {acc, prev} ->
+        current = if prev == "", do: part, else: prev <> " / " <> part
+        {[current | acc], current}
+      end)
+
+    Enum.reverse(prefixes)
   end
 
   defp maybe_put(map, _key, nil), do: map
   defp maybe_put(map, key, value), do: Map.put(map, key, value)
 
-  defp seed_issue_category_guidance!(tenant, guidance) when is_map(guidance) do
-    Enum.each(guidance, fn {key, attrs} ->
-      cat =
-        IssueCategory
-        |> Ash.Query.filter(key == ^key)
-        |> Ash.read_one!(tenant: tenant)
+  defp seed_issues!(tenant, locations_by_key, issues) do
+    for issue_entry <- issues do
+      location = Map.fetch!(locations_by_key, issue_entry.location_key)
+      issue = create_issue!(tenant, location, issue_entry)
 
-      if cat do
-        _ = Ash.update(cat, attrs, action: :update, tenant: tenant)
-      end
-    end)
+      backdate_record!(tenant, "issues", issue.id,
+        inserted_at: issue_entry.inserted_at,
+        updated_at: issue_entry.inserted_at
+      )
 
-    :ok
-  end
-
-  defp seed_inbox_examples!(tenant, locations_by_path, inbox_entries) do
-    for entry <- inbox_entries do
-      location = Map.fetch!(locations_by_path, entry.location_full_path)
-      issue_attrs = entry.issue
-      issue = create_issue!(tenant, location, issue_attrs)
-
-      if issue_attrs[:inserted_at],
-        do:
-          backdate_record!(tenant, "issues", issue.id,
-            inserted_at: issue_attrs.inserted_at,
-            updated_at: issue_attrs.inserted_at
-          )
-
-      for r <- entry.reports do
+      for r <- issue_entry.reports do
         report = create_report!(tenant, issue, location, r)
 
-        if r[:inserted_at],
-          do: backdate_record!(tenant, "reports", report.id, inserted_at: r.inserted_at)
+        backdate_record!(tenant, "reports", report.id, inserted_at: r.inserted_at)
       end
 
-      for u <- entry.updates do
+      for u <- issue_entry.updates do
         update = create_issue_update!(tenant, issue, u)
 
-        if inserted_at = u[:inserted_at] do
-          backdate_record!(tenant, "issue_updates", update.id, inserted_at: inserted_at)
-        end
+        backdate_record!(tenant, "issue_updates", update.id, inserted_at: u.inserted_at)
       end
 
-      for c <- entry.comments do
+      for c <- issue_entry.comments do
         comment = create_issue_comment!(tenant, issue, c)
 
-        if inserted_at = c[:inserted_at] do
-          backdate_record!(tenant, "issue_comments", comment.id, inserted_at: inserted_at)
-        end
+        backdate_record!(tenant, "issue_comments", comment.id, inserted_at: c.inserted_at)
       end
     end
 
@@ -394,8 +393,8 @@ defmodule CloseTheLoop.DevSeeds do
         issue_id: issue.id,
         body: body,
         normalized_body: normalize_text(body),
-        source: Map.get(attrs, :source, :qr),
-        consent: Map.get(attrs, :consent, false),
+        source: Map.fetch!(attrs, :source),
+        consent: Map.fetch!(attrs, :consent),
         reporter_phone: attrs[:reporter_phone]
       },
       tenant: tenant

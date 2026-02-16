@@ -11,47 +11,10 @@ defmodule CloseTheLoop.AI do
 
   require Ash.Query
 
-  @doc false
-  def completion_token_opts(model, limit)
-      when is_binary(model) and is_integer(limit) and limit > 0 do
-    [{completion_token_key(model), limit}]
-  end
-
-  defp completion_token_key(model) do
-    # OpenAI "reasoning" and newest models don't accept `max_tokens` in Chat Completions.
-    # They require `max_completion_tokens` instead.
-    if String.starts_with?(model, ["gpt-5", "o1", "o3"]) do
-      :max_completion_tokens
-    else
-      :max_tokens
-    end
-  end
-
   defp create_chat_completion(openai, opts, limit) do
-    req =
-      Chat.Completions.new(opts ++ completion_token_opts(Keyword.fetch!(opts, :model), limit))
-
-    case openai |> Chat.Completions.create(req) do
-      {:error, %OpenaiEx.Error{code: "unsupported_parameter", param: "max_tokens"}} ->
-        # Retry once with the alternate token param to be robust to model changes.
-        req2 =
-          Chat.Completions.new(
-            Keyword.delete(opts, :max_tokens) ++ [max_completion_tokens: limit]
-          )
-
-        openai |> Chat.Completions.create(req2)
-
-      {:error, %OpenaiEx.Error{code: "unsupported_parameter", param: "max_completion_tokens"}} ->
-        req2 =
-          Chat.Completions.new(
-            Keyword.delete(opts, :max_completion_tokens) ++ [max_tokens: limit]
-          )
-
-        openai |> Chat.Completions.create(req2)
-
-      other ->
-        other
-    end
+    # We standardize on max_completion_tokens (newer OpenAI models).
+    req = Chat.Completions.new(opts ++ [max_completion_tokens: limit])
+    openai |> Chat.Completions.create(req)
   end
 
   @spec categorize_issue(String.t(), binary()) :: {:ok, String.t()} | {:error, term()}
@@ -98,12 +61,6 @@ defmodule CloseTheLoop.AI do
             {:error, {:unexpected_openai_response, other}}
         end
     end
-  end
-
-  # Backwards-compatible wrapper for callers that don't have tenant context.
-  @spec categorize_issue(String.t()) :: {:ok, String.t()} | {:error, term()}
-  def categorize_issue(text) when is_binary(text) do
-    categorize_issue(text, "public")
   end
 
   @spec match_duplicate_issue(String.t(), list(map())) ::

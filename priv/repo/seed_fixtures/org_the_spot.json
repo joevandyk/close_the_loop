@@ -1,0 +1,672 @@
+{
+  "ai_business_context": "The Spot is a new restaurant with a dining room, kitchen, bar, and patio. Customers and staff submit feedback about service quality, cleanliness, and facility/maintenance issues across front-of-house and back-of-house areas.",
+  "ai_categorization_instructions": "Prefer specific categories. When unsure, use `other` and add a short note to internal context.",
+  "issue_categories": [
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "slow service, wait time, took forever, server, hostess, seating, forgot, check, bill, refills",
+      "description": "Speed, attentiveness, seating flow, and general service experience.",
+      "key": "service_speed_attentiveness",
+      "label": "Service (Speed & Attentiveness)"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "rude, attitude, unfriendly, manager, staff behavior, professionalism",
+      "description": "Staff demeanor, professionalism, and guest interactions.",
+      "key": "staff_behavior",
+      "label": "Staff Behavior"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "dirty, sticky, crumbs, spill, trash, bathroom, restroom, smell, flies, gnats, sanitizer",
+      "description": "Cleanliness and hygiene issues in guest and staff areas.",
+      "key": "cleanliness_hygiene",
+      "label": "Cleanliness & Hygiene"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "bathroom, restroom, toilet, sink, soap, paper towels, hand dryer, clogged",
+      "description": "Restroom-specific maintenance and supplies.",
+      "key": "restroom_issues",
+      "label": "Restroom Issues"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "cold, hot, AC, air conditioning, heater, temperature, draft, ventilation",
+      "description": "HVAC comfort issues in dining, bar, and patio-adjacent areas.",
+      "key": "temperature_hvac",
+      "label": "Temperature / HVAC"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "light, lighting, flicker, too dark, bulb, outlet, power, breaker",
+      "description": "Lighting and electrical problems.",
+      "key": "lighting_electrical",
+      "label": "Lighting & Electrical"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "leak, plumbing, faucet, drain, clogged, water, ice machine leak",
+      "description": "Plumbing and water-related maintenance issues.",
+      "key": "plumbing_water",
+      "label": "Plumbing / Water"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "broken chair, wobbly table, booth, torn, furniture, high chair",
+      "description": "Tables, chairs, booths, and other guest furniture issues.",
+      "key": "furniture_seating",
+      "label": "Furniture & Seating"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "door, lock, handle, window, patio gate, entrance",
+      "description": "Doors, locks, and access hardware issues.",
+      "key": "doors_access",
+      "label": "Doors & Access"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "music too loud, noise, speaker, tv volume",
+      "description": "Noise level, music volume, and audio system issues.",
+      "key": "noise_music",
+      "label": "Noise / Music"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "food cold, undercooked, overcooked, wrong order, allergy, quality, taste",
+      "description": "Food quality, accuracy, and safety concerns.",
+      "key": "food_quality_accuracy",
+      "label": "Food Quality / Order Accuracy"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "drink, cocktail, beer, wine, flat, warm beer, wrong drink",
+      "description": "Beverage quality and bar execution issues.",
+      "key": "beverage_quality",
+      "label": "Beverage Quality"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "wifi, internet, qr code, online menu, payment terminal, card reader, POS",
+      "description": "Guest-facing tech and payment issues.",
+      "key": "tech_payment",
+      "label": "Tech / Payment"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "safety, hazard, slippery, broken glass, emergency exit, fire extinguisher",
+      "description": "Safety hazards and compliance concerns.",
+      "key": "safety_hazards",
+      "label": "Safety Hazards"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": null,
+      "description": "Use when category is unclear; add a short note in internal context.",
+      "key": "other",
+      "label": "Other"
+    }
+  ],
+  "issues": [
+    {
+      "category_key": "restroom_issues",
+      "comments": [
+        {
+          "author_email": "manager@thespot.example",
+          "body": "Thanks for flagging—restroom supplies should be checked hourly. We’re updating the checklist.",
+          "days_ago": 11,
+          "key": "cmt_001"
+        }
+      ],
+      "days_ago": 12,
+      "description": "Women’s restroom: out of paper towels and the soap dispenser is nearly empty.",
+      "key": "iss_001",
+      "location_key": "loc_restrooms_womens",
+      "reports": [
+        {
+          "body": "No paper towels in the women’s bathroom and the soap barely comes out.",
+          "consent": true,
+          "days_ago": 12,
+          "key": "rep_001a",
+          "reporter_phone": "+15551230011",
+          "source": "qr"
+        }
+      ],
+      "status": "fixed",
+      "updates": [
+        {
+          "days_ago": 11,
+          "key": "upd_001a",
+          "message": "Restocked paper towels and refilled soap. Added to hourly restroom check sheet."
+        }
+      ]
+    },
+    {
+      "category_key": "cleanliness_hygiene",
+      "comments": [],
+      "days_ago": 27,
+      "description": "Dining room table surfaces feel sticky, especially near the window seating.",
+      "key": "iss_002",
+      "location_key": "loc_dining_window",
+      "reports": [
+        {
+          "body": "Our table was sticky like it wasn’t wiped with cleaner. Not a huge deal but noticeable.",
+          "consent": true,
+          "days_ago": 27,
+          "key": "rep_002a",
+          "reporter_phone": null,
+          "source": "qr"
+        },
+        {
+          "body": "Same—window-side tables feel tacky. Might be the cleaner leaving residue?",
+          "consent": false,
+          "days_ago": 26,
+          "key": "rep_002b",
+          "reporter_phone": null,
+          "source": "sms"
+        }
+      ],
+      "status": "acknowledged",
+      "updates": [
+        {
+          "days_ago": 25,
+          "key": "upd_002a",
+          "message": "Team reminded to use fresh sanitizer buckets and finish with a clean dry wipe to prevent residue."
+        }
+      ]
+    },
+    {
+      "category_key": "service_speed_attentiveness",
+      "comments": [
+        {
+          "author_email": null,
+          "body": "Food was great once it came, but we waited a long time just to get water refills.",
+          "days_ago": 44,
+          "key": "cmt_003"
+        }
+      ],
+      "days_ago": 45,
+      "description": "Slow drink refills and long wait to get the check during dinner rush.",
+      "key": "iss_003",
+      "location_key": "loc_dining_main",
+      "reports": [
+        {
+          "body": "Waited ~20 minutes for the check and had to ask twice for water refills.",
+          "consent": true,
+          "days_ago": 45,
+          "key": "rep_003a",
+          "reporter_phone": "+15551230022",
+          "source": "qr"
+        }
+      ],
+      "status": "in_progress",
+      "updates": [
+        {
+          "days_ago": 43,
+          "key": "upd_003a",
+          "message": "Shift lead reviewing section assignments and adding a dedicated runner during peak 6–8pm."
+        }
+      ]
+    },
+    {
+      "category_key": "temperature_hvac",
+      "comments": [],
+      "days_ago": 18,
+      "description": "Dining room feels unusually cold near the entrance; noticeable draft when the door opens.",
+      "key": "iss_004",
+      "location_key": "loc_entry_host_stand",
+      "reports": [
+        {
+          "body": "It was chilly by the front door—drafty enough that we kept our jackets on.",
+          "consent": true,
+          "days_ago": 18,
+          "key": "rep_004a",
+          "reporter_phone": null,
+          "source": "qr"
+        }
+      ],
+      "status": "acknowledged",
+      "updates": [
+        {
+          "days_ago": 17,
+          "key": "upd_004a",
+          "message": "Noted draft near entry. Checking door sweep and adjusting HVAC vent direction for front zone."
+        }
+      ]
+    },
+    {
+      "category_key": "doors_access",
+      "comments": [],
+      "days_ago": 33,
+      "description": "Patio door handle is loose and the door sticks when closing.",
+      "key": "iss_005",
+      "location_key": "loc_patio_door",
+      "reports": [
+        {
+          "body": "The patio door handle wiggles a lot and the door sticks—hard to close behind you.",
+          "consent": false,
+          "days_ago": 33,
+          "key": "rep_005a",
+          "reporter_phone": null,
+          "source": "manual"
+        }
+      ],
+      "status": "in_progress",
+      "updates": [
+        {
+          "days_ago": 31,
+          "key": "upd_005a",
+          "message": "Temporary tightening completed; parts ordered for full handle/strike plate replacement."
+        }
+      ]
+    },
+    {
+      "category_key": "lighting_electrical",
+      "comments": [],
+      "days_ago": 9,
+      "description": "Light above the bar flickers intermittently, especially later at night.",
+      "key": "iss_006",
+      "location_key": "loc_bar_counter",
+      "reports": [
+        {
+          "body": "One of the pendant lights over the bar kept flickering—kind of distracting.",
+          "consent": true,
+          "days_ago": 9,
+          "key": "rep_006a",
+          "reporter_phone": null,
+          "source": "qr"
+        }
+      ],
+      "status": "new",
+      "updates": []
+    },
+    {
+      "category_key": "plumbing_water",
+      "comments": [
+        {
+          "author_email": "barlead@thespot.example",
+          "body": "We’ve been mopping it up but it keeps coming back. Please prioritize—slip risk.",
+          "days_ago": 21,
+          "key": "cmt_007"
+        }
+      ],
+      "days_ago": 22,
+      "description": "Small leak under the bar sink causing a wet floor behind the bar.",
+      "key": "iss_007",
+      "location_key": "loc_bar_service_station",
+      "reports": [
+        {
+          "body": "There’s water pooling under the bar sink again. Floor gets slick behind the bar.",
+          "consent": true,
+          "days_ago": 22,
+          "key": "rep_007a",
+          "reporter_phone": "+15551230033",
+          "source": "manual"
+        }
+      ],
+      "status": "acknowledged",
+      "updates": [
+        {
+          "days_ago": 20,
+          "key": "upd_007a",
+          "message": "Placed absorbent mat and caution sign; maintenance scheduled to inspect trap and supply lines."
+        }
+      ]
+    },
+    {
+      "category_key": "food_quality_accuracy",
+      "comments": [],
+      "days_ago": 58,
+      "description": "Burger order came out undercooked compared to requested temperature.",
+      "key": "iss_008",
+      "location_key": "loc_dining_main",
+      "reports": [
+        {
+          "body": "Asked for medium, it was closer to rare. Server fixed it, but wanted to mention.",
+          "consent": true,
+          "days_ago": 58,
+          "key": "rep_008a",
+          "reporter_phone": null,
+          "source": "qr"
+        }
+      ],
+      "status": "fixed",
+      "updates": [
+        {
+          "days_ago": 56,
+          "key": "upd_008a",
+          "message": "Kitchen reviewed temp chart and added a quick call-back step for burger temps during rush."
+        }
+      ]
+    },
+    {
+      "category_key": "beverage_quality",
+      "comments": [],
+      "days_ago": 41,
+      "description": "Draft beer pours with too much foam; pints coming up short.",
+      "key": "iss_009",
+      "location_key": "loc_bar_counter",
+      "reports": [
+        {
+          "body": "My IPA was like half foam. Bartender repoured but it happened twice.",
+          "consent": true,
+          "days_ago": 41,
+          "key": "rep_009a",
+          "reporter_phone": null,
+          "source": "qr"
+        },
+        {
+          "body": "Noticed the taps seem off—lots of foam on multiple beers.",
+          "consent": false,
+          "days_ago": 40,
+          "key": "rep_009b",
+          "reporter_phone": null,
+          "source": "manual"
+        }
+      ],
+      "status": "in_progress",
+      "updates": [
+        {
+          "days_ago": 39,
+          "key": "upd_009a",
+          "message": "Checked keg temps and CO2 pressure; scheduled line cleaning and regulator calibration."
+        }
+      ]
+    },
+    {
+      "category_key": "furniture_seating",
+      "comments": [],
+      "days_ago": 6,
+      "description": "Wobbly two-top table on the patio; feels unstable when leaning on it.",
+      "key": "iss_010",
+      "location_key": "loc_patio_seating",
+      "reports": [
+        {
+          "body": "Patio table near the string lights wobbles a lot—spilled my drink a bit.",
+          "consent": true,
+          "days_ago": 6,
+          "key": "rep_010a",
+          "reporter_phone": null,
+          "source": "qr"
+        }
+      ],
+      "status": "acknowledged",
+      "updates": [
+        {
+          "days_ago": 5,
+          "key": "upd_010a",
+          "message": "Tagged table for repair; adding shims now and replacing base if needed."
+        }
+      ]
+    },
+    {
+      "category_key": "noise_music",
+      "comments": [],
+      "days_ago": 14,
+      "description": "Music volume in the dining room is too loud for conversation during lunch.",
+      "key": "iss_011",
+      "location_key": "loc_dining_main",
+      "reports": [
+        {
+          "body": "Could barely hear my friend across the table—music was blasting at noon.",
+          "consent": true,
+          "days_ago": 14,
+          "key": "rep_011a",
+          "reporter_phone": null,
+          "source": "sms"
+        }
+      ],
+      "status": "fixed",
+      "updates": [
+        {
+          "days_ago": 13,
+          "key": "upd_011a",
+          "message": "Set daytime volume cap and created lunch/dinner presets on the audio system."
+        }
+      ]
+    },
+    {
+      "category_key": "tech_payment",
+      "comments": [],
+      "days_ago": 29,
+      "description": "QR code menu link on patio table tent leads to a 404 page.",
+      "key": "iss_012",
+      "location_key": "loc_patio_seating",
+      "reports": [
+        {
+          "body": "Scanned the QR on the patio and it said page not found. Had to ask for a paper menu.",
+          "consent": true,
+          "days_ago": 29,
+          "key": "rep_012a",
+          "reporter_phone": null,
+          "source": "qr"
+        }
+      ],
+      "status": "fixed",
+      "updates": [
+        {
+          "days_ago": 28,
+          "key": "upd_012a",
+          "message": "Updated QR redirect and replaced patio table tents with corrected codes."
+        }
+      ]
+    },
+    {
+      "category_key": "safety_hazards",
+      "comments": [],
+      "days_ago": 36,
+      "description": "Spill near the soda station wasn’t marked; floor was slippery.",
+      "key": "iss_013",
+      "location_key": "loc_dining_soda_station",
+      "reports": [
+        {
+          "body": "Almost slipped by the soda/ice area—there was a puddle and no wet floor sign.",
+          "consent": true,
+          "days_ago": 36,
+          "key": "rep_013a",
+          "reporter_phone": null,
+          "source": "qr"
+        }
+      ],
+      "status": "fixed",
+      "updates": [
+        {
+          "days_ago": 35,
+          "key": "upd_013a",
+          "message": "Reinforced spill response: immediate cone placement + mop. Added extra wet-floor signs near soda station."
+        }
+      ]
+    },
+    {
+      "category_key": "cleanliness_hygiene",
+      "comments": [],
+      "days_ago": 63,
+      "description": "Patio area has gnats/flies around the trash can; noticeable odor.",
+      "key": "iss_014",
+      "location_key": "loc_patio_trash",
+      "reports": [
+        {
+          "body": "Lots of little flies by the patio trash and it smelled. Might need more frequent emptying.",
+          "consent": false,
+          "days_ago": 63,
+          "key": "rep_014a",
+          "reporter_phone": null,
+          "source": "qr"
+        }
+      ],
+      "status": "in_progress",
+      "updates": [
+        {
+          "days_ago": 61,
+          "key": "upd_014a",
+          "message": "Increased patio trash pull frequency and added lid + deodorizer. Pest control consult scheduled."
+        }
+      ]
+    },
+    {
+      "category_key": "service_speed_attentiveness",
+      "comments": [],
+      "days_ago": 3,
+      "description": "Host stand: long wait to be greeted despite open tables.",
+      "key": "iss_015",
+      "location_key": "loc_entry_host_stand",
+      "reports": [
+        {
+          "body": "We stood at the host stand for about 7 minutes before anyone acknowledged us. There were empty tables.",
+          "consent": true,
+          "days_ago": 3,
+          "key": "rep_015a",
+          "reporter_phone": "+15551230044",
+          "source": "sms"
+        }
+      ],
+      "status": "new",
+      "updates": []
+    },
+    {
+      "category_key": "other",
+      "comments": [],
+      "days_ago": 52,
+      "description": "Suggestion: add hooks under the bar for purses/bags. (Other: guest convenience request.)",
+      "key": "iss_016",
+      "location_key": "loc_bar_counter",
+      "reports": [
+        {
+          "body": "Would love small hooks under the bar stools for purses—nowhere to put a bag except the floor.",
+          "consent": true,
+          "days_ago": 52,
+          "key": "rep_016a",
+          "reporter_phone": null,
+          "source": "qr"
+        }
+      ],
+      "status": "acknowledged",
+      "updates": [
+        {
+          "days_ago": 50,
+          "key": "upd_016a",
+          "message": "Noted as a potential small improvement; pricing out discreet under-bar hooks."
+        }
+      ]
+    }
+  ],
+  "locations": [
+    {
+      "full_path": "The Spot",
+      "key": "loc_root",
+      "name": "The Spot"
+    },
+    {
+      "full_path": "The Spot / Entrance",
+      "key": "loc_entrance",
+      "name": "Entrance"
+    },
+    {
+      "full_path": "The Spot / Entrance / Host Stand",
+      "key": "loc_entry_host_stand",
+      "name": "Host Stand"
+    },
+    {
+      "full_path": "The Spot / Dining Room",
+      "key": "loc_dining",
+      "name": "Dining Room"
+    },
+    {
+      "full_path": "The Spot / Dining Room / Main Floor",
+      "key": "loc_dining_main",
+      "name": "Main Floor"
+    },
+    {
+      "full_path": "The Spot / Dining Room / Window Seating",
+      "key": "loc_dining_window",
+      "name": "Window Seating"
+    },
+    {
+      "full_path": "The Spot / Dining Room / Soda Station",
+      "key": "loc_dining_soda_station",
+      "name": "Soda Station"
+    },
+    {
+      "full_path": "The Spot / Bar",
+      "key": "loc_bar",
+      "name": "Bar"
+    },
+    {
+      "full_path": "The Spot / Bar / Bar Counter",
+      "key": "loc_bar_counter",
+      "name": "Bar Counter"
+    },
+    {
+      "full_path": "The Spot / Bar / Service Station",
+      "key": "loc_bar_service_station",
+      "name": "Service Station"
+    },
+    {
+      "full_path": "The Spot / Kitchen",
+      "key": "loc_kitchen",
+      "name": "Kitchen"
+    },
+    {
+      "full_path": "The Spot / Kitchen / Line",
+      "key": "loc_kitchen_line",
+      "name": "Line"
+    },
+    {
+      "full_path": "The Spot / Kitchen / Dish Pit",
+      "key": "loc_kitchen_dish",
+      "name": "Dish Pit"
+    },
+    {
+      "full_path": "The Spot / Restrooms",
+      "key": "loc_restrooms",
+      "name": "Restrooms"
+    },
+    {
+      "full_path": "The Spot / Restrooms / Women's Restroom",
+      "key": "loc_restrooms_womens",
+      "name": "Women's Restroom"
+    },
+    {
+      "full_path": "The Spot / Restrooms / Men's Restroom",
+      "key": "loc_restrooms_mens",
+      "name": "Men's Restroom"
+    },
+    {
+      "full_path": "The Spot / Patio",
+      "key": "loc_patio",
+      "name": "Patio"
+    },
+    {
+      "full_path": "The Spot / Patio / Seating Area",
+      "key": "loc_patio_seating",
+      "name": "Seating Area"
+    },
+    {
+      "full_path": "The Spot / Patio / Patio Door",
+      "key": "loc_patio_door",
+      "name": "Patio Door"
+    },
+    {
+      "full_path": "The Spot / Patio / Trash & Bus Station",
+      "key": "loc_patio_trash",
+      "name": "Trash & Bus Station"
+    }
+  ],
+  "organization_name": "The Spot"
+}

@@ -1,0 +1,774 @@
+{
+  "ai_business_context": "Fresh Mart is a grocery store with produce, dairy, checkout lanes, and customer restrooms. Shoppers submit feedback about spills, equipment issues (refrigeration, doors, carts), cleanliness, safety hazards, and suggestions for products or service improvements.",
+  "ai_categorization_instructions": "Prefer specific categories. When unsure, use `other` and add a short note to internal context.",
+  "issue_categories": [
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "spill, spilled, puddle, leak, wet floor, slippery",
+      "description": "Liquid spills or leaks on floors that may cause slips.",
+      "key": "spill",
+      "label": "Spill / Wet Floor"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "broken, cracked, damaged, loose, missing, door, handle, shelf, tile",
+      "description": "Physical damage to store fixtures or building elements.",
+      "key": "facility_damage",
+      "label": "Facility Damage"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "dirty, mess, trash, overflowing, smell, odor, sticky, grime",
+      "description": "General cleanliness issues in aisles, entrances, or common areas.",
+      "key": "cleanliness",
+      "label": "Cleanliness"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "restroom, bathroom, toilet, sink, soap, paper towel, hand dryer",
+      "description": "Restroom cleanliness, supplies, or plumbing issues.",
+      "key": "restroom",
+      "label": "Restroom"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "fridge, freezer, cooler, refrigeration, temperature, warm, not cold, condenser",
+      "description": "Refrigeration/cooling equipment issues affecting food safety or comfort.",
+      "key": "refrigeration",
+      "label": "Refrigeration / Cooling"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "checkout, register, card reader, tap, chip, receipt, scanner, scale",
+      "description": "Checkout lane equipment or process issues.",
+      "key": "checkout_equipment",
+      "label": "Checkout Equipment"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "cart, trolley, basket, wheel, squeak, stuck",
+      "description": "Shopping cart or basket availability/condition issues.",
+      "key": "carts_baskets",
+      "label": "Carts & Baskets"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "lighting, light, flicker, dark, bulb",
+      "description": "Lighting outages or flickering lights.",
+      "key": "lighting",
+      "label": "Lighting"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "sign, signage, label, price tag, wrong price, missing price",
+      "description": "Missing/incorrect signage or price labels.",
+      "key": "signage_pricing",
+      "label": "Signage / Pricing"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "produce, fruit, vegetables, mold, rotten, bruised, quality",
+      "description": "Quality issues with produce items or displays.",
+      "key": "produce_quality",
+      "label": "Produce Quality"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "dairy, milk, yogurt, cheese, expired, date, sour",
+      "description": "Quality/date issues with dairy items.",
+      "key": "dairy_quality",
+      "label": "Dairy Quality"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "staff, rude, helpful, line, wait, service",
+      "description": "Customer service, staffing, or wait time concerns.",
+      "key": "customer_service",
+      "label": "Customer Service"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "suggestion, request, please carry, add, stock, hours, improve",
+      "description": "Suggestions for products, services, or store improvements.",
+      "key": "suggestion",
+      "label": "Suggestion"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "hazard, unsafe, trip, sharp, glass, blocked, emergency",
+      "description": "Safety hazards not covered by spills (e.g., broken glass, trip hazards).",
+      "key": "safety_hazard",
+      "label": "Safety Hazard"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "other, unsure, miscellaneous",
+      "description": "Use when no other category fits. (Per instructions: add a short note in internal context.)",
+      "key": "other",
+      "label": "Other"
+    }
+  ],
+  "issues": [
+    {
+      "category_key": "spill",
+      "comments": [
+        {
+          "author_email": "manager@freshmart.example",
+          "body": "Thanks for flagging—team is on it. Please avoid the area until the floor is dry.",
+          "days_ago": 12,
+          "key": "cmt_spill_entrance_001"
+        }
+      ],
+      "days_ago": 12,
+      "description": "Water puddle near the entrance mats; floor is slippery when coming in from outside.",
+      "key": "iss_spill_entrance_001",
+      "location_key": "loc_entrance_vestibule",
+      "reports": [
+        {
+          "body": "There’s a puddle right by the entrance mat. Almost slipped walking in.",
+          "consent": true,
+          "days_ago": 12,
+          "key": "rpt_spill_entrance_001a",
+          "reporter_phone": null,
+          "source": "qr"
+        },
+        {
+          "body": "Wet floor at the front doors near carts. Needs a cone.",
+          "consent": false,
+          "days_ago": 12,
+          "key": "rpt_spill_entrance_001b",
+          "reporter_phone": null,
+          "source": "sms"
+        }
+      ],
+      "status": "fixed",
+      "updates": [
+        {
+          "days_ago": 12,
+          "key": "upd_spill_entrance_001a",
+          "message": "Associate placed wet floor signs and mopped area; replaced saturated mat."
+        },
+        {
+          "days_ago": 11,
+          "key": "upd_spill_entrance_001b",
+          "message": "Checked again after rush—area dry; added extra mat for rainy days."
+        }
+      ]
+    },
+    {
+      "category_key": "refrigeration",
+      "comments": [
+        {
+          "author_email": null,
+          "body": "The yogurt felt not as cold as usual. Not sure if it’s just the door being open a lot.",
+          "days_ago": 34,
+          "key": "cmt_dairy_cooler_001"
+        }
+      ],
+      "days_ago": 35,
+      "description": "Dairy wall cooler feels warm; condensation on doors and milk section not very cold.",
+      "key": "iss_dairy_cooler_001",
+      "location_key": "loc_dairy_wall",
+      "reports": [
+        {
+          "body": "The dairy cooler doors are fogged up and the milk feels warmer than normal.",
+          "consent": true,
+          "days_ago": 35,
+          "key": "rpt_dairy_cooler_001a",
+          "reporter_phone": null,
+          "source": "qr"
+        }
+      ],
+      "status": "in_progress",
+      "updates": [
+        {
+          "days_ago": 34,
+          "key": "upd_dairy_cooler_001a",
+          "message": "Maintenance notified; temperature logged and product moved to backup cooler as needed."
+        },
+        {
+          "days_ago": 33,
+          "key": "upd_dairy_cooler_001b",
+          "message": "Vendor scheduled to inspect condenser and door gaskets."
+        }
+      ]
+    },
+    {
+      "category_key": "checkout_equipment",
+      "comments": [
+        {
+          "author_email": "frontend@freshmart.example",
+          "body": "We rebooted the lane and swapped the reader. If it happens again, please note the lane number/time.",
+          "days_ago": 7,
+          "key": "cmt_checkout_reader_002"
+        }
+      ],
+      "days_ago": 8,
+      "description": "Card reader at one checkout intermittently fails on tap-to-pay; causes delays.",
+      "key": "iss_checkout_reader_002",
+      "location_key": "loc_checkout_lane_3",
+      "reports": [
+        {
+          "body": "Tap-to-pay didn’t work at lane 3. Cashier had to try chip twice.",
+          "consent": true,
+          "days_ago": 8,
+          "key": "rpt_checkout_reader_002a",
+          "reporter_phone": null,
+          "source": "qr"
+        },
+        {
+          "body": "Lane 3 reader keeps erroring out. Line backed up.",
+          "consent": false,
+          "days_ago": 8,
+          "key": "rpt_checkout_reader_002b",
+          "reporter_phone": null,
+          "source": "manual"
+        }
+      ],
+      "status": "fixed",
+      "updates": [
+        {
+          "days_ago": 8,
+          "key": "upd_checkout_reader_002a",
+          "message": "Rebooted POS and cleaned NFC area; monitored for 30 minutes."
+        },
+        {
+          "days_ago": 7,
+          "key": "upd_checkout_reader_002b",
+          "message": "Replaced card reader with spare; issue not reproduced afterward."
+        }
+      ]
+    },
+    {
+      "category_key": "restroom",
+      "comments": [
+        {
+          "author_email": null,
+          "body": "Appreciate it being cleaned quickly—just needs more frequent checks on weekends.",
+          "days_ago": 20,
+          "key": "cmt_restroom_supplies_003"
+        }
+      ],
+      "days_ago": 21,
+      "description": "Women’s restroom out of paper towels; one sink has very low water pressure.",
+      "key": "iss_restroom_supplies_003",
+      "location_key": "loc_restroom_womens",
+      "reports": [
+        {
+          "body": "No paper towels in the women’s restroom and the left sink barely has water.",
+          "consent": true,
+          "days_ago": 21,
+          "key": "rpt_restroom_supplies_003a",
+          "reporter_phone": null,
+          "source": "qr"
+        }
+      ],
+      "status": "acknowledged",
+      "updates": [
+        {
+          "days_ago": 21,
+          "key": "upd_restroom_supplies_003a",
+          "message": "Restroom check requested; paper towels to be refilled immediately."
+        },
+        {
+          "days_ago": 20,
+          "key": "upd_restroom_supplies_003b",
+          "message": "Paper towels restocked; plumbing ticket opened for low pressure at left sink."
+        }
+      ]
+    },
+    {
+      "category_key": "produce_quality",
+      "comments": [
+        {
+          "author_email": "produce@freshmart.example",
+          "body": "We pulled the soft berries and rotated the display. Thanks for the heads-up.",
+          "days_ago": 3,
+          "key": "cmt_produce_berries_004"
+        }
+      ],
+      "days_ago": 4,
+      "description": "Strawberries display has several moldy/soft packages; fruit flies around the table.",
+      "key": "iss_produce_berries_004",
+      "location_key": "loc_produce_berries",
+      "reports": [
+        {
+          "body": "A lot of the strawberries are moldy and there are fruit flies around the display.",
+          "consent": true,
+          "days_ago": 4,
+          "key": "rpt_produce_berries_004a",
+          "reporter_phone": null,
+          "source": "qr"
+        },
+        {
+          "body": "Berries table needs attention—saw multiple bad packs.",
+          "consent": false,
+          "days_ago": 4,
+          "key": "rpt_produce_berries_004b",
+          "reporter_phone": null,
+          "source": "sms"
+        }
+      ],
+      "status": "fixed",
+      "updates": [
+        {
+          "days_ago": 4,
+          "key": "upd_produce_berries_004a",
+          "message": "Removed affected product; sanitized display and set fly trap near produce backroom door."
+        }
+      ]
+    },
+    {
+      "category_key": "carts_baskets",
+      "comments": [
+        {
+          "author_email": null,
+          "body": "The cart corral was empty when I came in. Had to carry everything until I found one.",
+          "days_ago": 16,
+          "key": "cmt_carts_005"
+        }
+      ],
+      "days_ago": 17,
+      "description": "Not enough carts available at peak time; several carts have squeaky/stuck wheels.",
+      "key": "iss_carts_005",
+      "location_key": "loc_cart_corral",
+      "reports": [
+        {
+          "body": "No carts at the entrance around 5:30pm. Also a few carts have wheels that lock up.",
+          "consent": true,
+          "days_ago": 17,
+          "key": "rpt_carts_005a",
+          "reporter_phone": null,
+          "source": "qr"
+        }
+      ],
+      "status": "in_progress",
+      "updates": [
+        {
+          "days_ago": 16,
+          "key": "upd_carts_005a",
+          "message": "Assigned cart run during rush; tagged 6 carts for wheel repair."
+        },
+        {
+          "days_ago": 14,
+          "key": "upd_carts_005b",
+          "message": "Ordered replacement casters; rotating repaired carts back onto floor as parts arrive."
+        }
+      ]
+    },
+    {
+      "category_key": "signage_pricing",
+      "comments": [
+        {
+          "author_email": "pricing@freshmart.example",
+          "body": "We corrected the shelf tag and honored the posted price at checkout. Thanks for reporting.",
+          "days_ago": 27,
+          "key": "cmt_pricing_006"
+        }
+      ],
+      "days_ago": 28,
+      "description": "Shelf tag price for cereal doesn’t match register price; confusing promo signage.",
+      "key": "iss_pricing_006",
+      "location_key": "loc_aisle_5_cereal",
+      "reports": [
+        {
+          "body": "Cereal shelf tag said $3.49 but it rang up $4.29. Promo sign was unclear.",
+          "consent": true,
+          "days_ago": 28,
+          "key": "rpt_pricing_006a",
+          "reporter_phone": null,
+          "source": "qr"
+        }
+      ],
+      "status": "fixed",
+      "updates": [
+        {
+          "days_ago": 28,
+          "key": "upd_pricing_006a",
+          "message": "Verified discrepancy; replaced shelf label and removed outdated promo sign."
+        }
+      ]
+    },
+    {
+      "category_key": "lighting",
+      "comments": [
+        {
+          "author_email": null,
+          "body": "It’s noticeably dim in that corner—hard to read labels.",
+          "days_ago": 44,
+          "key": "cmt_lighting_007"
+        }
+      ],
+      "days_ago": 45,
+      "description": "Flickering light fixture in frozen aisle; strobing effect is uncomfortable.",
+      "key": "iss_lighting_007",
+      "location_key": "loc_frozen_aisle",
+      "reports": [
+        {
+          "body": "One of the lights in the frozen aisle is flickering a lot.",
+          "consent": true,
+          "days_ago": 45,
+          "key": "rpt_lighting_007a",
+          "reporter_phone": null,
+          "source": "qr"
+        }
+      ],
+      "status": "acknowledged",
+      "updates": [
+        {
+          "days_ago": 44,
+          "key": "upd_lighting_007a",
+          "message": "Added to facilities list; replacement LED driver ordered."
+        }
+      ]
+    },
+    {
+      "category_key": "cleanliness",
+      "comments": [
+        {
+          "author_email": "manager@freshmart.example",
+          "body": "We’ve asked the team to do a mid-day sweep and wipe the handles more often.",
+          "days_ago": 9,
+          "key": "cmt_cleanliness_008"
+        }
+      ],
+      "days_ago": 10,
+      "description": "Trash overflowing near self-checkout; sticky residue on bagging area.",
+      "key": "iss_cleanliness_008",
+      "location_key": "loc_self_checkout",
+      "reports": [
+        {
+          "body": "Self-checkout trash is overflowing and the bagging area is sticky.",
+          "consent": true,
+          "days_ago": 10,
+          "key": "rpt_cleanliness_008a",
+          "reporter_phone": null,
+          "source": "qr"
+        },
+        {
+          "body": "Bins full by self checkout. Needs a wipe down.",
+          "consent": false,
+          "days_ago": 10,
+          "key": "rpt_cleanliness_008b",
+          "reporter_phone": null,
+          "source": "sms"
+        }
+      ],
+      "status": "fixed",
+      "updates": [
+        {
+          "days_ago": 10,
+          "key": "upd_cleanliness_008a",
+          "message": "Emptied bins and sanitized self-checkout bagging stations."
+        },
+        {
+          "days_ago": 9,
+          "key": "upd_cleanliness_008b",
+          "message": "Added extra trash pull to evening checklist."
+        }
+      ]
+    },
+    {
+      "category_key": "safety_hazard",
+      "comments": [
+        {
+          "author_email": null,
+          "body": "Thanks—someone could definitely trip there.",
+          "days_ago": 58,
+          "key": "cmt_safety_009"
+        }
+      ],
+      "days_ago": 60,
+      "description": "Loose floor tile edge near endcap creates a trip hazard.",
+      "key": "iss_safety_009",
+      "location_key": "loc_aisle_2_endcap",
+      "reports": [
+        {
+          "body": "There’s a tile lifting up near the endcap in aisle 2. I almost tripped.",
+          "consent": true,
+          "days_ago": 60,
+          "key": "rpt_safety_009a",
+          "reporter_phone": null,
+          "source": "qr"
+        }
+      ],
+      "status": "in_progress",
+      "updates": [
+        {
+          "days_ago": 59,
+          "key": "upd_safety_009a",
+          "message": "Placed caution cone and taped edge temporarily; facilities contractor contacted."
+        },
+        {
+          "days_ago": 55,
+          "key": "upd_safety_009b",
+          "message": "Contractor scheduled for tile replacement; area being monitored daily."
+        }
+      ]
+    },
+    {
+      "category_key": "dairy_quality",
+      "comments": [
+        {
+          "author_email": "dairy@freshmart.example",
+          "body": "We pulled the affected items and checked the rest of the lot. Thank you for reporting.",
+          "days_ago": 2,
+          "key": "cmt_dairy_expired_010"
+        }
+      ],
+      "days_ago": 2,
+      "description": "Expired yogurt cups found on shelf; date rotation may be missed.",
+      "key": "iss_dairy_expired_010",
+      "location_key": "loc_dairy_yogurt",
+      "reports": [
+        {
+          "body": "Found two yogurts expired by 5 days still on the shelf.",
+          "consent": true,
+          "days_ago": 2,
+          "key": "rpt_dairy_expired_010a",
+          "reporter_phone": null,
+          "source": "qr"
+        }
+      ],
+      "status": "acknowledged",
+      "updates": [
+        {
+          "days_ago": 2,
+          "key": "upd_dairy_expired_010a",
+          "message": "Dairy team notified; performed immediate date check and pulled expired items."
+        }
+      ]
+    },
+    {
+      "category_key": "suggestion",
+      "comments": [
+        {
+          "author_email": "manager@freshmart.example",
+          "body": "Appreciate the suggestion—passing to purchasing. We’re also reviewing weekend staffing at the front end.",
+          "days_ago": 23,
+          "key": "cmt_suggestion_011"
+        }
+      ],
+      "days_ago": 24,
+      "description": "Request to stock more plant-based milk options and add a second express lane during weekend rush.",
+      "key": "iss_suggestion_011",
+      "location_key": "loc_customer_service_desk",
+      "reports": [
+        {
+          "body": "Could you carry more oat milk brands (unsweetened) and maybe open another express lane on weekends?",
+          "consent": true,
+          "days_ago": 24,
+          "key": "rpt_suggestion_011a",
+          "reporter_phone": null,
+          "source": "qr"
+        }
+      ],
+      "status": "new",
+      "updates": []
+    },
+    {
+      "category_key": "facility_damage",
+      "comments": [
+        {
+          "author_email": null,
+          "body": "The door handle feels like it’s going to come off.",
+          "days_ago": 31,
+          "key": "cmt_facility_damage_012"
+        }
+      ],
+      "days_ago": 32,
+      "description": "Restroom door handle is loose; difficult to open/close without pulling hard.",
+      "key": "iss_facility_damage_012",
+      "location_key": "loc_restroom_hallway",
+      "reports": [
+        {
+          "body": "The restroom hallway door handle is loose and wobbly. Might break soon.",
+          "consent": true,
+          "days_ago": 32,
+          "key": "rpt_facility_damage_012a",
+          "reporter_phone": null,
+          "source": "qr"
+        }
+      ],
+      "status": "fixed",
+      "updates": [
+        {
+          "days_ago": 31,
+          "key": "upd_facility_damage_012a",
+          "message": "Tightened mounting screws and applied threadlocker; tested for stability."
+        }
+      ]
+    },
+    {
+      "category_key": "other",
+      "comments": [
+        {
+          "author_email": "manager@freshmart.example",
+          "body": "Thanks for the note. We’re checking the HVAC schedule and will monitor temps in that area.",
+          "days_ago": 70,
+          "key": "cmt_other_013"
+        }
+      ],
+      "days_ago": 72,
+      "description": "Store feels unusually warm near bakery area in the afternoon. (Other: comfort/HVAC not otherwise categorized.)",
+      "key": "iss_other_013",
+      "location_key": "loc_bakery_area",
+      "reports": [
+        {
+          "body": "It gets really warm near the bakery around 3–5pm. Not sure if AC is working there.",
+          "consent": true,
+          "days_ago": 72,
+          "key": "rpt_other_013a",
+          "reporter_phone": null,
+          "source": "qr"
+        }
+      ],
+      "status": "acknowledged",
+      "updates": [
+        {
+          "days_ago": 70,
+          "key": "upd_other_013a",
+          "message": "Facilities to verify HVAC vent output and thermostat readings near bakery."
+        }
+      ]
+    }
+  ],
+  "locations": [
+    {
+      "full_path": "Fresh Mart",
+      "key": "loc_store_root",
+      "name": "Fresh Mart"
+    },
+    {
+      "full_path": "Fresh Mart / Entrance",
+      "key": "loc_entrance",
+      "name": "Entrance"
+    },
+    {
+      "full_path": "Fresh Mart / Entrance / Vestibule",
+      "key": "loc_entrance_vestibule",
+      "name": "Vestibule"
+    },
+    {
+      "full_path": "Fresh Mart / Entrance / Cart Corral",
+      "key": "loc_cart_corral",
+      "name": "Cart Corral"
+    },
+    {
+      "full_path": "Fresh Mart / Produce",
+      "key": "loc_produce",
+      "name": "Produce"
+    },
+    {
+      "full_path": "Fresh Mart / Produce / Berries Display",
+      "key": "loc_produce_berries",
+      "name": "Berries Display"
+    },
+    {
+      "full_path": "Fresh Mart / Dairy",
+      "key": "loc_dairy",
+      "name": "Dairy"
+    },
+    {
+      "full_path": "Fresh Mart / Dairy / Dairy Wall Cooler",
+      "key": "loc_dairy_wall",
+      "name": "Dairy Wall Cooler"
+    },
+    {
+      "full_path": "Fresh Mart / Dairy / Yogurt Section",
+      "key": "loc_dairy_yogurt",
+      "name": "Yogurt Section"
+    },
+    {
+      "full_path": "Fresh Mart / Frozen",
+      "key": "loc_frozen",
+      "name": "Frozen"
+    },
+    {
+      "full_path": "Fresh Mart / Frozen / Frozen Aisle",
+      "key": "loc_frozen_aisle",
+      "name": "Frozen Aisle"
+    },
+    {
+      "full_path": "Fresh Mart / Grocery Aisles",
+      "key": "loc_grocery_aisles",
+      "name": "Grocery Aisles"
+    },
+    {
+      "full_path": "Fresh Mart / Grocery Aisles / Aisle 2 Endcap",
+      "key": "loc_aisle_2_endcap",
+      "name": "Aisle 2 Endcap"
+    },
+    {
+      "full_path": "Fresh Mart / Grocery Aisles / Aisle 5 (Cereal)",
+      "key": "loc_aisle_5_cereal",
+      "name": "Aisle 5 (Cereal)"
+    },
+    {
+      "full_path": "Fresh Mart / Checkout",
+      "key": "loc_checkout",
+      "name": "Checkout"
+    },
+    {
+      "full_path": "Fresh Mart / Checkout / Self-Checkout",
+      "key": "loc_self_checkout",
+      "name": "Self-Checkout"
+    },
+    {
+      "full_path": "Fresh Mart / Checkout / Lane 3",
+      "key": "loc_checkout_lane_3",
+      "name": "Lane 3"
+    },
+    {
+      "full_path": "Fresh Mart / Customer Service",
+      "key": "loc_customer_service",
+      "name": "Customer Service"
+    },
+    {
+      "full_path": "Fresh Mart / Customer Service / Service Desk",
+      "key": "loc_customer_service_desk",
+      "name": "Service Desk"
+    },
+    {
+      "full_path": "Fresh Mart / Restrooms",
+      "key": "loc_restrooms",
+      "name": "Restrooms"
+    },
+    {
+      "full_path": "Fresh Mart / Restrooms / Restroom Hallway",
+      "key": "loc_restroom_hallway",
+      "name": "Restroom Hallway"
+    },
+    {
+      "full_path": "Fresh Mart / Restrooms / Women's Restroom",
+      "key": "loc_restroom_womens",
+      "name": "Women's Restroom"
+    },
+    {
+      "full_path": "Fresh Mart / Bakery",
+      "key": "loc_bakery",
+      "name": "Bakery"
+    },
+    {
+      "full_path": "Fresh Mart / Bakery / Bakery Area",
+      "key": "loc_bakery_area",
+      "name": "Bakery Area"
+    }
+  ],
+  "organization_name": "Fresh Mart"
+}
