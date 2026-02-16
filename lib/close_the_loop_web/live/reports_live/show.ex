@@ -211,7 +211,11 @@ defmodule CloseTheLoopWeb.ReportsLive.Show do
                   </:tab>
                 </.tabs_list>
 
-                <.tabs_panel name="existing" active={@move_modal_tab == "existing"} class="mt-4 space-y-3">
+                <.tabs_panel
+                  name="existing"
+                  active={@move_modal_tab == "existing"}
+                  class="mt-4 space-y-3"
+                >
                   <p class="text-sm text-foreground-soft">
                     Use this when the report belongs on another issue (including an issue at a different location).
                   </p>
@@ -248,7 +252,12 @@ defmodule CloseTheLoopWeb.ReportsLive.Show do
                       />
 
                       <div class="flex items-center justify-end gap-2">
-                        <.button type="submit" variant="solid" color="primary" phx-disable-with="Moving...">
+                        <.button
+                          type="submit"
+                          variant="solid"
+                          color="primary"
+                          phx-disable-with="Moving..."
+                        >
                           Move report
                         </.button>
                       </div>
@@ -376,7 +385,9 @@ defmodule CloseTheLoopWeb.ReportsLive.Show do
              actor: user
            ) do
       _ = log_report_split(tenant, user, report.id, from_issue, issue)
-      {:noreply, socket |> refresh("Created a new issue and moved the report.") |> reset_move_modal()}
+
+      {:noreply,
+       socket |> refresh("Created a new issue and moved the report.") |> reset_move_modal()}
     else
       {:error, msg} when is_binary(msg) ->
         {:noreply, put_flash(socket, :error, msg)}

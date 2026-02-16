@@ -30,14 +30,14 @@ defmodule CloseTheLoopWeb.IssueCategoriesLiveTest do
     assert has_element?(view, "#category-#{cat.id}", "Active")
 
     view
-    |> element(~s|button[phx-click="toggle_active"][phx-value-id="#{cat.id}"]|)
+    |> element("#category-toggle-active-#{cat.id}")
     |> render_click()
 
     assert has_element?(view, "#category-#{cat.id}", "Inactive")
 
     # Reactivate
     view
-    |> element(~s|button[phx-click="toggle_active"][phx-value-id="#{cat.id}"]|)
+    |> element("#category-toggle-active-#{cat.id}")
     |> render_click()
 
     assert has_element?(view, "#category-#{cat.id}", "Active")

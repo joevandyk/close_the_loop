@@ -107,15 +107,22 @@ defmodule CloseTheLoopWeb.DashboardLive.Index do
 
         <div class="grid gap-6 lg:grid-cols-2">
           <.list_panel title="Recent issues" empty_text="No issues yet.">
-            <div :for={i <- @recent_issues} id={"dash-issue-#{i.id}"} class="py-3">
+            <.link
+              :for={i <- @recent_issues}
+              id={"dash-issue-#{i.id}"}
+              navigate={~p"/app/#{@current_org.id}/issues/#{i.id}"}
+              aria-label={"View issue: #{i.title}"}
+              class={[
+                "block py-3 -mx-2 px-2 rounded-xl",
+                "transition hover:bg-accent/60 hover:shadow-sm",
+                "focus-visible:outline-hidden focus-visible:ring-3 focus-visible:ring-focus"
+              ]}
+            >
               <div class="flex items-start gap-3">
                 <div class="min-w-0 flex-1">
-                  <.link
-                    navigate={~p"/app/#{@current_org.id}/issues/#{i.id}"}
-                    class="text-sm font-medium hover:underline"
-                  >
+                  <div class="text-sm font-medium text-foreground">
                     {i.title}
-                  </.link>
+                  </div>
                   <div class="mt-1 flex items-center gap-2 text-xs text-foreground-soft min-w-0">
                     <.icon name="hero-map-pin" class="size-4 shrink-0" />
                     <span class="truncate">{i.location.full_path || i.location.name}</span>
@@ -125,27 +132,29 @@ defmodule CloseTheLoopWeb.DashboardLive.Index do
                     </span>
                   </div>
                 </div>
-                <.button
-                  size="sm"
-                  variant="outline"
-                  navigate={~p"/app/#{@current_org.id}/issues/#{i.id}"}
-                >
-                  View
-                </.button>
+
+                <.icon name="hero-chevron-right" class="mt-0.5 size-4 shrink-0 text-foreground-soft" />
               </div>
-            </div>
+            </.link>
           </.list_panel>
 
           <.list_panel title="Recent reports" empty_text="No reports yet.">
-            <div :for={r <- @recent_reports} id={"dash-report-#{r.id}"} class="py-3">
+            <.link
+              :for={r <- @recent_reports}
+              id={"dash-report-#{r.id}"}
+              navigate={~p"/app/#{@current_org.id}/reports/#{r.id}"}
+              aria-label={"View report: #{r.body |> to_string() |> String.slice(0, 70)}"}
+              class={[
+                "block py-3 -mx-2 px-2 rounded-xl",
+                "transition hover:bg-accent/60 hover:shadow-sm",
+                "focus-visible:outline-hidden focus-visible:ring-3 focus-visible:ring-focus"
+              ]}
+            >
               <div class="flex items-start gap-3">
                 <div class="min-w-0 flex-1">
-                  <.link
-                    navigate={~p"/app/#{@current_org.id}/reports/#{r.id}"}
-                    class="text-sm font-medium hover:underline"
-                  >
+                  <div class="text-sm font-medium text-foreground">
                     {r.body |> to_string() |> String.slice(0, 70)}
-                  </.link>
+                  </div>
                   <div class="mt-1 flex items-center gap-2 text-xs text-foreground-soft min-w-0">
                     <.icon name="hero-map-pin" class="size-4 shrink-0" />
                     <span class="truncate">{r.location.full_path || r.location.name}</span>
@@ -163,21 +172,26 @@ defmodule CloseTheLoopWeb.DashboardLive.Index do
                     </time>
                   </div>
                 </div>
-                <.button
-                  size="sm"
-                  variant="outline"
-                  navigate={~p"/app/#{@current_org.id}/reports/#{r.id}"}
-                >
-                  View
-                </.button>
+
+                <.icon name="hero-chevron-right" class="mt-0.5 size-4 shrink-0 text-foreground-soft" />
               </div>
-            </div>
+            </.link>
           </.list_panel>
         </div>
 
         <div class="grid gap-6 lg:grid-cols-2">
           <.list_panel title="Recent comments" empty_text="No comments yet.">
-            <div :for={c <- @recent_comments} id={"dash-comment-#{c.id}"} class="py-3">
+            <.link
+              :for={c <- @recent_comments}
+              id={"dash-comment-#{c.id}"}
+              navigate={~p"/app/#{@current_org.id}/issues/#{c.issue_id}"}
+              aria-label={"View issue: #{c.issue.title}"}
+              class={[
+                "block py-3 -mx-2 px-2 rounded-xl",
+                "transition hover:bg-accent/60 hover:shadow-sm",
+                "focus-visible:outline-hidden focus-visible:ring-3 focus-visible:ring-focus"
+              ]}
+            >
               <div class="flex items-start gap-3">
                 <div class="min-w-0 flex-1">
                   <div class="text-xs text-foreground-soft">
@@ -194,22 +208,28 @@ defmodule CloseTheLoopWeb.DashboardLive.Index do
                   <div class="mt-1 text-sm text-foreground break-words">
                     {c.body}
                   </div>
-                  <div class="mt-1 text-xs text-foreground-soft">
-                    On:
-                    <.link
-                      navigate={~p"/app/#{@current_org.id}/issues/#{c.issue_id}"}
-                      class="hover:underline"
-                    >
-                      {c.issue.title}
-                    </.link>
+                  <div class="mt-1 text-xs text-foreground-soft truncate">
+                    On: <span class="font-medium text-foreground">{c.issue.title}</span>
                   </div>
                 </div>
+
+                <.icon name="hero-chevron-right" class="mt-0.5 size-4 shrink-0 text-foreground-soft" />
               </div>
-            </div>
+            </.link>
           </.list_panel>
 
           <.list_panel title="Recent updates" empty_text="No updates yet.">
-            <div :for={u <- @recent_updates} id={"dash-update-#{u.id}"} class="py-3">
+            <.link
+              :for={u <- @recent_updates}
+              id={"dash-update-#{u.id}"}
+              navigate={~p"/app/#{@current_org.id}/issues/#{u.issue_id}"}
+              aria-label={"View issue: #{u.issue.title}"}
+              class={[
+                "block py-3 -mx-2 px-2 rounded-xl",
+                "transition hover:bg-accent/60 hover:shadow-sm",
+                "focus-visible:outline-hidden focus-visible:ring-3 focus-visible:ring-focus"
+              ]}
+            >
               <div class="flex items-start gap-3">
                 <div class="min-w-0 flex-1">
                   <div class="text-xs text-foreground-soft">
@@ -226,18 +246,14 @@ defmodule CloseTheLoopWeb.DashboardLive.Index do
                   <div class="mt-1 text-sm text-foreground break-words">
                     {u.message}
                   </div>
-                  <div class="mt-1 text-xs text-foreground-soft">
-                    For:
-                    <.link
-                      navigate={~p"/app/#{@current_org.id}/issues/#{u.issue_id}"}
-                      class="hover:underline"
-                    >
-                      {u.issue.title}
-                    </.link>
+                  <div class="mt-1 text-xs text-foreground-soft truncate">
+                    For: <span class="font-medium text-foreground">{u.issue.title}</span>
                   </div>
                 </div>
+
+                <.icon name="hero-chevron-right" class="mt-0.5 size-4 shrink-0 text-foreground-soft" />
               </div>
-            </div>
+            </.link>
           </.list_panel>
         </div>
       </div>

@@ -373,7 +373,10 @@ defmodule CloseTheLoopWeb.Layouts do
       String.contains?(assigns.current_view, ".SettingsLive.Inbox") or
         String.contains?(assigns.current_view, ".IssueCategoriesLive.")
 
+    help_settings_active = String.contains?(assigns.current_view, ".SettingsLive.Help")
     onboarding_active = String.contains?(assigns.current_view, ".OnboardingLive.")
+    organizations_active = String.contains?(assigns.current_view, ".OrgPickerLive.") or
+      String.contains?(assigns.current_view, ".OrganizationsLive.")
 
     assigns =
       assigns
@@ -385,17 +388,16 @@ defmodule CloseTheLoopWeb.Layouts do
       |> assign(:org_settings_active, org_settings_active)
       |> assign(:account_settings_active, account_settings_active)
       |> assign(:inbox_settings_active, inbox_settings_active)
+      |> assign(:help_settings_active, help_settings_active)
       |> assign(:onboarding_active, onboarding_active)
+      |> assign(:organizations_active, organizations_active)
 
     ~H"""
     <.navlist heading="Main">
-      <.navlink
-        navigate={if(@org_id, do: ~p"/app/#{@org_id}", else: ~p"/app")}
-        active={@dashboard_active}
-      >
-        <.icon name="hero-squares-2x2" class="size-5" /> Dashboard
-      </.navlink>
       <%= if @org_id do %>
+        <.navlink navigate={~p"/app/#{@org_id}"} active={@dashboard_active}>
+          <.icon name="hero-squares-2x2" class="size-5" /> Dashboard
+        </.navlink>
         <.navlink navigate={~p"/app"}>
           <.icon name="hero-arrows-right-left" class="size-5" /> Switch organization
         </.navlink>
@@ -404,6 +406,10 @@ defmodule CloseTheLoopWeb.Layouts do
         </.navlink>
         <.navlink navigate={~p"/app/#{@org_id}/reports"} active={@reports_active}>
           <.icon name="hero-document-text" class="size-5" /> Reports
+        </.navlink>
+      <% else %>
+        <.navlink navigate={~p"/app"} active={@organizations_active}>
+          <.icon name="hero-building-office-2" class="size-5" /> Organizations
         </.navlink>
       <% end %>
     </.navlist>
@@ -421,6 +427,9 @@ defmodule CloseTheLoopWeb.Layouts do
         </.navlink>
         <.navlink navigate={~p"/app/#{@org_id}/settings/locations"} active={@locations_active}>
           <.icon name="hero-map-pin" class="size-5" /> Locations
+        </.navlink>
+        <.navlink navigate={~p"/app/#{@org_id}/settings/help"} active={@help_settings_active}>
+          <.icon name="hero-question-mark-circle" class="size-5" /> Help
         </.navlink>
       <% end %>
       <.navlink href={~p"/app/oban"}>

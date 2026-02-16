@@ -259,9 +259,12 @@ defmodule CloseTheLoopWeb.IssuesLive.Index do
                       <.badge variant="ghost" color="info">Uncategorized</.badge>
                     <% end %>
 
-                    <span class="ml-auto inline-flex items-center gap-1 text-xs text-foreground-soft whitespace-nowrap">
-                      <.icon name="hero-users" class="size-4" />
-                      {issue.reporter_count}
+                    <span class="ml-auto inline-flex items-center gap-2 text-xs text-foreground-soft whitespace-nowrap">
+                      <span class="inline-flex items-center gap-1">
+                        <.icon name="hero-users" class="size-4" />
+                        {issue.reporter_count}
+                      </span>
+                      <.icon name="hero-arrow-right" class="size-4 text-foreground-soft" />
                     </span>
                   </div>
 

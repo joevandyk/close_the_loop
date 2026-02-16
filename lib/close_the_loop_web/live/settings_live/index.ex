@@ -78,6 +78,24 @@ defmodule CloseTheLoopWeb.SettingsLive.Index do
               <.icon name="hero-adjustments-horizontal" class="size-5 text-foreground-soft" />
             </div>
           </.link>
+
+          <.link
+            navigate={~p"/app/#{@current_org.id}/settings/help"}
+            class={[
+              "block rounded-2xl border border-base bg-base p-6 shadow-base",
+              "transition hover:bg-accent hover:shadow-lg hover:-translate-y-[1px]"
+            ]}
+          >
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <h2 class="text-sm font-semibold">Help</h2>
+                <p class="mt-2 text-sm text-foreground-soft">
+                  How customers use the site and how features work.
+                </p>
+              </div>
+              <.icon name="hero-question-mark-circle" class="size-5 text-foreground-soft" />
+            </div>
+          </.link>
         </div>
       </div>
     </Layouts.app>

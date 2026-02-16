@@ -201,68 +201,94 @@ defmodule CloseTheLoopWeb.IssueCategoriesLive.Index do
             </span>
           </div>
 
-          <div class="mt-4 overflow-x-auto">
-            <.table>
-              <.table_head>
-                <:col>Key</:col>
-                <:col>Label</:col>
-                <:col>Status</:col>
-                <:col class="text-right">
-                  <span class="sr-only">Actions</span>
-                </:col>
-              </.table_head>
-
-              <.table_body>
-                <.table_row :for={cat <- @categories} id={"category-#{cat.id}"}>
-                  <:cell class="font-mono text-sm">{cat.key}</:cell>
-                  <:cell class="font-medium">{cat.label}</:cell>
-                  <:cell>
-                    <%= if cat.active do %>
-                      <.badge color="success">Active</.badge>
-                    <% else %>
-                      <.badge variant="ghost" color="primary">Inactive</.badge>
-                    <% end %>
-                  </:cell>
-                  <:cell class="text-right">
-                    <div class="flex justify-end gap-2">
-                      <.button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        phx-click={
-                          Fluxon.open_dialog("edit-category-modal")
-                          |> JS.push("edit_category", value: %{id: cat.id})
-                        }
-                      >
-                        Edit
-                      </.button>
-                      <.button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        phx-click="toggle_active"
-                        phx-value-id={cat.id}
-                      >
-                        {if cat.active, do: "Deactivate", else: "Activate"}
-                      </.button>
-                      <.button
-                        type="button"
-                        size="sm"
-                        variant="ghost"
-                        color="danger"
-                        phx-click="delete"
-                        phx-value-id={cat.id}
-                      >
-                        Delete
-                      </.button>
-                    </div>
-                  </:cell>
-                </.table_row>
-              </.table_body>
-            </.table>
-
-            <div :if={@categories == []} class="py-10 text-center text-sm text-foreground-soft">
+          <div class="mt-4 divide-y divide-base">
+            <div class="py-10 text-center text-sm text-foreground-soft hidden only:block">
               No categories yet.
+            </div>
+
+            <div :for={cat <- @categories} id={"category-#{cat.id}"} class="py-4">
+              <div class="flex items-start justify-between gap-4">
+                <div class="min-w-0">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <span class="inline-flex items-center rounded-full border border-base bg-accent px-2 py-0.5 font-mono text-xs text-foreground-soft">
+                      {cat.key}
+                    </span>
+                    <span class="text-sm font-semibold text-foreground">{cat.label}</span>
+
+                    <%= if cat.active do %>
+                      <.badge color="success" size="sm">Active</.badge>
+                    <% else %>
+                      <.badge variant="ghost" color="primary" size="sm">Inactive</.badge>
+                    <% end %>
+                  </div>
+                </div>
+
+                <div class="shrink-0 flex items-center gap-2">
+                  <div class="hidden md:flex items-center gap-2">
+                    <.button
+                      id={"category-edit-#{cat.id}"}
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      phx-click={
+                        Fluxon.open_dialog("edit-category-modal")
+                        |> JS.push("edit_category", value: %{id: cat.id})
+                      }
+                    >
+                      Edit
+                    </.button>
+                    <.button
+                      id={"category-toggle-active-#{cat.id}"}
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      phx-click="toggle_active"
+                      phx-value-id={cat.id}
+                    >
+                      {if cat.active, do: "Deactivate", else: "Activate"}
+                    </.button>
+                    <.button
+                      id={"category-delete-#{cat.id}"}
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      color="danger"
+                      phx-click="delete"
+                      phx-value-id={cat.id}
+                    >
+                      Delete
+                    </.button>
+                  </div>
+
+                  <.dropdown class="md:hidden" placement="bottom-end">
+                    <:toggle>
+                      <.button type="button" size="icon-sm" variant="ghost" aria-label="Category actions">
+                        <.icon name="hero-ellipsis-horizontal" class="icon" />
+                      </.button>
+                    </:toggle>
+
+                    <.dropdown_button
+                      id={"category-menu-edit-#{cat.id}"}
+                      phx-click={
+                        Fluxon.open_dialog("edit-category-modal")
+                        |> JS.push("edit_category", value: %{id: cat.id})
+                      }
+                    >
+                      Edit
+                    </.dropdown_button>
+                    <.dropdown_button
+                      id={"category-menu-toggle-active-#{cat.id}"}
+                      phx-click="toggle_active"
+                      phx-value-id={cat.id}
+                    >
+                      {if cat.active, do: "Deactivate", else: "Activate"}
+                    </.dropdown_button>
+                    <.dropdown_button id={"category-menu-delete-#{cat.id}"} phx-click="delete" phx-value-id={cat.id}>
+                      Delete
+                    </.dropdown_button>
+                  </.dropdown>
+                </div>
+              </div>
             </div>
           </div>
         </div>

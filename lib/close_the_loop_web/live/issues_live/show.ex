@@ -412,7 +412,7 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
                 </time>
               </div>
               <div class="mt-2 whitespace-pre-wrap text-sm leading-6">
-                {ActivityFeed.scrub_raw_ids(c.body)}
+                {c.body}
               </div>
             </div>
           </div>

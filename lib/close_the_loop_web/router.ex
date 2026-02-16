@@ -79,6 +79,7 @@ defmodule CloseTheLoopWeb.Router do
 
       live "/app/:org_id/settings", SettingsLive.Index, :index
 
+      live "/app/:org_id/settings/help", SettingsLive.Help, :index
       live "/app/:org_id/settings/organization", SettingsLive.Organization, :index
       live "/app/:org_id/settings/account", SettingsLive.Account, :index
       live "/app/:org_id/settings/inbox", SettingsLive.Inbox, :index

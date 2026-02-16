@@ -175,10 +175,10 @@ defmodule CloseTheLoopWeb.ActivityFeed do
 
     case {resource, type} do
       {"IssueComment", "create"} ->
-        scrub_raw_ids(data["body"])
+        data["body"]
 
       {"IssueUpdate", "create"} ->
-        scrub_raw_ids(data["message"])
+        data["message"]
 
       {"Issue", "update"} ->
         issue_update_summary(event)
@@ -269,24 +269,6 @@ defmodule CloseTheLoopWeb.ActivityFeed do
       {"Issue", "create"} -> ~p"/app/#{org.id}/issues/#{record_id}"
       _ -> nil
     end
-  end
-
-  @doc """
-  Scrub UUIDs from user-visible text.
-
-  We avoid showing raw UUIDs anywhere in the UI.
-  """
-  def scrub_raw_ids(nil), do: nil
-
-  def scrub_raw_ids(text) when is_binary(text) do
-    text = String.trim(text)
-    Regex.replace(uuid_regex(), text, "[id]")
-  end
-
-  def scrub_raw_ids(other), do: other |> to_string() |> scrub_raw_ids()
-
-  defp uuid_regex do
-    ~r/\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/i
   end
 
   defp iso8601(%DateTime{} = dt), do: DateTime.to_iso8601(dt)
