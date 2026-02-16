@@ -1,5 +1,5 @@
 {
-  "setup-worktree": [
-    "npm install"
+  "setup-worktree-unix": [
+    ".cursor/setup-worktree-mac.sh"
   ]
 }

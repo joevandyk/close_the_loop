@@ -6,6 +6,7 @@ defmodule CloseTheLoop.Workers.ResolveReportIssueWorker do
   import Ash.Expr
 
   require Ash.Query
+  require Logger
 
   alias CloseTheLoop.AI
   alias CloseTheLoop.Feedback
@@ -13,6 +14,17 @@ defmodule CloseTheLoop.Workers.ResolveReportIssueWorker do
 
   @impl true
   def perform(%Oban.Job{args: %{"tenant" => tenant, "report_id" => report_id}} = job) do
+    # Debug aid: if we ever see :missing_openai_api_key, confirm whether the worker
+    # process can actually read the environment variable. Only logs length, never the key.
+    key_len = System.get_env("OPENAI_API_KEY") |> to_string() |> String.length()
+
+    Logger.debug("ResolveReportIssueWorker start",
+      tenant: tenant,
+      report_id: report_id,
+      node: node(),
+      openai_key_len: key_len
+    )
+
     with true <- is_binary(tenant),
          {:ok, %Report{} = report} <-
            Feedback.get_report_by_id(report_id,
@@ -44,7 +56,8 @@ defmodule CloseTheLoop.Workers.ResolveReportIssueWorker do
         {:error, :missing_openai_api_key} ->
           # Persistent failure: mark the report so staff can assign manually.
           _ = Feedback.set_report_ai_resolution_failed(report, tenant: tenant, actor: nil)
-          {:discard, "OPENAI_API_KEY is not configured"}
+          key_len = System.get_env("OPENAI_API_KEY") |> to_string() |> String.length()
+          {:discard, "OPENAI_API_KEY is not configured (node=#{node()}, key_len=#{key_len})"}
 
         {:error, reason} ->
           maybe_fail(job, tenant, report, reason)

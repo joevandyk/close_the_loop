@@ -30,7 +30,7 @@ defmodule CloseTheLoop.AI do
         allowed = Categories.active_keys(tenant)
         categories = Categories.active_for_ai(tenant)
         org = get_org_by_tenant(tenant)
-        model = System.get_env("OPENAI_MODEL", "gpt-5.2")
+        model = System.get_env("OPENAI_MODEL", "gpt-5-mini")
         openai = OpenaiEx.new(api_key) |> OpenaiEx.with_receive_timeout(45_000)
 
         prompt = build_categorize_prompt(allowed, categories, org)
@@ -75,7 +75,7 @@ defmodule CloseTheLoop.AI do
         {:error, :missing_openai_api_key}
 
       api_key ->
-        model = System.get_env("OPENAI_MODEL", "gpt-5.2")
+        model = System.get_env("OPENAI_MODEL", "gpt-5-mini")
         openai = OpenaiEx.new(api_key) |> OpenaiEx.with_receive_timeout(45_000)
 
         prompt = """
@@ -145,7 +145,7 @@ defmodule CloseTheLoop.AI do
         {:error, :missing_openai_api_key}
 
       api_key ->
-        model = System.get_env("OPENAI_MODEL", "gpt-5.2")
+        model = System.get_env("OPENAI_MODEL", "gpt-5-mini")
         openai = OpenaiEx.new(api_key) |> OpenaiEx.with_receive_timeout(45_000)
 
         allowed_categories = Categories.active_keys(tenant)
