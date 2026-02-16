@@ -127,8 +127,8 @@ test("business can onboard, receive a report, and view it", async ({ page }) => 
 
   await page.locator('textarea[name="report[body]"]').fill(reportBody);
   await expect(page.locator('textarea[name="report[body]"]')).toHaveValue(reportBody);
-  await page.locator('input[name="report[phone]"]').fill("+15555555555");
-  await page.getByRole("checkbox", { name: /agree to receive text updates/i }).check();
+  await page.locator('input[name="report[reporter_phone]"]').fill("+15555555555");
+  await page.getByRole("checkbox", { name: /send me text updates/i }).check();
   await page.getByRole("button", { name: /^submit$/i }).click();
   await expect(page.getByText(/got it/i)).toBeVisible({ timeout: 20_000 });
 
