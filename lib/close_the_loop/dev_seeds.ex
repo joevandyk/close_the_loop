@@ -14,6 +14,8 @@ defmodule CloseTheLoop.DevSeeds do
   alias CloseTheLoop.Tenants.Organization
 
   @dev_user_password "asdfasdf"
+  @admin_email "joevandyk@gmail.com"
+  @admin_password "password"
 
   @doc """
   Returns configs for all orgs: loops over each generated JSON org file in
@@ -174,6 +176,25 @@ defmodule CloseTheLoop.DevSeeds do
       seed_tenant!(org.tenant_schema, config)
       org
     end
+  end
+
+  @doc """
+  Creates the platform admin user (joevandyk@gmail.com / password).
+  Returns the user struct.
+  """
+  @spec ensure_admin_user!() :: User.t()
+  def ensure_admin_user! do
+    now = DateTime.utc_now()
+
+    User
+    |> Ash.create!(
+      %{email: @admin_email, password: @admin_password, password_confirmation: @admin_password},
+      action: :register_with_password,
+      authorize?: false
+    )
+    |> Ash.update!(%{confirmed_at: now}, action: :set_confirmed_at, authorize?: false)
+    |> Ash.update!(%{name: "Joe"}, action: :update_profile, authorize?: false)
+    |> Ash.update!(%{}, action: :promote_to_admin, authorize?: false)
   end
 
   defp create_organization!(config) do

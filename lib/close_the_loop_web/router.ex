@@ -56,6 +56,8 @@ defmodule CloseTheLoopWeb.Router do
       # If an authenticated user must *not* be present:
       # on_mount {CloseTheLoopWeb.LiveUserAuth, :live_no_user}
 
+      live "/ops", OperatorLive.Dashboard, :index
+
       live "/app/onboarding", OnboardingLive, :index
 
       # Org selection / switcher landing page (org is in URL elsewhere).

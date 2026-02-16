@@ -4,7 +4,13 @@ defmodule CloseTheLoopWeb.IssuesLiveTest do
   import Phoenix.LiveViewTest
 
   import CloseTheLoop.TestHelpers,
-    only: [create_membership!: 3, insert_org!: 1, register_user!: 1, unique_email: 1]
+    only: [
+      create_membership!: 3,
+      insert_org!: 1,
+      promote_to_admin!: 1,
+      register_user!: 1,
+      unique_email: 1
+    ]
 
   alias CloseTheLoop.Feedback.{Issue, Location, Report}
 
@@ -40,6 +46,43 @@ defmodule CloseTheLoopWeb.IssuesLiveTest do
     {:ok, _view, html} = live(conn, ~p"/app/#{org.id}/issues")
     assert html =~ "Issues"
     assert html =~ "Cold shower"
+  end
+
+  test "admin can view any org issues inbox without membership", %{conn: conn} do
+    tenant = "public"
+    email = unique_email("admin")
+
+    org = insert_org!(tenant)
+
+    user =
+      email
+      |> register_user!()
+      |> promote_to_admin!()
+
+    {:ok, location} =
+      Ash.create(Location, %{name: "General", full_path: "General"}, tenant: tenant)
+
+    {:ok, _issue} =
+      Ash.create(
+        Issue,
+        %{
+          location_id: location.id,
+          title: "Lights out",
+          description: "Hallway lights are out",
+          normalized_description: "hallway lights are out",
+          status: :new
+        },
+        tenant: tenant
+      )
+
+    conn =
+      conn
+      |> init_test_session(%{})
+      |> AshAuthentication.Plug.Helpers.store_in_session(user)
+
+    {:ok, _view, html} = live(conn, ~p"/app/#{org.id}/issues")
+    assert html =~ "Issues"
+    assert html =~ "Lights out"
   end
 
   test "authenticated user can add internal comments to an issue", %{conn: conn} do

@@ -21,6 +21,7 @@ end
 
 {:ok, _} = Application.ensure_all_started(:close_the_loop)
 
+admin = CloseTheLoop.DevSeeds.ensure_admin_user!()
 orgs = CloseTheLoop.DevSeeds.run_all_sample_orgs!()
 dev_logins = CloseTheLoop.DevSeeds.ensure_dev_users_for_orgs!(orgs)
 
@@ -35,6 +36,9 @@ mens =
   |> Ash.read_one!(tenant: demo_tenant)
 
 IO.puts("""
+
+Platform admin (operator dashboard at /ops):
+  #{admin.email} / password
 
 Seeded organizations (each has an owner; sign in with that email to see that org):
 #{Enum.map_join(dev_logins, "\n", fn l -> "  #{l.org_name}  → #{l.email} / #{l.password}" end)}

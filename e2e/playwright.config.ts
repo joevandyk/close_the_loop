@@ -11,7 +11,7 @@ const e2eDatabaseUrl =
 
 export default defineConfig({
   testDir: "./tests",
-  timeout: 60_000,
+  timeout: 30_000,
   expect: { timeout: 10_000 },
   use: {
     baseURL: process.env.BASE_URL ?? `http://localhost:${port}`,

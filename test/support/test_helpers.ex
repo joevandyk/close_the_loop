@@ -53,4 +53,8 @@ defmodule CloseTheLoop.TestHelpers do
 
     membership
   end
+
+  def promote_to_admin!(user) do
+    Ash.update!(user, %{}, action: :promote_to_admin, authorize?: false)
+  end
 end

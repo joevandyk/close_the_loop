@@ -32,6 +32,21 @@ defmodule CloseTheLoopWeb.LiveUserAuth do
     end
   end
 
+  def on_mount(:live_admin_required, _params, _session, socket) do
+    user = socket.assigns[:current_user]
+
+    cond do
+      is_nil(user) ->
+        {:halt, Phoenix.LiveView.redirect(socket, to: ~p"/sign-in")}
+
+      user.admin? ->
+        {:cont, assign(socket, :current_scope, %{actor: user, tenant: nil})}
+
+      true ->
+        {:halt, Phoenix.LiveView.redirect(socket, to: ~p"/app")}
+    end
+  end
+
   def on_mount(:live_org_required, params, _session, socket) do
     cond do
       !socket.assigns[:current_user] ->
@@ -44,14 +59,13 @@ defmodule CloseTheLoopWeb.LiveUserAuth do
         with true <-
                (is_binary(org_id) and String.trim(org_id) != "") || {:error, :missing_org_id},
              {:ok, org} <- Tenants.get_organization_by_id(org_id),
-             {:ok, membership} <-
-               Accounts.get_user_organization_by_user_org(user.id, org.id, authorize?: false),
+             {:ok, role} <- resolve_role(user, org),
              tenant when is_binary(tenant) <- Map.get(org, :tenant_schema),
              true <- tenant != "" || {:error, :missing_tenant} do
           {:cont,
            socket
            |> assign(:current_org, org)
-           |> assign(:current_role, membership.role)
+           |> assign(:current_role, role)
            |> assign(:current_tenant, tenant)
            |> assign(:current_scope, %{actor: user, tenant: tenant})}
         else
@@ -74,6 +88,15 @@ defmodule CloseTheLoopWeb.LiveUserAuth do
        )}
     else
       {:cont, socket |> assign(:current_user, nil) |> assign(:current_scope, nil)}
+    end
+  end
+
+  defp resolve_role(%{admin?: true}, _org), do: {:ok, :owner}
+
+  defp resolve_role(user, org) do
+    case Accounts.get_user_organization_by_user_org(user.id, org.id, authorize?: false) do
+      {:ok, membership} -> {:ok, membership.role}
+      error -> error
     end
   end
 

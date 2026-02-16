@@ -85,17 +85,30 @@ defmodule CloseTheLoopWeb.Layouts do
           <%!-- Mobile navigation drawer --%>
           <.sheet id="app-nav-sheet" placement="left" class="w-80 h-full p-0">
             <div class="flex h-full flex-col bg-overlay">
-              <div class="border-b border-base px-5 py-4">
+              <div class="border-b border-base px-5 py-4 space-y-3">
                 <a href={~p"/"} class="flex items-center gap-2">
                   <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-zinc-900 text-white text-sm font-semibold">
                     CTL
                   </span>
                   <span class="text-sm font-semibold tracking-tight">CloseTheLoop</span>
                 </a>
+
+                <.link
+                  :if={@org}
+                  navigate={~p"/app"}
+                  class="group flex items-center gap-2 rounded-lg border border-base bg-accent px-3 py-2 text-sm transition hover:bg-base"
+                >
+                  <.icon name="hero-building-office-2" class="size-4 shrink-0 text-foreground-soft" />
+                  <span class="min-w-0 flex-1 truncate font-medium">{@org.name}</span>
+                  <.icon
+                    name="hero-chevron-up-down"
+                    class="size-3.5 shrink-0 text-foreground-soft opacity-0 transition group-hover:opacity-100"
+                  />
+                </.link>
               </div>
 
               <div class="flex-1 overflow-y-auto px-5 py-4">
-                <.app_nav current_view={@current_view} org={@org} />
+                <.app_nav current_view={@current_view} org={@org} current_user={@current_user} />
               </div>
 
               <div class="border-t border-base px-5 py-4">
@@ -119,17 +132,30 @@ defmodule CloseTheLoopWeb.Layouts do
           <div class="flex min-h-screen min-w-0">
             <%!-- Desktop sidebar --%>
             <aside class="hidden md:sticky md:top-0 md:flex md:h-screen md:w-64 md:shrink-0 md:flex-col md:border-r md:border-base md:bg-base/90 md:backdrop-blur">
-              <div class="px-6 py-5">
+              <div class="px-6 py-5 space-y-3">
                 <a href={~p"/"} class="flex items-center gap-2">
                   <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-zinc-900 text-white text-sm font-semibold">
                     CTL
                   </span>
                   <span class="text-sm font-semibold tracking-tight">CloseTheLoop</span>
                 </a>
+
+                <.link
+                  :if={@org}
+                  navigate={~p"/app"}
+                  class="group flex items-center gap-2 rounded-lg border border-base bg-accent px-3 py-2 text-sm transition hover:bg-base"
+                >
+                  <.icon name="hero-building-office-2" class="size-4 shrink-0 text-foreground-soft" />
+                  <span class="min-w-0 flex-1 truncate font-medium">{@org.name}</span>
+                  <.icon
+                    name="hero-chevron-up-down"
+                    class="size-3.5 shrink-0 text-foreground-soft opacity-0 transition group-hover:opacity-100"
+                  />
+                </.link>
               </div>
 
               <div class="flex-1 overflow-y-auto px-6 pb-6">
-                <.app_nav current_view={@current_view} org={@org} />
+                <.app_nav current_view={@current_view} org={@org} current_user={@current_user} />
               </div>
 
               <div class="border-t border-base px-6 py-4">
@@ -359,6 +385,7 @@ defmodule CloseTheLoopWeb.Layouts do
   """
   attr :current_view, :string, default: ""
   attr :org, :any, default: nil
+  attr :current_user, :any, default: nil
 
   def app_nav(assigns) do
     dashboard_active = String.contains?(assigns.current_view, ".DashboardLive.")
@@ -376,6 +403,8 @@ defmodule CloseTheLoopWeb.Layouts do
       String.contains?(assigns.current_view, ".OrgPickerLive.") or
         String.contains?(assigns.current_view, ".OrganizationsLive.")
 
+    ops_active = String.contains?(assigns.current_view, ".OperatorLive.")
+
     assigns =
       assigns
       |> assign(:org_id, assigns.org && Map.get(assigns.org, :id))
@@ -386,6 +415,8 @@ defmodule CloseTheLoopWeb.Layouts do
       |> assign(:settings_active, settings_active)
       |> assign(:onboarding_active, onboarding_active)
       |> assign(:organizations_active, organizations_active)
+      |> assign(:ops_active, ops_active)
+      |> assign(:is_admin, !!(assigns[:current_user] && assigns.current_user.admin?))
 
     ~H"""
     <.navlist heading="Main">
@@ -418,6 +449,9 @@ defmodule CloseTheLoopWeb.Layouts do
           <.icon name="hero-map-pin" class="size-5" /> Locations
         </.navlink>
       <% end %>
+      <.navlink :if={@is_admin} navigate={~p"/ops"} active={@ops_active}>
+        <.icon name="hero-wrench-screwdriver" class="size-5" /> Ops Dashboard
+      </.navlink>
       <.navlink href={~p"/app/oban"}>
         <.icon name="hero-queue-list" class="size-5" /> Jobs
       </.navlink>
@@ -472,5 +506,4 @@ defmodule CloseTheLoopWeb.Layouts do
     </div>
     """
   end
-
 end

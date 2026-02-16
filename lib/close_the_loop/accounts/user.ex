@@ -182,6 +182,12 @@ defmodule CloseTheLoop.Accounts.User do
       accept [:confirmed_at]
     end
 
+    update :promote_to_admin do
+      description "Promote a user to platform admin (operator access)."
+      accept []
+      change set_attribute(:admin?, true)
+    end
+
     read :sign_in_with_password do
       description "Attempt to sign in using a email and password."
       get? true
@@ -324,6 +330,11 @@ defmodule CloseTheLoop.Accounts.User do
     policy action([:update_profile, :change_email, :change_password, :set_confirmed_at]) do
       authorize_if expr(id == ^actor(:id))
     end
+
+    # Admin reads (operator dashboard) - only admins can list all users.
+    policy action(:read) do
+      authorize_if expr(^actor(:admin?))
+    end
   end
 
   attributes do
@@ -344,6 +355,12 @@ defmodule CloseTheLoop.Accounts.User do
     end
 
     attribute :confirmed_at, :utc_datetime_usec
+
+    attribute :admin?, :boolean do
+      default false
+      allow_nil? false
+      public? false
+    end
   end
 
   relationships do
