@@ -89,11 +89,6 @@ defmodule CloseTheLoopWeb.ReportsLive.Index do
   defp format_dt(%NaiveDateTime{} = dt), do: Calendar.strftime(dt, "%b %d, %Y %I:%M %p")
   defp format_dt(other), do: to_string(other)
 
-  defp iso8601(%DateTime{} = dt), do: DateTime.to_iso8601(dt)
-  defp iso8601(%NaiveDateTime{} = dt), do: NaiveDateTime.to_iso8601(dt)
-  defp iso8601(other) when is_binary(other), do: other
-  defp iso8601(other), do: to_string(other)
-
   defp reports_index_path(org_id, q) do
     params = if q, do: %{q: q}, else: %{}
     ~p"/app/#{org_id}/reports?#{params}"

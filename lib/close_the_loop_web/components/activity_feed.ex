@@ -327,12 +327,6 @@ defmodule CloseTheLoopWeb.ActivityFeed do
     end
   end
 
-  defp iso8601(%DateTime{} = dt), do: DateTime.to_iso8601(dt)
-  defp iso8601(%NaiveDateTime{} = dt), do: NaiveDateTime.to_iso8601(dt)
-  defp iso8601(%Date{} = d), do: Date.to_iso8601(d)
-  defp iso8601(dt) when is_binary(dt), do: dt
-  defp iso8601(dt), do: to_string(dt)
-
   defp format_dt(%DateTime{} = dt), do: Calendar.strftime(dt, "%b %-d, %Y %-I:%M %p")
   defp format_dt(%NaiveDateTime{} = dt), do: Calendar.strftime(dt, "%b %-d, %Y %-I:%M %p")
   defp format_dt(dt) when is_binary(dt), do: dt

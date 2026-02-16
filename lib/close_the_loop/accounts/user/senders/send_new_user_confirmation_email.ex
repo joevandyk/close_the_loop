@@ -9,15 +9,22 @@ defmodule CloseTheLoop.Accounts.User.Senders.SendNewUserConfirmationEmail do
   import Swoosh.Email
 
   alias CloseTheLoop.Mailer
+  alias CloseTheLoop.Messaging.OutboundEmail
 
   @impl true
   def send(user, token, _) do
-    new()
-    |> from(Mailer.default_from())
-    |> to(to_string(user.email))
-    |> subject("Confirm your email address")
-    |> html_body(body(token: token))
-    |> Mailer.deliver!()
+    email =
+      new()
+      |> from(Mailer.default_from())
+      |> to(to_string(user.email))
+      |> subject("Confirm your email address")
+      |> html_body(body(token: token))
+
+    OutboundEmail.deliver!(email,
+      template: "new_user_confirmation",
+      related_resource: "user",
+      related_id: user.id
+    )
   end
 
   defp body(params) do

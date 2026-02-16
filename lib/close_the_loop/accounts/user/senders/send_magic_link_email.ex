@@ -8,6 +8,7 @@ defmodule CloseTheLoop.Accounts.User.Senders.SendMagicLinkEmail do
 
   import Swoosh.Email
   alias CloseTheLoop.Mailer
+  alias CloseTheLoop.Messaging.OutboundEmail
 
   @impl true
   def send(user_or_email, token, _) do
@@ -20,12 +21,14 @@ defmodule CloseTheLoop.Accounts.User.Senders.SendMagicLinkEmail do
         email -> email
       end
 
-    new()
-    |> from(Mailer.default_from())
-    |> to(to_string(email))
-    |> subject("Your login link")
-    |> html_body(body(token: token, email: email))
-    |> Mailer.deliver!()
+    email =
+      new()
+      |> from(Mailer.default_from())
+      |> to(to_string(email))
+      |> subject("Your login link")
+      |> html_body(body(token: token, email: email))
+
+    OutboundEmail.deliver!(email, template: "magic_link")
   end
 
   defp body(params) do

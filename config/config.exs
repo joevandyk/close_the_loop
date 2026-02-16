@@ -66,6 +66,7 @@ config :close_the_loop,
   generators: [timestamp_type: :utc_datetime],
   ash_domains: [
     CloseTheLoop.Accounts,
+    CloseTheLoop.Messaging,
     CloseTheLoop.Tenants,
     CloseTheLoop.Feedback,
     CloseTheLoop.Events

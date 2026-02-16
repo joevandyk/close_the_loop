@@ -85,6 +85,9 @@ defmodule CloseTheLoopWeb do
       # HTML escaping functionality
       import Phoenix.HTML
 
+      # Common time helpers (e.g. ISO8601 timestamps for JS hooks)
+      import CloseTheLoopWeb.TimeHelpers
+
       # Fluxon UI components (LiveView-first, accessible)
       use Fluxon
 

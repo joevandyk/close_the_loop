@@ -6,18 +6,21 @@ defmodule CloseTheLoop.Workers.SendIssueUpdateSmsWorker do
   import Ash.Expr
 
   alias CloseTheLoop.Feedback.{IssueUpdate, Report}
-  alias CloseTheLoop.Messaging.Twilio
+  alias CloseTheLoop.Messaging.OutboundSms
 
   require Ash.Query
 
   @impl true
-  def perform(%Oban.Job{
-        args: %{"tenant" => tenant, "issue_id" => issue_id, "message" => message}
-      }) do
+  def perform(%Oban.Job{} = job) do
+    tenant = job.args["tenant"]
+    issue_id = job.args["issue_id"]
+    issue_update_id = job.args["issue_update_id"]
+    message = job.args["message"]
+
     recipients = list_recipients(tenant, issue_id)
 
     Enum.each(recipients, fn phone ->
-      _ = Twilio.send_sms(phone, message)
+      _ = OutboundSms.queue_issue_update(tenant, issue_update_id, phone, message)
     end)
 
     :ok
@@ -44,7 +47,12 @@ defmodule CloseTheLoop.Workers.SendIssueUpdateSmsWorker do
 
   # Convenience helper used by LiveView
   def enqueue(%IssueUpdate{} = update, tenant) when is_binary(tenant) do
-    new(%{"tenant" => tenant, "issue_id" => update.issue_id, "message" => update.message})
+    new(%{
+      "tenant" => tenant,
+      "issue_id" => update.issue_id,
+      "issue_update_id" => update.id,
+      "message" => update.message
+    })
     |> Oban.insert()
   end
 end
