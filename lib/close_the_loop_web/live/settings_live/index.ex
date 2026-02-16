@@ -15,7 +15,7 @@ defmodule CloseTheLoopWeb.SettingsLive.Index do
         <div>
           <h1 class="text-2xl font-semibold">Settings</h1>
           <p class="mt-2 text-sm text-foreground-soft">
-            Manage your organization, account, and inbox configuration.
+            Manage your organization, account, and issues configuration.
           </p>
         </div>
 
@@ -65,7 +65,7 @@ defmodule CloseTheLoopWeb.SettingsLive.Index do
           >
             <div class="flex items-start justify-between gap-3">
               <div>
-                <h2 class="text-sm font-semibold">Inbox configuration</h2>
+                <h2 class="text-sm font-semibold">Issues configuration</h2>
                 <p class="mt-2 text-sm text-foreground-soft">
                   Categories and triage settings.
                 </p>

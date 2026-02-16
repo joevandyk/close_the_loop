@@ -14,7 +14,7 @@ defmodule CloseTheLoopWeb.SettingsLive.Inbox do
       <div class="max-w-4xl mx-auto space-y-8">
         <div class="flex items-start justify-between gap-4">
           <div>
-            <h1 class="text-2xl font-semibold">Inbox configuration</h1>
+            <h1 class="text-2xl font-semibold">Issues configuration</h1>
             <p class="mt-2 text-sm text-foreground-soft">
               Control how reports become issues and how your team triages them.
             </p>
@@ -26,7 +26,7 @@ defmodule CloseTheLoopWeb.SettingsLive.Inbox do
         <div class="rounded-2xl border border-base bg-base p-6 shadow-base">
           <h2 class="text-sm font-semibold">Issue categories</h2>
           <p class="mt-2 text-sm text-foreground-soft">
-            Categories are used by AI auto-classification and shown in your inbox.
+            Categories are used by AI auto-classification and shown in your issues.
           </p>
 
           <div class="mt-4">

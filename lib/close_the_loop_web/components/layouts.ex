@@ -393,7 +393,7 @@ defmodule CloseTheLoopWeb.Layouts do
         <.icon name="hero-squares-2x2" class="size-5" /> Dashboard
       </.navlink>
       <.navlink navigate={~p"/app/issues"} active={@inbox_active}>
-        <.icon name="hero-inbox" class="size-5" /> Inbox
+        <.icon name="hero-inbox" class="size-5" /> Issues
       </.navlink>
       <.navlink navigate={~p"/app/reports"} active={@reports_active}>
         <.icon name="hero-document-text" class="size-5" /> Reports
@@ -408,7 +408,7 @@ defmodule CloseTheLoopWeb.Layouts do
         <.icon name="hero-user-circle" class="size-5" /> Account
       </.navlink>
       <.navlink navigate={~p"/app/settings/inbox"} active={@inbox_settings_active}>
-        <.icon name="hero-adjustments-horizontal" class="size-5" /> Inbox configuration
+        <.icon name="hero-adjustments-horizontal" class="size-5" /> Issues configuration
       </.navlink>
       <.navlink navigate={~p"/app/settings/locations"} active={@locations_active}>
         <.icon name="hero-map-pin" class="size-5" /> Locations

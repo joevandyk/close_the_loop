@@ -74,7 +74,7 @@ defmodule CloseTheLoopWeb.IssueCategoriesLive.Index do
           <div>
             <h1 class="text-2xl font-semibold">Issue categories</h1>
             <p class="mt-2 text-sm text-foreground-soft">
-              These categories are used by AI auto-classification and shown in your inbox.
+              These categories are used by AI auto-classification and shown in your issues.
             </p>
           </div>
 

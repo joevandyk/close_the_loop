@@ -47,7 +47,7 @@ defmodule CloseTheLoopWeb.IssuesLive.Index do
     <Layouts.app flash={@flash} current_user={@current_user} current_scope={@current_scope}>
       <div class="max-w-5xl mx-auto">
         <div class="flex items-center justify-between gap-4">
-          <h1 class="text-2xl font-semibold">Inbox</h1>
+          <h1 class="text-2xl font-semibold">Issues</h1>
         </div>
 
         <%!-- Card list (no tables, no horizontal scrolling) --%>
@@ -60,11 +60,12 @@ defmodule CloseTheLoopWeb.IssuesLive.Index do
           </div>
 
           <div :if={@issues != []} class="divide-y divide-base">
-            <div
+            <.link
               :for={issue <- @issues}
               id={"issue-#{issue.id}"}
+              navigate={~p"/app/issues/#{issue.id}"}
               class={[
-                "p-4 sm:p-5 transition",
+                "block p-4 sm:p-5 transition cursor-pointer",
                 "hover:bg-accent"
               ]}
             >
@@ -114,14 +115,8 @@ defmodule CloseTheLoopWeb.IssuesLive.Index do
                     </span>
                   </div>
                 </div>
-
-                <div class="shrink-0">
-                  <.button size="sm" variant="outline" navigate={~p"/app/issues/#{issue.id}"}>
-                    View
-                  </.button>
-                </div>
               </div>
-            </div>
+            </.link>
           </div>
         </div>
       </div>

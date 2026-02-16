@@ -1,220 +1,318 @@
 defmodule CloseTheLoop.DevSeeds do
   @moduledoc """
-  Dev seeding helpers.
+  Dev seeding for empty databases only (e.g. `mix ecto.reset`).
 
-  Best practice with Ash is to seed via Ash actions (and pass `tenant:` for
-  tenant-scoped resources) instead of inserting directly via `Repo`.
+  Creates organizations, tenant data, and dev users via Ash actions. No
+  idempotency checks—assumes DB is empty.
   """
 
-  import Ash.Expr
+  import Ecto.Query
 
   require Ash.Query
 
   alias CloseTheLoop.Accounts.User
   alias CloseTheLoop.Feedback
   alias CloseTheLoop.Feedback.{Issue, IssueCategory, IssueComment, IssueUpdate, Location, Report}
+  alias CloseTheLoop.Repo
   alias CloseTheLoop.Tenants.Organization
 
-  @default_tenant_schema "org_demo"
-  @default_org_name "Demo Organization"
-  @dev_user_email "asdf@asdf.com"
   @dev_user_password "asdfasdf"
 
   @doc """
-  Seeds a demo organization (public schema) and demo tenant data.
-
-  Options:
-  - `:tenant_schema` - the Postgres schema name (default: #{inspect(@default_tenant_schema)})
-  - `:organization_name` - display name (default: #{inspect(@default_org_name)})
+  Returns configs for all orgs: loops over each generated JSON org file in
+  priv/repo/seed_fixtures (excluding orgs_config.json), loads and parses each.
   """
-  @spec run(keyword()) :: Organization.t()
-  def run(opts \\ []) do
-    tenant_schema =
-      Keyword.get(opts, :tenant_schema) ||
-        System.get_env("SEED_TENANT_SCHEMA", @default_tenant_schema)
+  def sample_org_configs do
+    dir = seed_fixtures_dir()
 
-    org_name =
-      Keyword.get(opts, :organization_name) ||
-        System.get_env("SEED_ORG_NAME", @default_org_name)
-
-    org = ensure_organization!(tenant_schema, org_name)
-
-    seed_tenant!(org.tenant_schema)
-
-    org
-  end
-
-  defp ensure_organization!(tenant_schema, org_name) when is_binary(tenant_schema) do
-    case get_organization_by_schema(tenant_schema) do
-      {:ok, %Organization{} = org} ->
-        # Keep name in sync with the seed defaults without creating duplicates.
-        if org.name == org_name do
-          org
-        else
-          Ash.update!(org, %{name: org_name}, action: :update)
-        end
-
-      {:ok, nil} ->
-        Ash.create!(Organization, %{
-          name: org_name,
-          tenant_schema: tenant_schema,
-          ai_business_context:
-            "A demo environment for staff to triage and close the loop on facility feedback.",
-          ai_categorization_instructions:
-            "Prefer specific categories. When unsure, use `other` and add a short note to internal context."
-        })
-
-      {:error, error} ->
-        raise "Failed to look up organization for seed: #{inspect(error)}"
+    if File.exists?(dir) do
+      dir
+      |> File.ls!()
+      |> Enum.filter(&String.ends_with?(&1, ".json"))
+      |> Enum.reject(&(&1 == "orgs_config.json"))
+      |> Enum.sort()
+      |> Enum.map(fn filename -> Path.rootname(filename, ".json") end)
+      |> Enum.map(&load_fixture/1)
+      |> Enum.reject(&is_nil/1)
+    else
+      []
     end
   end
 
-  defp get_organization_by_schema(tenant_schema) do
-    Organization
-    |> Ash.Query.filter(tenant_schema == ^tenant_schema)
-    |> Ash.read_one()
+  defp seed_fixtures_dir do
+    project_priv = Path.join(File.cwd!(), "priv/repo/seed_fixtures")
+    code_priv = Path.join(:code.priv_dir(:close_the_loop), "repo/seed_fixtures")
+    if File.exists?(project_priv), do: project_priv, else: code_priv
+  end
+
+  defp load_fixture(tenant_schema) when is_binary(tenant_schema) do
+    path = Path.join(seed_fixtures_dir(), "#{tenant_schema}.json")
+
+    if File.exists?(path) do
+      path
+      |> File.read!()
+      |> Jason.decode!()
+      |> parse_fixture(tenant_schema)
+    else
+      nil
+    end
+  end
+
+  defp parse_fixture(
+         %{"location_specs" => loc_specs, "inbox_entries" => entries} = json,
+         tenant_schema
+       )
+       when is_list(loc_specs) and is_list(entries) do
+    if blank?(json["organization_name"]) or blank?(json["ai_business_context"]) do
+      nil
+    else
+      now = DateTime.utc_now()
+
+      location_specs =
+        Enum.map(loc_specs, fn s ->
+          %{
+            name: s["name"],
+            parent_path: s["parent_path"]
+          }
+        end)
+
+      inbox_entries =
+        Enum.map(entries, fn entry ->
+          parse_inbox_entry(entry, now)
+        end)
+
+      issue_category_guidance =
+        parse_issue_category_guidance(Map.get(json, "issue_category_guidance"))
+
+      %{
+        tenant_schema: tenant_schema,
+        organization_name: json["organization_name"],
+        ai_business_context: json["ai_business_context"],
+        ai_categorization_instructions: json["ai_categorization_instructions"],
+        location_specs: location_specs,
+        inbox_entries: inbox_entries,
+        issue_category_guidance: issue_category_guidance
+      }
+    end
+  end
+
+  defp parse_fixture(_, _), do: nil
+
+  defp blank?(nil), do: true
+  defp blank?(s) when is_binary(s), do: String.trim(s) == ""
+  defp blank?(_), do: false
+
+  defp parse_issue_category_guidance(nil), do: %{}
+
+  defp parse_issue_category_guidance(guidance) when is_map(guidance) do
+    Enum.reduce(guidance, %{}, fn {key, val}, acc ->
+      if is_map(val) do
+        Map.put(acc, key, %{
+          description: val["description"],
+          ai_include_keywords: val["ai_include_keywords"],
+          ai_exclude_keywords: val["ai_exclude_keywords"]
+        })
+      else
+        acc
+      end
+    end)
+  end
+
+  # New fixture format: list of objects with a "key" field.
+  defp parse_issue_category_guidance(guidance) when is_list(guidance) do
+    Enum.reduce(guidance, %{}, fn item, acc ->
+      if is_map(item) and is_binary(item["key"]) do
+        Map.put(acc, item["key"], %{
+          description: item["description"],
+          ai_include_keywords: item["ai_include_keywords"],
+          ai_exclude_keywords: item["ai_exclude_keywords"]
+        })
+      else
+        acc
+      end
+    end)
+  end
+
+  defp parse_inbox_entry(entry, now) do
+    issue = entry["issue"] || %{}
+    days_ago = issue["days_ago"]
+    inserted_at = if days_ago, do: DateTime.add(now, -days_ago, :day), else: nil
+
+    issue_map = %{
+      description: issue["description"],
+      status: string_to_status(issue["status"]),
+      category: issue["category"],
+      inserted_at: inserted_at
+    }
+
+    reports = Enum.map(entry["reports"] || [], fn r -> parse_report(r, now) end)
+    updates = Enum.map(entry["updates"] || [], fn u -> parse_update(u, now) end)
+    comments = Enum.map(entry["comments"] || [], fn c -> parse_comment(c, now) end)
+
+    %{
+      location_full_path: entry["location_full_path"],
+      issue: issue_map,
+      reports: reports,
+      updates: updates,
+      comments: comments
+    }
+  end
+
+  defp string_to_status(nil), do: :new
+  defp string_to_status("new"), do: :new
+  defp string_to_status("acknowledged"), do: :acknowledged
+  defp string_to_status("in_progress"), do: :in_progress
+  defp string_to_status("fixed"), do: :fixed
+  defp string_to_status(_), do: :new
+
+  defp string_to_source(nil), do: :qr
+  defp string_to_source("qr"), do: :qr
+  defp string_to_source("sms"), do: :sms
+  defp string_to_source("manual"), do: :manual
+  defp string_to_source(_), do: :qr
+
+  defp parse_report(r, now) do
+    days_ago = r["days_ago"]
+    inserted_at = if days_ago, do: DateTime.add(now, -days_ago, :day), else: nil
+
+    %{
+      body: r["body"],
+      source: string_to_source(r["source"]),
+      consent: Map.get(r, "consent", false),
+      reporter_phone: r["reporter_phone"],
+      inserted_at: inserted_at
+    }
+  end
+
+  defp parse_update(u, now) when is_map(u) do
+    days_ago = u["days_ago"]
+    inserted_at = if days_ago, do: DateTime.add(now, -days_ago, :day), else: nil
+    %{message: u["message"], inserted_at: inserted_at}
+  end
+
+  defp parse_comment(c, now) when is_map(c) do
+    days_ago = c["days_ago"]
+    inserted_at = if days_ago, do: DateTime.add(now, -days_ago, :day), else: nil
+    %{body: c["body"], author_email: c["author_email"], inserted_at: inserted_at}
   end
 
   @doc """
-  Ensures a dev user exists, confirmed and attached to the given organization as owner.
-
-  Returns `%{email: email, password: password}` for printing login instructions.
-  Override with `DEV_USER_EMAIL` and `DEV_USER_PASSWORD` env vars.
+  Seeds all sample organizations and returns the list of orgs.
+  Call `ensure_dev_users_for_orgs!(orgs)` after to create one dev user per org.
   """
-  @spec ensure_dev_user!(Organization.t()) :: %{email: String.t(), password: String.t()}
-  def ensure_dev_user!(org) do
-    email = System.get_env("DEV_USER_EMAIL", @dev_user_email)
-    password = System.get_env("DEV_USER_PASSWORD", @dev_user_password)
-    now = DateTime.utc_now()
-
-    user =
-      case User
-           |> Ash.Query.for_read(:get_by_email, %{email: email})
-           |> Ash.read_one(authorize?: false) do
-        {:ok, %User{} = existing} ->
-          existing
-          |> Ash.update!(%{confirmed_at: now}, action: :set_confirmed_at, authorize?: false)
-          |> then(
-            &Ash.update!(&1, %{organization_id: org.id, role: :owner},
-              action: :set_organization,
-              authorize?: false
-            )
-          )
-          |> then(
-            &Ash.update!(&1, %{name: "Demo Owner"}, action: :update_profile, authorize?: false)
-          )
-
-        {:ok, nil} ->
-          User
-          |> Ash.create!(%{email: email, password: password, password_confirmation: password},
-            action: :register_with_password,
-            authorize?: false
-          )
-          |> then(
-            &Ash.update!(&1, %{confirmed_at: now}, action: :set_confirmed_at, authorize?: false)
-          )
-          |> then(
-            &Ash.update!(&1, %{organization_id: org.id, role: :owner},
-              action: :set_organization,
-              authorize?: false
-            )
-          )
-          |> then(
-            &Ash.update!(&1, %{name: "Demo Owner"}, action: :update_profile, authorize?: false)
-          )
-
-        {:error, error} ->
-          raise "Failed to ensure dev user: #{inspect(error)}"
-      end
-
-    %{email: user.email, password: password}
+  @spec run_all_sample_orgs!() :: [Organization.t()]
+  def run_all_sample_orgs! do
+    for config <- sample_org_configs() do
+      org = create_organization!(config)
+      seed_tenant!(org.tenant_schema, config)
+      org
+    end
   end
 
-  defp seed_tenant!(tenant) when is_binary(tenant) do
-    :ok = Feedback.Categories.ensure_defaults(tenant)
-    :ok = seed_issue_category_guidance!(tenant)
+  defp create_organization!(config) do
+    Ash.create!(Organization, %{
+      name: config.organization_name,
+      tenant_schema: config.tenant_schema,
+      ai_business_context: config.ai_business_context,
+      ai_categorization_instructions: config.ai_categorization_instructions
+    })
+  end
 
-    locations = seed_locations!(tenant)
-    seed_inbox_examples!(tenant, locations)
+  defp backdate_record!(tenant_schema, table, id, opts) when is_binary(tenant_schema) do
+    set =
+      []
+      |> maybe_set(:inserted_at, opts[:inserted_at])
+      |> maybe_set(:updated_at, opts[:updated_at])
+
+    if set != [] do
+      # Postgrex expects binary (16 bytes) for uuid in raw queries; Ash uses string UUIDs.
+      id_param = Ecto.UUID.dump!(id)
+
+      from(t in table, where: t.id == ^id_param)
+      |> Repo.update_all([set: set], prefix: tenant_schema)
+    end
 
     :ok
   end
 
-  defp seed_locations!(tenant) do
-    facility = ensure_location!(tenant, "Demo Facility", nil)
-    locker_rooms = ensure_location!(tenant, "Locker Rooms", facility)
-    mens = ensure_location!(tenant, "Mens Locker Room", locker_rooms)
-    womens = ensure_location!(tenant, "Womens Locker Room", locker_rooms)
-    pool = ensure_location!(tenant, "Pool", facility)
-    front_desk = ensure_location!(tenant, "Front Desk", facility)
+  defp maybe_set(acc, _key, nil), do: acc
+  defp maybe_set(acc, key, value), do: [{key, value} | acc]
 
-    %{
-      facility: facility,
-      locker_rooms: locker_rooms,
-      mens: mens,
-      womens: womens,
-      pool: pool,
-      front_desk: front_desk
-    }
-  end
+  @dev_user_per_org %{
+    "org_demo" => %{email: "asdf@asdf.com", name: "Demo Owner"},
+    "org_24hr_fitness" => %{email: "24hr@asdf.com", name: "24hr Owner"},
+    "org_the_spot" => %{email: "thespot@asdf.com", name: "The Spot Owner"},
+    "org_laundromat" => %{email: "sudzy@asdf.com", name: "Sudzy Owner"},
+    "org_grocery" => %{email: "freshmart@asdf.com", name: "Fresh Mart Owner"}
+  }
 
-  defp ensure_location!(tenant, name, nil) do
-    full_path = name
+  @doc """
+  Creates one dev user per organization. Returns list of %{org_name, tenant_schema, email, password}.
+  """
+  @spec ensure_dev_users_for_orgs!([Organization.t()]) :: [
+          %{
+            org_name: String.t(),
+            tenant_schema: String.t(),
+            email: String.t(),
+            password: String.t()
+          }
+        ]
+  def ensure_dev_users_for_orgs!(orgs) do
+    password = System.get_env("DEV_USER_PASSWORD", @dev_user_password)
+    now = DateTime.utc_now()
 
-    case Location |> Ash.Query.filter(full_path == ^full_path) |> Ash.read_one(tenant: tenant) do
-      {:ok, %Location{} = location} ->
-        location
+    Enum.map(orgs, fn org ->
+      config =
+        Map.get(@dev_user_per_org, org.tenant_schema) ||
+          %{email: "dev_#{org.tenant_schema}@asdf.com", name: "#{org.name} Owner"}
 
-      {:ok, nil} ->
-        Ash.create!(Location, %{name: name, full_path: full_path}, tenant: tenant)
-
-      {:error, error} ->
-        raise "Failed to seed location #{inspect(full_path)}: #{inspect(error)}"
-    end
-  end
-
-  defp ensure_location!(tenant, name, %Location{} = parent) do
-    parent_full_path = parent.full_path || parent.name
-    full_path = parent_full_path <> " / " <> name
-
-    case Location |> Ash.Query.filter(full_path == ^full_path) |> Ash.read_one(tenant: tenant) do
-      {:ok, %Location{} = location} ->
-        location
-
-      {:ok, nil} ->
-        Ash.create!(
-          Location,
-          %{name: name, full_path: full_path, parent_id: parent.id},
-          tenant: tenant
+      user =
+        User
+        |> Ash.create!(
+          %{email: config.email, password: password, password_confirmation: password},
+          action: :register_with_password,
+          authorize?: false
         )
+        |> Ash.update!(%{confirmed_at: now}, action: :set_confirmed_at, authorize?: false)
+        |> Ash.update!(%{organization_id: org.id, role: :owner},
+          action: :set_organization,
+          authorize?: false
+        )
+        |> Ash.update!(%{name: config.name}, action: :update_profile, authorize?: false)
 
-      {:error, error} ->
-        raise "Failed to seed location #{inspect(full_path)}: #{inspect(error)}"
-    end
+      %{
+        org_name: org.name,
+        tenant_schema: org.tenant_schema,
+        email: user.email,
+        password: password
+      }
+    end)
   end
 
-  defp seed_issue_category_guidance!(tenant) do
-    # Defaults are created by `Feedback.Categories.ensure_defaults/1`.
-    # Here we add a little guidance so the settings UI looks realistic in dev.
-    guidance = %{
-      "plumbing" => %{
-        description: "Water, drains, toilets, showers, sinks, leaks.",
-        ai_include_keywords:
-          "leak, dripping, clogged, toilet, shower, sink, faucet, water pressure",
-        ai_exclude_keywords: "light, bulb, outlet, power"
-      },
-      "electrical" => %{
-        description: "Lighting, outlets, breakers, power issues.",
-        ai_include_keywords: "light, bulb, outlet, power, breaker, flicker",
-        ai_exclude_keywords: "leak, clogged"
-      },
-      "cleaning" => %{
-        description: "Trash, spills, odors, bathroom cleanliness.",
-        ai_include_keywords: "trash, spill, smell, dirty, sticky, mop",
-        ai_exclude_keywords: nil
-      }
-    }
+  defp seed_tenant!(tenant, config) when is_binary(tenant) and is_map(config) do
+    :ok = Feedback.Categories.ensure_defaults(tenant)
+    :ok = seed_issue_category_guidance!(tenant, Map.get(config, :issue_category_guidance, %{}))
 
+    locations_by_path = seed_locations!(tenant, config.location_specs)
+    seed_inbox_examples!(tenant, locations_by_path, config.inbox_entries)
+
+    :ok
+  end
+
+  defp seed_locations!(tenant, location_specs) do
+    Enum.reduce(location_specs, %{}, fn spec, acc ->
+      full_path = if spec.parent_path, do: spec.parent_path <> " / " <> spec.name, else: spec.name
+      parent_id = if spec.parent_path, do: Map.get(acc, spec.parent_path).id, else: nil
+      attrs = %{name: spec.name, full_path: full_path} |> maybe_put(:parent_id, parent_id)
+      location = Ash.create!(Location, attrs, tenant: tenant)
+      Map.put(acc, full_path, location)
+    end)
+  end
+
+  defp maybe_put(map, _key, nil), do: map
+  defp maybe_put(map, key, value), do: Map.put(map, key, value)
+
+  defp seed_issue_category_guidance!(tenant, guidance) when is_map(guidance) do
     Enum.each(guidance, fn {key, attrs} ->
       cat =
         IssueCategory
@@ -229,183 +327,99 @@ defmodule CloseTheLoop.DevSeeds do
     :ok
   end
 
-  defp seed_inbox_examples!(tenant, locations) do
-    issue1 =
-      ensure_issue!(
-        tenant,
-        locations.mens,
-        "Cold water in the men's showers",
-        %{status: :new, category: "plumbing"}
-      )
+  defp seed_inbox_examples!(tenant, locations_by_path, inbox_entries) do
+    for entry <- inbox_entries do
+      location = Map.fetch!(locations_by_path, entry.location_full_path)
+      issue_attrs = entry.issue
+      issue = create_issue!(tenant, location, issue_attrs)
 
-    _report1 =
-      ensure_report!(
-        tenant,
-        issue1,
-        locations.mens,
-        "Cold water in the men's showers. Started this morning around 7am.",
-        %{source: :qr, reporter_phone: "+15555550123", consent: true}
-      )
+      if issue_attrs[:inserted_at],
+        do:
+          backdate_record!(tenant, "issues", issue.id,
+            inserted_at: issue_attrs.inserted_at,
+            updated_at: issue_attrs.inserted_at
+          )
 
-    _ = ensure_issue_update!(tenant, issue1, "Thanks - we are on it.")
+      for r <- entry.reports do
+        report = create_report!(tenant, issue, location, r)
 
-    issue2 =
-      ensure_issue!(
-        tenant,
-        locations.pool,
-        "Broken overhead light by the pool entrance",
-        %{status: :in_progress, category: "electrical"}
-      )
+        if r[:inserted_at],
+          do: backdate_record!(tenant, "reports", report.id, inserted_at: r.inserted_at)
+      end
 
-    _report2 =
-      ensure_report!(
-        tenant,
-        issue2,
-        locations.pool,
-        "The overhead light by the pool entrance has been out for two days.",
-        %{source: :sms, reporter_phone: "+15555550124", consent: false}
-      )
+      for u <- entry.updates do
+        update = create_issue_update!(tenant, issue, u)
 
-    issue3 =
-      ensure_issue!(
-        tenant,
-        locations.front_desk,
-        "Trash overflowing near the front desk",
-        %{status: :acknowledged, category: "cleaning"}
-      )
+        if inserted_at = u[:inserted_at] do
+          backdate_record!(tenant, "issue_updates", update.id, inserted_at: inserted_at)
+        end
+      end
 
-    _report3 =
-      ensure_report!(
-        tenant,
-        issue3,
-        locations.front_desk,
-        "Trash can overflowing near the front desk and smells bad.",
-        %{source: :qr}
-      )
+      for c <- entry.comments do
+        comment = create_issue_comment!(tenant, issue, c)
 
-    _ =
-      ensure_issue_comment!(
-        tenant,
-        issue3,
-        "Noted - asked the cleaning crew to prioritize this today.",
-        %{author_email: "demo_owner@example.com"}
-      )
+        if inserted_at = c[:inserted_at] do
+          backdate_record!(tenant, "issue_comments", comment.id, inserted_at: inserted_at)
+        end
+      end
+    end
 
     :ok
   end
 
-  defp ensure_issue!(tenant, %Location{} = location, description, extra_attrs)
-       when is_binary(description) and is_map(extra_attrs) do
-    normalized = normalize_text(description)
+  defp create_issue!(tenant, location, attrs) do
+    desc = attrs.description
 
-    query =
-      Issue
-      |> Ash.Query.filter(
-        expr(
-          location_id == ^location.id and normalized_description == ^normalized and
-            is_nil(duplicate_of_issue_id)
-        )
-      )
-      |> Ash.Query.sort(inserted_at: :desc)
-      |> Ash.Query.limit(1)
-
-    case Ash.read_one(query, tenant: tenant) do
-      {:ok, %Issue{} = issue} ->
-        issue
-
-      {:ok, nil} ->
-        attrs =
-          %{
-            location_id: location.id,
-            title: build_title(description),
-            description: description,
-            normalized_description: normalized
-          }
-          |> Map.merge(extra_attrs)
-
-        Ash.create!(Issue, attrs, tenant: tenant)
-
-      {:error, error} ->
-        raise "Failed to seed issue: #{inspect(error)}"
-    end
+    Ash.create!(
+      Issue,
+      %{
+        location_id: location.id,
+        title: build_title(desc),
+        description: desc,
+        normalized_description: normalize_text(desc),
+        status: attrs.status,
+        category: attrs.category
+      },
+      tenant: tenant
+    )
   end
 
-  defp ensure_report!(tenant, %Issue{} = issue, %Location{} = location, body, extra_attrs)
-       when is_binary(body) and is_map(extra_attrs) do
-    normalized = normalize_text(body)
+  defp create_report!(tenant, issue, location, attrs) do
+    body = attrs.body
 
-    query =
-      Report
-      |> Ash.Query.filter(expr(issue_id == ^issue.id and normalized_body == ^normalized))
-      |> Ash.Query.sort(inserted_at: :desc)
-      |> Ash.Query.limit(1)
-
-    case Ash.read_one(query, tenant: tenant) do
-      {:ok, %Report{} = report} ->
-        report
-
-      {:ok, nil} ->
-        attrs =
-          %{
-            location_id: location.id,
-            issue_id: issue.id,
-            body: body,
-            normalized_body: normalized
-          }
-          |> Map.merge(extra_attrs)
-          |> Map.put_new(:source, :qr)
-          |> Map.put_new(:consent, false)
-
-        Ash.create!(Report, attrs, tenant: tenant)
-
-      {:error, error} ->
-        raise "Failed to seed report: #{inspect(error)}"
-    end
+    Ash.create!(
+      Report,
+      %{
+        location_id: location.id,
+        issue_id: issue.id,
+        body: body,
+        normalized_body: normalize_text(body),
+        source: Map.get(attrs, :source, :qr),
+        consent: Map.get(attrs, :consent, false),
+        reporter_phone: attrs[:reporter_phone]
+      },
+      tenant: tenant
+    )
   end
 
-  defp ensure_issue_update!(tenant, %Issue{} = issue, message) when is_binary(message) do
-    query =
-      IssueUpdate
-      |> Ash.Query.filter(expr(issue_id == ^issue.id and message == ^message))
-      |> Ash.Query.limit(1)
+  defp create_issue_update!(tenant, issue, attrs) when is_map(attrs) do
+    message = Map.fetch!(attrs, :message)
 
-    case Ash.read_one(query, tenant: tenant) do
-      {:ok, %IssueUpdate{} = update} ->
-        update
-
-      {:ok, nil} ->
-        Ash.create!(
-          IssueUpdate,
-          %{issue_id: issue.id, message: message, sent_at: DateTime.utc_now()},
-          tenant: tenant
-        )
-
-      {:error, error} ->
-        raise "Failed to seed issue update: #{inspect(error)}"
-    end
+    Ash.create!(
+      IssueUpdate,
+      %{issue_id: issue.id, message: message, sent_at: DateTime.utc_now()},
+      tenant: tenant
+    )
   end
 
-  defp ensure_issue_comment!(tenant, %Issue{} = issue, body, extra_attrs)
-       when is_binary(body) and is_map(extra_attrs) do
-    query =
-      IssueComment
-      |> Ash.Query.filter(expr(issue_id == ^issue.id and body == ^body))
-      |> Ash.Query.limit(1)
+  defp create_issue_comment!(tenant, issue, attrs) when is_map(attrs) do
+    body = Map.fetch!(attrs, :body)
 
-    case Ash.read_one(query, tenant: tenant) do
-      {:ok, %IssueComment{} = comment} ->
-        comment
+    attrs =
+      %{issue_id: issue.id, body: body}
+      |> maybe_put(:author_email, attrs[:author_email])
 
-      {:ok, nil} ->
-        attrs =
-          %{issue_id: issue.id, body: body}
-          |> Map.merge(extra_attrs)
-
-        Ash.create!(IssueComment, attrs, tenant: tenant)
-
-      {:error, error} ->
-        raise "Failed to seed issue comment: #{inspect(error)}"
-    end
+    Ash.create!(IssueComment, attrs, tenant: tenant)
   end
 
   defp build_title(body) do

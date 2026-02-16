@@ -112,16 +112,13 @@ test("business can onboard, receive a report, and view it", async ({ page }) => 
   await page.getByRole("button", { name: /^submit$/i }).click();
   await expect(page.getByText(/got it/i)).toBeVisible({ timeout: 20_000 });
 
-  // Back on the business inbox, verify we can see and open the issue + report.
+  // Back on the issues list, verify we can see and open the issue + report.
   await page.goto("/app/issues");
   await expect(page.locator("#issues-list")).toBeVisible({ timeout: 20_000 });
   await expect(page.getByText(/cold water/i).first()).toBeVisible({ timeout: 20_000 });
 
-  // Card layout: click the View button within the issue card.
-  await page
-    .locator('div[id^="issue-"]', { hasText: /cold water/i })
-    .getByRole("link", { name: /view/i })
-    .click();
+  // Click the issue card to open it.
+  await page.locator('a[id^="issue-"]', { hasText: /cold water/i }).first().click();
 
   await expect(page.getByRole("heading", { name: /cold water/i })).toBeVisible();
   await expect(page.getByText(reportBody).first()).toBeVisible();

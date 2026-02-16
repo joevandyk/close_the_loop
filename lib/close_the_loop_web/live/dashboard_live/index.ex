@@ -48,7 +48,7 @@ defmodule CloseTheLoopWeb.DashboardLive.Index do
           </div>
 
           <div class="flex items-center gap-2">
-            <.button navigate={~p"/app/issues"} variant="outline">Open inbox</.button>
+            <.button navigate={~p"/app/issues"} variant="outline">Open issues</.button>
             <.button navigate={~p"/app/reports/new"} variant="solid" color="primary">
               New report
             </.button>

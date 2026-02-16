@@ -1,0 +1,417 @@
+{
+  "ai_business_context": "Demo Organization is a demo environment where staff practice triaging, assigning, and closing the loop on facility feedback across a small set of realistic facility locations (restrooms, break areas, offices, lobby, and exterior).",
+  "ai_categorization_instructions": "Prefer specific categories. When unsure, use `other` and add a short note to internal context.",
+  "inbox_entries": [
+    {
+      "comments": [
+        {
+          "author_email": "jordan.lee@demo.org",
+          "body": "Thanks for jumping on this—people were slipping a bit near the sink.",
+          "days_ago": 11
+        }
+      ],
+      "issue": {
+        "category": "plumbing",
+        "days_ago": 14,
+        "description": "Men’s restroom sink faucet is dripping steadily; water pooling on counter and floor near the left sink.",
+        "status": "fixed"
+      },
+      "location_full_path": "HQ / Floor 1 / Restrooms / Men's Restroom",
+      "reports": [
+        {
+          "body": "Left sink faucet won’t fully shut off—constant drip and the counter is soaked.",
+          "days_ago": 14,
+          "source": "qr"
+        },
+        {
+          "body": "Still dripping today; there’s a small puddle forming on the floor by the sinks.",
+          "days_ago": 13,
+          "source": "sms"
+        }
+      ],
+      "updates": [
+        {
+          "days_ago": 13,
+          "message": "Acknowledged. Placing a wet floor sign and scheduling maintenance to replace the faucet cartridge."
+        },
+        {
+          "days_ago": 12,
+          "message": "Maintenance in progress: shut off water briefly and replaced cartridge/washer; tested for leaks."
+        },
+        {
+          "days_ago": 11,
+          "message": "Resolved. Faucet no longer drips and area dried/mopped."
+        }
+      ]
+    },
+    {
+      "comments": [
+        {
+          "author_email": "samir.patel@demo.org",
+          "body": "If we can keep a spare toner on hand in the nook, that would help too.",
+          "days_ago": 6
+        }
+      ],
+      "issue": {
+        "category": "equipment",
+        "days_ago": 9,
+        "description": "Printer in the Print & Copy Nook is leaving streaks/lines on pages; likely needs toner or drum cleaning.",
+        "status": "in_progress"
+      },
+      "location_full_path": "HQ / Floor 2 / Open Office / Print & Copy Nook",
+      "reports": [
+        {
+          "body": "Printouts have a vertical black line down the left side. Happens on multiple docs.",
+          "days_ago": 9,
+          "source": "qr"
+        },
+        {
+          "body": "Tried reprinting and it’s still streaky. Might be low toner or dirty drum.",
+          "days_ago": 8,
+          "source": "manual"
+        }
+      ],
+      "updates": [
+        {
+          "days_ago": 8,
+          "message": "Acknowledged. Ordered replacement toner and scheduled quick service check for drum/rollers."
+        },
+        {
+          "days_ago": 6,
+          "message": "In progress: toner replaced; running calibration and cleaning cycle. Monitoring next 24 hours for recurrence."
+        }
+      ]
+    },
+    {
+      "comments": [
+        {
+          "author_email": "taylor.nguyen@demo.org",
+          "body": "It’s been pretty noticeable during afternoon meetings—thanks for addressing.",
+          "days_ago": 2
+        }
+      ],
+      "issue": {
+        "category": "electrical",
+        "days_ago": 5,
+        "description": "Conference Room A ceiling lights flicker intermittently; one panel occasionally goes dim then returns.",
+        "status": "acknowledged"
+      },
+      "location_full_path": "HQ / Floor 2 / Conference Rooms / Conference Room A",
+      "reports": [
+        {
+          "body": "Lights flicker during meetings (especially the panel closest to the door).",
+          "days_ago": 5,
+          "source": "qr"
+        },
+        {
+          "body": "Not constant, but it’s distracting on video calls. Seems worse when the room is first turned on.",
+          "days_ago": 4,
+          "source": "sms"
+        }
+      ],
+      "updates": [
+        {
+          "days_ago": 4,
+          "message": "Acknowledged. Suspected loose ballast/driver or failing LED panel. Electrician visit scheduled; please use alternate room if flicker worsens."
+        }
+      ]
+    },
+    {
+      "comments": [
+        {
+          "author_email": null,
+          "body": "Appreciate the quick cleanup—smell is gone now.",
+          "days_ago": 20
+        }
+      ],
+      "issue": {
+        "category": "cleaning",
+        "days_ago": 24,
+        "description": "Main Kitchenette has overflowing trash and sticky residue on the counter near the coffee station.",
+        "status": "fixed"
+      },
+      "location_full_path": "HQ / Floor 1 / Break Areas / Main Kitchenette",
+      "reports": [
+        {
+          "body": "Trash is overflowing and there’s spilled coffee/sugar on the counter—ants might show up if it sits.",
+          "days_ago": 24,
+          "source": "qr"
+        }
+      ],
+      "updates": [
+        {
+          "days_ago": 23,
+          "message": "Acknowledged. Notified cleaning team for same-day pickup and wipe-down."
+        },
+        {
+          "days_ago": 22,
+          "message": "Resolved. Trash removed, counters disinfected, and floor spot-mopped around coffee station."
+        }
+      ]
+    },
+    {
+      "comments": [
+        {
+          "author_email": "alex.morgan@demo.org",
+          "body": "Could we also add a small sign reminding visitors where to check in? Might reduce confusion.",
+          "days_ago": 28
+        }
+      ],
+      "issue": {
+        "category": "suggestion",
+        "days_ago": 33,
+        "description": "Add clearer wayfinding at Main Entrance directing visitors to Reception Desk (people keep walking into the lobby unsure where to go).",
+        "status": "new"
+      },
+      "location_full_path": "HQ / Floor 1 / Lobby / Main Entrance",
+      "reports": [
+        {
+          "body": "Visitors keep stopping at the doors and looking around. A sign pointing to reception would help.",
+          "days_ago": 33,
+          "source": "manual"
+        },
+        {
+          "body": "Had two deliveries today ask where to check in—maybe add a stand sign by the entrance.",
+          "days_ago": 31,
+          "source": "sms"
+        }
+      ],
+      "updates": []
+    },
+    {
+      "comments": [
+        {
+          "author_email": "casey.chen@demo.org",
+          "body": "The soap dispenser is working now—thank you.",
+          "days_ago": 44
+        }
+      ],
+      "issue": {
+        "category": "plumbing",
+        "days_ago": 49,
+        "description": "Women’s restroom soap dispenser at the middle sink appears empty or clogged; no soap dispenses.",
+        "status": "fixed"
+      },
+      "location_full_path": "HQ / Floor 1 / Restrooms / Women's Restroom",
+      "reports": [
+        {
+          "body": "Soap dispenser at the middle sink isn’t dispensing anything (pumps but nothing comes out).",
+          "days_ago": 49,
+          "source": "qr"
+        },
+        {
+          "body": "Still no soap this morning; had to use the far-right sink dispenser.",
+          "days_ago": 48,
+          "source": "sms"
+        }
+      ],
+      "updates": [
+        {
+          "days_ago": 48,
+          "message": "Acknowledged. Checking for empty cartridge vs. clogged pump."
+        },
+        {
+          "days_ago": 47,
+          "message": "In progress: replaced soap cartridge and cleared pump blockage; tested multiple pumps."
+        },
+        {
+          "days_ago": 45,
+          "message": "Resolved. Dispenser refilled and functioning normally."
+        }
+      ]
+    },
+    {
+      "comments": [
+        {
+          "author_email": "maria.santos@demo.org",
+          "body": "If it keeps happening, maybe the sensor needs replacement?",
+          "days_ago": 63
+        }
+      ],
+      "issue": {
+        "category": "electrical",
+        "days_ago": 67,
+        "description": "Lobby reception desk monitor power intermittently cuts out; likely loose power cable or failing power strip.",
+        "status": "in_progress"
+      },
+      "location_full_path": "HQ / Floor 1 / Lobby / Reception Desk",
+      "reports": [
+        {
+          "body": "Reception monitor went black twice today; wiggling the power cable brought it back.",
+          "days_ago": 67,
+          "source": "manual"
+        },
+        {
+          "body": "Happened again—seems like the power strip under the desk is loose or overloaded.",
+          "days_ago": 66,
+          "source": "sms"
+        }
+      ],
+      "updates": [
+        {
+          "days_ago": 66,
+          "message": "Acknowledged. Checked cable seating and reduced load on the strip; monitoring for recurrence."
+        },
+        {
+          "days_ago": 64,
+          "message": "In progress: replacing power strip and adding cable management to prevent strain on connectors."
+        }
+      ]
+    },
+    {
+      "comments": [
+        {
+          "author_email": "devon.wright@demo.org",
+          "body": "Thanks—dock is safer now.",
+          "days_ago": 77
+        }
+      ],
+      "issue": {
+        "category": "cleaning",
+        "days_ago": 82,
+        "description": "Loading Dock has debris (broken pallet wood and plastic wrap) creating a trip hazard near the bay door.",
+        "status": "fixed"
+      },
+      "location_full_path": "HQ / Exterior / Loading Dock",
+      "reports": [
+        {
+          "body": "There’s broken pallet wood and plastic wrap scattered by the loading bay—easy to trip.",
+          "days_ago": 82,
+          "source": "qr"
+        },
+        {
+          "body": "Debris still there this morning; please clear before next delivery.",
+          "days_ago": 81,
+          "source": "sms"
+        }
+      ],
+      "updates": [
+        {
+          "days_ago": 81,
+          "message": "Acknowledged. Facilities to clear debris and sweep dock area today."
+        },
+        {
+          "days_ago": 80,
+          "message": "Resolved. Debris removed, area swept, and a reminder sent to vendors to break down pallets properly."
+        }
+      ]
+    }
+  ],
+  "issue_category_guidance": [
+    {
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "leak, dripping, faucet, toilet, flush, clogged, drain, sink, water, soap dispenser",
+      "description": "Water, drains, toilets, sinks, leaks, clogs, and restroom/kitchen plumbing fixtures.",
+      "key": "plumbing"
+    },
+    {
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "light, flicker, outlet, power, breaker, switch, wiring, panel, sensor",
+      "description": "Lighting, outlets, power issues, switches, breakers, and other electrical faults.",
+      "key": "electrical"
+    },
+    {
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "trash, spill, dirty, odor, sticky, mop, disinfect, debris, dust",
+      "description": "Janitorial needs: trash removal, spills, odors, debris, and general cleanliness.",
+      "key": "cleaning"
+    },
+    {
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "printer, copier, HVAC, thermostat, fridge, microwave, dispenser, monitor",
+      "description": "Non-plumbing/electrical equipment problems (office and breakroom equipment).",
+      "key": "equipment"
+    },
+    {
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "add, improve, suggestion, would be nice, consider, signage, wayfinding",
+      "description": "Requests to improve the space or process (non-urgent enhancements).",
+      "key": "suggestion"
+    },
+    {
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": null,
+      "description": "Use when unsure; add a short note to internal context about why categorization is unclear.",
+      "key": "other"
+    }
+  ],
+  "location_specs": [
+    {
+      "name": "HQ",
+      "parent_path": null
+    },
+    {
+      "name": "Floor 1",
+      "parent_path": "HQ"
+    },
+    {
+      "name": "Floor 2",
+      "parent_path": "HQ"
+    },
+    {
+      "name": "Lobby",
+      "parent_path": "HQ / Floor 1"
+    },
+    {
+      "name": "Main Entrance",
+      "parent_path": "HQ / Floor 1 / Lobby"
+    },
+    {
+      "name": "Reception Desk",
+      "parent_path": "HQ / Floor 1 / Lobby"
+    },
+    {
+      "name": "Restrooms",
+      "parent_path": "HQ / Floor 1"
+    },
+    {
+      "name": "Men's Restroom",
+      "parent_path": "HQ / Floor 1 / Restrooms"
+    },
+    {
+      "name": "Women's Restroom",
+      "parent_path": "HQ / Floor 1 / Restrooms"
+    },
+    {
+      "name": "Break Areas",
+      "parent_path": "HQ / Floor 1"
+    },
+    {
+      "name": "Main Kitchenette",
+      "parent_path": "HQ / Floor 1 / Break Areas"
+    },
+    {
+      "name": "Open Office",
+      "parent_path": "HQ / Floor 2"
+    },
+    {
+      "name": "North Zone",
+      "parent_path": "HQ / Floor 2 / Open Office"
+    },
+    {
+      "name": "Print & Copy Nook",
+      "parent_path": "HQ / Floor 2 / Open Office"
+    },
+    {
+      "name": "Conference Rooms",
+      "parent_path": "HQ / Floor 2"
+    },
+    {
+      "name": "Conference Room A",
+      "parent_path": "HQ / Floor 2 / Conference Rooms"
+    },
+    {
+      "name": "Huddle Room 2B",
+      "parent_path": "HQ / Floor 2 / Conference Rooms"
+    },
+    {
+      "name": "Exterior",
+      "parent_path": "HQ"
+    },
+    {
+      "name": "Loading Dock",
+      "parent_path": "HQ / Exterior"
+    }
+  ],
+  "organization_name": "Demo Organization"
+}

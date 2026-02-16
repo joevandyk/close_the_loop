@@ -67,7 +67,7 @@ defmodule CloseTheLoopWeb.IssuesLiveTest do
       |> AshAuthentication.Plug.Helpers.store_in_session(user)
 
     {:ok, _view, html} = live(conn, ~p"/app/issues")
-    assert html =~ "Inbox"
+    assert html =~ "Issues"
     assert html =~ "Cold shower"
   end
 
@@ -172,7 +172,7 @@ defmodule CloseTheLoopWeb.IssuesLiveTest do
       |> AshAuthentication.Plug.Helpers.store_in_session(user)
 
     {:ok, _view, html} = live(conn, ~p"/app/issues")
-    assert html =~ "Inbox"
+    assert html =~ "Issues"
     assert html =~ "No issues yet."
   end
 

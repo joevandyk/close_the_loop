@@ -72,7 +72,9 @@ defmodule CloseTheLoopWeb.OnboardingLive do
          {:ok, %User{} = updated_user} <-
            CloseTheLoop.Accounts.set_user_organization(
              user,
-             %{organization_id: org.id, role: :owner}, actor: user) do
+             %{organization_id: org.id, role: :owner},
+             actor: user
+           ) do
       # Seed default categories for this business (best-effort).
       _ = Categories.ensure_defaults(org.tenant_schema)
 

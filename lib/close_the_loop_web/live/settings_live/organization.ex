@@ -192,7 +192,9 @@ defmodule CloseTheLoopWeb.SettingsLive.Organization do
              public_display_name: blank_to_nil(public_display_name),
              reporter_tagline: blank_to_nil(reporter_tagline),
              reporter_footer_note: blank_to_nil(reporter_footer_note)
-           }, actor: user) do
+           },
+           actor: user
+         ) do
       {:ok, %Organization{} = org} ->
         {:noreply,
          socket

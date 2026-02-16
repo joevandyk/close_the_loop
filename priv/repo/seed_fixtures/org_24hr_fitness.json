@@ -1,0 +1,458 @@
+{
+  "ai_business_context": "24 Hour Fitness is a full-service gym/fitness club with cardio and weight equipment, functional training areas, group fitness studios, locker rooms (showers/toilets/sinks), pool, sauna, hot tub, and steam room. Members and staff submit feedback about equipment problems, cleanliness/sanitation, and facility maintenance/safety issues.",
+  "ai_categorization_instructions": "Prefer specific categories (plumbing/electrical/cleaning/equipment/suggestion). When unsure, use `other` and add a short note in the issue description for internal context.",
+  "inbox_entries": [
+    {
+      "comments": [
+        {
+          "author_email": "frontdesk@24hourfitness.example",
+          "body": "Thanks for flagging—maintenance has been notified and we’ve put an out-of-order sign on the unit.",
+          "days_ago": 27
+        },
+        {
+          "author_email": null,
+          "body": "Appreciate the quick sign. Any ETA? It’s the only one with the long handles.",
+          "days_ago": 26
+        }
+      ],
+      "issue": {
+        "category": "equipment",
+        "days_ago": 28,
+        "description": "Elliptical E7 (near windows) makes loud grinding noise and resistance drops randomly. Display also flickers when increasing incline.",
+        "status": "in_progress"
+      },
+      "location_full_path": "Main Floor > Cardio Zone",
+      "reports": [
+        {
+          "body": "Elliptical E7 is clunking/grinding and the resistance keeps cutting out mid-workout. Screen flickers when I hit incline.",
+          "days_ago": 28,
+          "source": "qr"
+        },
+        {
+          "body": "Same elliptical still doing it today—felt like it slipped and then jolted. Please take it offline before someone gets hurt.",
+          "days_ago": 27,
+          "source": "sms"
+        }
+      ],
+      "updates": [
+        {
+          "days_ago": 27,
+          "message": "Unit tagged OUT OF ORDER; service ticket opened with vendor for drive belt and console check."
+        },
+        {
+          "days_ago": 24,
+          "message": "Technician scheduled; awaiting replacement belt/parts confirmation."
+        }
+      ]
+    },
+    {
+      "comments": [
+        {
+          "author_email": "maintenance@24hourfitness.example",
+          "body": "We adjusted the flush valve and will monitor. If it reoccurs we’ll replace the flapper/valve assembly.",
+          "days_ago": 9
+        },
+        {
+          "author_email": null,
+          "body": "It’s better but still occasionally runs for a few seconds after flushing.",
+          "days_ago": 6
+        }
+      ],
+      "issue": {
+        "category": "plumbing",
+        "days_ago": 12,
+        "description": "Men’s locker room toilet (second stall from entrance) runs continuously after flushing; occasionally won’t stop unless handle is jiggled.",
+        "status": "acknowledged"
+      },
+      "location_full_path": "Locker Rooms > Men's Locker Room > Toilets",
+      "reports": [
+        {
+          "body": "Toilet in men’s locker room (2nd stall) keeps running after flush. Wastes a ton of water and is loud.",
+          "days_ago": 12,
+          "source": "qr"
+        }
+      ],
+      "updates": [
+        {
+          "days_ago": 10,
+          "message": "Maintenance inspected; adjusted flush handle/chain and tested multiple flushes."
+        }
+      ]
+    },
+    {
+      "comments": [
+        {
+          "author_email": "opsmanager@24hourfitness.example",
+          "body": "We’re increasing wipe-down checks during peak hours and refilling stations more frequently. Thanks for the note.",
+          "days_ago": 41
+        },
+        {
+          "author_email": null,
+          "body": "Please also add paper towels—wipes alone don’t cut it for benches.",
+          "days_ago": 40
+        }
+      ],
+      "issue": {
+        "category": "cleaning",
+        "days_ago": 43,
+        "description": "Sanitizing wipe station by free weights is frequently empty during evening rush; area gets messy with used wipes on the floor.",
+        "status": "in_progress"
+      },
+      "location_full_path": "Main Floor > Free Weights Area",
+      "reports": [
+        {
+          "body": "Wipe dispenser by the dumbbells is empty again (6:30pm). Also lots of used wipes on the floor near the benches.",
+          "days_ago": 43,
+          "source": "sms"
+        },
+        {
+          "body": "Second time this week the wipes are out by free weights. Can we keep it stocked?",
+          "days_ago": 42,
+          "source": "qr"
+        }
+      ],
+      "updates": [
+        {
+          "days_ago": 41,
+          "message": "Team reminded to check/replace wipe rolls every hour 4–9pm; added extra refill storage at floor station."
+        },
+        {
+          "days_ago": 38,
+          "message": "Trialing additional trash can placement near benches to reduce used wipes on floor."
+        }
+      ]
+    },
+    {
+      "comments": [
+        {
+          "author_email": "maintenance@24hourfitness.example",
+          "body": "We replaced the ballast and cleaned the lens. Let us know if it flickers again.",
+          "days_ago": 63
+        }
+      ],
+      "issue": {
+        "category": "electrical",
+        "days_ago": 66,
+        "description": "Ceiling light above treadmill row (middle section) flickers and occasionally goes out for a few minutes.",
+        "status": "fixed"
+      },
+      "location_full_path": "Main Floor > Cardio Zone",
+      "reports": [
+        {
+          "body": "Light above the treadmills flickers a lot—gives me a headache when running. It went out completely for a bit too.",
+          "days_ago": 66,
+          "source": "qr"
+        }
+      ],
+      "updates": [
+        {
+          "days_ago": 64,
+          "message": "Maintenance verified flicker; ordered replacement ballast."
+        },
+        {
+          "days_ago": 63,
+          "message": "Ballast replaced; light tested stable for 30 minutes."
+        }
+      ]
+    },
+    {
+      "comments": [
+        {
+          "author_email": "aquatics@24hourfitness.example",
+          "body": "We’re checking chemical levels more frequently and have scheduled a filter backwash. Please report if the smell returns.",
+          "days_ago": 18
+        },
+        {
+          "author_email": null,
+          "body": "Smell is improved but the deck still feels slick near the hot tub steps.",
+          "days_ago": 16
+        }
+      ],
+      "issue": {
+        "category": "cleaning",
+        "days_ago": 20,
+        "description": "Strong chlorine smell and cloudy water in hot tub; deck area around hot tub feels slippery.",
+        "status": "in_progress"
+      },
+      "location_full_path": "Aquatics > Hot Tub",
+      "reports": [
+        {
+          "body": "Hot tub water looked cloudy today and the chlorine smell was really strong. Deck is slippery around it too.",
+          "days_ago": 20,
+          "source": "qr"
+        },
+        {
+          "body": "Hot tub still cloudy this evening. Please check chemicals/filters.",
+          "days_ago": 19,
+          "source": "sms"
+        }
+      ],
+      "updates": [
+        {
+          "days_ago": 18,
+          "message": "Aquatics tested and adjusted sanitizer/pH; posted caution sign for slippery deck; scheduled filter backwash."
+        },
+        {
+          "days_ago": 15,
+          "message": "Deck scrubbed with non-slip cleaner; continuing to monitor clarity."
+        }
+      ]
+    },
+    {
+      "comments": [
+        {
+          "author_email": "clubmanager@24hourfitness.example",
+          "body": "We’ve asked the vendor to inspect the steam generator and we’re keeping the room closed until it’s safe.",
+          "days_ago": 3
+        },
+        {
+          "author_email": null,
+          "body": "Thank you for closing it—there was a strong burning smell yesterday.",
+          "days_ago": 2
+        }
+      ],
+      "issue": {
+        "category": "other",
+        "days_ago": 4,
+        "description": "Steam room intermittently shuts off and there is a faint burning smell near the control panel. (Internal note: could be electrical or equipment—categorize as other until inspected.)",
+        "status": "in_progress"
+      },
+      "location_full_path": "Locker Rooms > Steam Room",
+      "reports": [
+        {
+          "body": "Steam room keeps cutting out and I smelled something like burning plastic near the panel. Please check ASAP.",
+          "days_ago": 4,
+          "source": "qr"
+        }
+      ],
+      "updates": [
+        {
+          "days_ago": 3,
+          "message": "Steam room closed; vendor service request submitted for steam generator/control inspection."
+        }
+      ]
+    },
+    {
+      "comments": [
+        {
+          "author_email": "frontdesk@24hourfitness.example",
+          "body": "We’ve placed a wet floor sign and submitted a work order to reseal/repair the grout line.",
+          "days_ago": 55
+        },
+        {
+          "author_email": null,
+          "body": "Leak is still there today—water runs toward the lockers.",
+          "days_ago": 52
+        }
+      ],
+      "issue": {
+        "category": "plumbing",
+        "days_ago": 56,
+        "description": "Women’s locker room shower (far left) leaks at the wall/floor seam; water pools and runs into walkway.",
+        "status": "acknowledged"
+      },
+      "location_full_path": "Locker Rooms > Women's Locker Room > Showers",
+      "reports": [
+        {
+          "body": "Shower on the far left in women’s locker room leaks from the wall seam and makes a big puddle outside the stall.",
+          "days_ago": 56,
+          "source": "qr"
+        },
+        {
+          "body": "Same shower still leaking and the puddle is bigger after peak hours.",
+          "days_ago": 53,
+          "source": "sms"
+        }
+      ],
+      "updates": [
+        {
+          "days_ago": 55,
+          "message": "Work order created; temporary signage placed; scheduled maintenance to inspect grout/drain and shower valve."
+        }
+      ]
+    },
+    {
+      "comments": [
+        {
+          "author_email": "traininglead@24hourfitness.example",
+          "body": "Good idea—sharing with the team. We can add a small sign and include it in new member orientation.",
+          "days_ago": 74
+        }
+      ],
+      "issue": {
+        "category": "suggestion",
+        "days_ago": 76,
+        "description": "Suggestion: Add a quick etiquette sign in the functional training area reminding members to re-rack kettlebells and wipe mats after use.",
+        "status": "acknowledged"
+      },
+      "location_full_path": "Main Floor > Functional Training Area",
+      "reports": [
+        {
+          "body": "Could you add a small sign in the turf/functional area about re-racking kettlebells and wiping mats? It gets chaotic at night.",
+          "days_ago": 76,
+          "source": "manual"
+        }
+      ],
+      "updates": [
+        {
+          "days_ago": 74,
+          "message": "Team reviewing signage options; will add to next print order."
+        }
+      ]
+    },
+    {
+      "comments": [
+        {
+          "author_email": "maintenance@24hourfitness.example",
+          "body": "We tightened the mounting bracket and replaced the loose faceplate. Please report if it loosens again.",
+          "days_ago": 31
+        }
+      ],
+      "issue": {
+        "category": "electrical",
+        "days_ago": 33,
+        "description": "Outlet by stretching mats is loose; plug falls out easily and faceplate is partially detached.",
+        "status": "fixed"
+      },
+      "location_full_path": "Main Floor > Stretching Area",
+      "reports": [
+        {
+          "body": "The outlet near the stretching mats is loose and the cover is coming off. Seems unsafe.",
+          "days_ago": 33,
+          "source": "qr"
+        }
+      ],
+      "updates": [
+        {
+          "days_ago": 31,
+          "message": "Outlet secured and faceplate replaced; tested with load."
+        }
+      ]
+    },
+    {
+      "comments": [
+        {
+          "author_email": "janitorial@24hourfitness.example",
+          "body": "We deep-cleaned the sauna benches and increased the wipe-down frequency. We’ll keep an eye on it.",
+          "days_ago": 7
+        },
+        {
+          "author_email": null,
+          "body": "Much better this week—thanks.",
+          "days_ago": 5
+        }
+      ],
+      "issue": {
+        "category": "cleaning",
+        "days_ago": 8,
+        "description": "Sauna has strong odor and benches feel sticky; floor has visible sweat marks during evenings.",
+        "status": "fixed"
+      },
+      "location_full_path": "Locker Rooms > Sauna",
+      "reports": [
+        {
+          "body": "Sauna smells pretty bad lately and the benches feel sticky. Could it be cleaned more often?",
+          "days_ago": 8,
+          "source": "sms"
+        }
+      ],
+      "updates": [
+        {
+          "days_ago": 7,
+          "message": "Sauna closed for 30 minutes for deep clean; benches sanitized; floor scrubbed; added evening checklist item."
+        }
+      ]
+    }
+  ],
+  "issue_category_guidance": {
+    "cleaning": {
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "dirty, sticky, smell, odor, trash, overflowing, wipes, sanitizer, mold, mildew, cloudy water, slippery, stain, grime",
+      "description": "Cleanliness, sanitation, trash, odors, spills, slippery floors, locker room/pool deck hygiene, and restocking cleaning supplies."
+    },
+    "electrical": {
+      "ai_exclude_keywords": "leak, clogged, drain",
+      "ai_include_keywords": "flicker, light out, outlet, breaker, power, sparking, burning smell, GFCI, short, wiring",
+      "description": "Lighting, outlets, power issues, breakers/GFCI trips, electrical safety concerns, and electrical components."
+    },
+    "equipment": {
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "treadmill, bike, elliptical, rower, cable, pulley, pin, bench, machine, broken, squeak, grinding, screen, console, resistance",
+      "description": "Fitness equipment failures, damage, missing parts, calibration issues, and out-of-order machines."
+    },
+    "other": {
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": null,
+      "description": "Use when the issue doesn’t clearly fit other categories (e.g., mixed symptoms or needs inspection). Add a short internal note in the description."
+    },
+    "plumbing": {
+      "ai_exclude_keywords": "flicker, outlet, power",
+      "ai_include_keywords": "toilet, sink, faucet, shower, drain, clogged, leak, running water, low pressure, hot water, sewer smell",
+      "description": "Water supply/drainage issues: leaks, clogs, toilets/sinks/showers, hot water, pressure, and related restroom/locker room plumbing."
+    },
+    "suggestion": {
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "suggest, could you, please add, would be nice, recommend, consider, signage, hours, policy",
+      "description": "Non-urgent improvement ideas: signage, amenities, policies, layout, or service enhancements."
+    }
+  },
+  "location_specs": [
+    {
+      "name": "Main Floor",
+      "parent_path": null
+    },
+    {
+      "name": "Cardio Zone",
+      "parent_path": "Main Floor"
+    },
+    {
+      "name": "Free Weights Area",
+      "parent_path": "Main Floor"
+    },
+    {
+      "name": "Functional Training Area",
+      "parent_path": "Main Floor"
+    },
+    {
+      "name": "Stretching Area",
+      "parent_path": "Main Floor"
+    },
+    {
+      "name": "Group Fitness Studio A",
+      "parent_path": "Main Floor"
+    },
+    {
+      "name": "Locker Rooms",
+      "parent_path": null
+    },
+    {
+      "name": "Men's Locker Room",
+      "parent_path": "Locker Rooms"
+    },
+    {
+      "name": "Women's Locker Room",
+      "parent_path": "Locker Rooms"
+    },
+    {
+      "name": "Aquatics",
+      "parent_path": null
+    },
+    {
+      "name": "Pool Deck",
+      "parent_path": "Aquatics"
+    },
+    {
+      "name": "Hot Tub",
+      "parent_path": "Aquatics"
+    },
+    {
+      "name": "Steam Room",
+      "parent_path": "Locker Rooms"
+    },
+    {
+      "name": "Sauna",
+      "parent_path": "Locker Rooms"
+    }
+  ],
+  "organization_name": "24 Hour Fitness"
+}
