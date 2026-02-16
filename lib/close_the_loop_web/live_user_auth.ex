@@ -7,6 +7,7 @@ defmodule CloseTheLoopWeb.LiveUserAuth do
   use CloseTheLoopWeb, :verified_routes
 
   alias CloseTheLoop.Accounts
+  alias CloseTheLoopWeb.OnboardingProgress
   alias CloseTheLoop.Tenants
 
   # This is used for nested liveviews to fetch the current user.
@@ -62,11 +63,14 @@ defmodule CloseTheLoopWeb.LiveUserAuth do
              {:ok, role} <- resolve_role(user, org),
              tenant when is_binary(tenant) <- Map.get(org, :tenant_schema),
              true <- tenant != "" || {:error, :missing_tenant} do
+          progress = OnboardingProgress.load(tenant)
+
           {:cont,
            socket
            |> assign(:current_org, org)
            |> assign(:current_role, role)
            |> assign(:current_tenant, tenant)
+           |> assign(:onboarding_progress, progress)
            |> assign(:current_scope, %{actor: user, tenant: tenant})}
         else
           {:error, :missing_org_id} ->

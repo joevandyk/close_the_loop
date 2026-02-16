@@ -65,6 +65,8 @@ defmodule CloseTheLoopWeb.Router do
 
       live "/app/organizations/new", OrganizationsLive.New, :new
 
+      live "/app/:org_id/onboarding", OnboardingLive.GettingStarted, :index
+
       live "/app/:org_id", DashboardLive.Index, :index
 
       live "/app/:org_id/issues", IssuesLive.Index, :index
@@ -78,7 +80,6 @@ defmodule CloseTheLoopWeb.Router do
       live "/app/:org_id/reports/:id", ReportsLive.Show, :show
 
       live "/app/:org_id/settings/locations", LocationsLive.Index, :index
-
       live "/app/:org_id/settings", SettingsLive.Index, :index
 
       live "/app/:org_id/settings/help", SettingsLive.Help, :index
