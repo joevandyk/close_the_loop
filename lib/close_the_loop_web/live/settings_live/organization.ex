@@ -17,8 +17,6 @@ defmodule CloseTheLoopWeb.SettingsLive.Organization do
          |> assign(:error, nil)
          |> assign(:org_name, org.name)
          |> assign(:public_display_name, org.public_display_name || "")
-         |> assign(:brand_primary_color, org.brand_primary_color || "")
-         |> assign(:brand_primary_foreground_color, org.brand_primary_foreground_color || "")
          |> assign(:reporter_tagline, org.reporter_tagline || "")
          |> assign(:reporter_footer_note, org.reporter_footer_note || "")}
 
@@ -115,28 +113,6 @@ defmodule CloseTheLoopWeb.SettingsLive.Organization do
             placeholder="Optional. For example: For emergencies, call the front desk."
           />
 
-          <div class="grid gap-4 sm:grid-cols-2">
-            <.input
-              id="org_brand_primary_color"
-              name="brand_primary_color"
-              type="text"
-              label="Primary color"
-              value={@brand_primary_color}
-              placeholder="#111827"
-              help_text="Hex only, e.g. #1D4ED8"
-            />
-
-            <.input
-              id="org_brand_primary_foreground_color"
-              name="brand_primary_foreground_color"
-              type="text"
-              label="Primary foreground color"
-              value={@brand_primary_foreground_color}
-              placeholder="#FFFFFF"
-              help_text="Hex only, e.g. #FFFFFF"
-            />
-          </div>
-
           <%= if @error do %>
             <.alert color="danger" hide_close>{@error}</.alert>
           <% end %>
@@ -196,33 +172,21 @@ defmodule CloseTheLoopWeb.SettingsLive.Organization do
       |> to_string()
       |> String.trim()
 
-    brand_primary_color =
-      params |> Map.get("brand_primary_color", "") |> to_string() |> String.trim()
+    case Ash.update(org, %{
+           public_display_name: blank_to_nil(public_display_name),
+           reporter_tagline: blank_to_nil(reporter_tagline),
+           reporter_footer_note: blank_to_nil(reporter_footer_note)
+         }) do
+      {:ok, %Organization{} = org} ->
+        {:noreply,
+         socket
+         |> put_flash(:info, "Branding updated.")
+         |> assign(:org, org)
+         |> assign(:public_display_name, org.public_display_name || "")
+         |> assign(:reporter_tagline, org.reporter_tagline || "")
+         |> assign(:reporter_footer_note, org.reporter_footer_note || "")
+         |> assign(:error, nil)}
 
-    brand_primary_fg =
-      params |> Map.get("brand_primary_foreground_color", "") |> to_string() |> String.trim()
-
-    with :ok <- validate_hex_or_blank(brand_primary_color, "Primary color"),
-         :ok <- validate_hex_or_blank(brand_primary_fg, "Primary foreground color"),
-         {:ok, %Organization{} = org} <-
-           Ash.update(org, %{
-             public_display_name: blank_to_nil(public_display_name),
-             reporter_tagline: blank_to_nil(reporter_tagline),
-             reporter_footer_note: blank_to_nil(reporter_footer_note),
-             brand_primary_color: blank_to_nil(brand_primary_color),
-             brand_primary_foreground_color: blank_to_nil(brand_primary_fg)
-           }) do
-      {:noreply,
-       socket
-       |> put_flash(:info, "Branding updated.")
-       |> assign(:org, org)
-       |> assign(:public_display_name, org.public_display_name || "")
-       |> assign(:brand_primary_color, org.brand_primary_color || "")
-       |> assign(:brand_primary_foreground_color, org.brand_primary_foreground_color || "")
-       |> assign(:reporter_tagline, org.reporter_tagline || "")
-       |> assign(:reporter_footer_note, org.reporter_footer_note || "")
-       |> assign(:error, nil)}
-    else
       {:error, msg} when is_binary(msg) ->
         {:noreply, assign(socket, :error, msg)}
 
@@ -233,14 +197,4 @@ defmodule CloseTheLoopWeb.SettingsLive.Organization do
 
   defp blank_to_nil(""), do: nil
   defp blank_to_nil(str), do: str
-
-  defp validate_hex_or_blank("", _label), do: :ok
-
-  defp validate_hex_or_blank(color, label) do
-    if String.match?(color, ~r/^#[0-9a-fA-F]{6}$/) do
-      :ok
-    else
-      {:error, "#{label} must be a 6-digit hex color like #1D4ED8."}
-    end
-  end
 end

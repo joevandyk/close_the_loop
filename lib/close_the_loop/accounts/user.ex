@@ -134,6 +134,17 @@ defmodule CloseTheLoop.Accounts.User do
       validate {AshAuthentication.Strategy.Password.PasswordValidation,
                 strategy_name: :password, password_argument: :current_password}
 
+      error_handler fn
+        _changeset, %AshAuthentication.Errors.AuthenticationFailed{} ->
+          Ash.Error.Changes.InvalidChanges.exception(
+            fields: [:current_password],
+            message: "Current password is incorrect."
+          )
+
+        _changeset, other ->
+          other
+      end
+
       change {AshAuthentication.Strategy.Password.HashPasswordChange, strategy_name: :password}
     end
 
@@ -147,6 +158,17 @@ defmodule CloseTheLoop.Accounts.User do
 
       validate {AshAuthentication.Strategy.Password.PasswordValidation,
                 strategy_name: :password, password_argument: :current_password}
+
+      error_handler fn
+        _changeset, %AshAuthentication.Errors.AuthenticationFailed{} ->
+          Ash.Error.Changes.InvalidChanges.exception(
+            fields: [:current_password],
+            message: "Current password is incorrect."
+          )
+
+        _changeset, other ->
+          other
+      end
     end
 
     update :update_profile do

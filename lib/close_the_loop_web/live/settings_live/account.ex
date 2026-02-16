@@ -229,7 +229,7 @@ defmodule CloseTheLoopWeb.SettingsLive.Account do
         {:noreply, assign(socket, :email_error, msg)}
 
       {:error, err} ->
-        {:noreply, assign(socket, :email_error, Exception.message(err))}
+        {:noreply, assign(socket, :email_error, error_message(err))}
 
       other ->
         {:noreply, assign(socket, :email_error, "Failed to update email: #{inspect(other)}")}
@@ -268,7 +268,24 @@ defmodule CloseTheLoopWeb.SettingsLive.Account do
          |> put_flash(:info, "Password updated.")}
 
       {:error, err} ->
-        {:noreply, assign(socket, :password_error, Exception.message(err))}
+        {:noreply, assign(socket, :password_error, error_message(err))}
     end
+  end
+
+  defp error_message(%Ash.Error.Invalid{errors: errors}) when is_list(errors) do
+    case Enum.find(
+           errors,
+           &match?(%Ash.Error.Changes.InvalidChanges{fields: [:current_password]}, &1)
+         ) do
+      %Ash.Error.Changes.InvalidChanges{message: message} when is_binary(message) ->
+        message
+
+      _ ->
+        "Please check your input and try again."
+    end
+  end
+
+  defp error_message(_err) do
+    "Something went wrong. Please try again."
   end
 end

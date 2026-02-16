@@ -62,6 +62,52 @@ defmodule CloseTheLoopWeb.SettingsLiveTest do
     assert render(view) =~ "Jane Owner"
   end
 
+  test "change email with incorrect password shows error and does not update email", %{conn: conn} do
+    tenant = "public"
+    org_id = create_org_row!(tenant)
+
+    {:ok, user} =
+      Ash.create(
+        User,
+        %{
+          email: "owner-email-wrong-pw@example.com",
+          password: "password1234",
+          password_confirmation: "password1234"
+        },
+        action: :register_with_password,
+        context: %{private: %{ash_authentication?: true}}
+      )
+
+    {:ok, user} =
+      Ash.update(user, %{organization_id: org_id, role: :owner},
+        action: :set_organization,
+        actor: user
+      )
+
+    conn =
+      conn
+      |> init_test_session(%{})
+      |> AshAuthentication.Plug.Helpers.store_in_session(user)
+
+    {:ok, view, _html} = live(conn, ~p"/app/settings/account")
+    assert has_element?(view, "#user-email-form")
+
+    view
+    |> form("#user-email-form",
+      email: %{email: "owner-email-changed@example.com", current_password: "wrongpassword"}
+    )
+    |> render_submit()
+
+    refute render(view) =~ "Email updated."
+    assert render(view) =~ "Current password is incorrect."
+    refute render(view) =~ "(splode"
+
+    user_id = Ecto.UUID.dump!(user.id)
+
+    assert %{rows: [["owner-email-wrong-pw@example.com"]]} =
+             CloseTheLoop.Repo.query!("SELECT email FROM users WHERE id = $1", [user_id])
+  end
+
   test "user can change their email (with current password)", %{conn: conn} do
     tenant = "public"
     org_id = create_org_row!(tenant)
@@ -105,6 +151,60 @@ defmodule CloseTheLoopWeb.SettingsLiveTest do
 
     assert %{rows: [["owner-email-new@example.com"]]} =
              CloseTheLoop.Repo.query!("SELECT email FROM users WHERE id = $1", [user_id])
+  end
+
+  test "change password with incorrect current password shows error and does not update", %{
+    conn: conn
+  } do
+    tenant = "public"
+    org_id = create_org_row!(tenant)
+
+    {:ok, user} =
+      Ash.create(
+        User,
+        %{
+          email: "owner-password-wrong@example.com",
+          password: "password1234",
+          password_confirmation: "password1234"
+        },
+        action: :register_with_password,
+        context: %{private: %{ash_authentication?: true}}
+      )
+
+    {:ok, user} =
+      Ash.update(user, %{organization_id: org_id, role: :owner},
+        action: :set_organization,
+        actor: user
+      )
+
+    conn =
+      conn
+      |> init_test_session(%{})
+      |> AshAuthentication.Plug.Helpers.store_in_session(user)
+
+    {:ok, view, _html} = live(conn, ~p"/app/settings/account")
+    assert has_element?(view, "#user-password-form")
+
+    view
+    |> form("#user-password-form",
+      password: %{
+        current_password: "wrongpassword",
+        password: "newpassword1234",
+        password_confirmation: "newpassword1234"
+      }
+    )
+    |> render_submit()
+
+    refute render(view) =~ "Password updated."
+    assert render(view) =~ "Current password is incorrect."
+    refute render(view) =~ "(splode"
+
+    user_id = Ecto.UUID.dump!(user.id)
+
+    assert %{rows: [[hashed_password]]} =
+             CloseTheLoop.Repo.query!("SELECT hashed_password FROM users WHERE id = $1", [user_id])
+
+    assert Bcrypt.verify_pass("password1234", hashed_password)
   end
 
   test "user can change their password (with current password)", %{conn: conn} do
