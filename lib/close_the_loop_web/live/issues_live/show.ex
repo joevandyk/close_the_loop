@@ -502,13 +502,6 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
                       {r.body}
                     </div>
                   </.link>
-
-                  <.link
-                    navigate={~p"/app/#{@current_org.id}/reports/#{r.id}"}
-                    class="shrink-0 text-xs font-medium underline underline-offset-2 text-foreground-soft hover:text-foreground transition"
-                  >
-                    Reassign
-                  </.link>
                 </div>
               </li>
             <% end %>

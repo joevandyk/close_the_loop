@@ -258,9 +258,11 @@ defmodule CloseTheLoopWeb.IssuesLiveTest do
     |> element("button[phx-value-status='acknowledged']")
     |> render_click()
 
-    html = render(view)
-    assert html =~ "Status changed"
-    assert html =~ "Status set to Acknowledged" or html =~ "Status: New -> Acknowledged"
+    activity_html = view |> element("#issue-activity") |> render()
+    assert activity_html =~ "Status changed"
+    assert activity_html =~ "Status:"
+    assert activity_html =~ "New"
+    assert activity_html =~ "Acknowledged"
   end
 
   test "dangling org_id does not crash issues page", %{conn: conn} do

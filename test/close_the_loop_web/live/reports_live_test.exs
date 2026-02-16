@@ -69,6 +69,11 @@ defmodule CloseTheLoopWeb.ReportsLiveTest do
       |> AshAuthentication.Plug.Helpers.store_in_session(user)
 
     {:ok, view, _html} = live(conn, ~p"/app/#{org.id}/reports/#{report.id}")
+    assert has_element?(view, "#report-move-modal[data-open=\"false\"]")
+    assert has_element?(view, "#report-open-move-modal")
+
+    view |> element("#report-open-move-modal") |> render_click()
+    assert has_element?(view, "#report-move-modal[data-open=\"true\"]")
     assert has_element?(view, "#report-move-form")
 
     view
@@ -77,6 +82,7 @@ defmodule CloseTheLoopWeb.ReportsLiveTest do
 
     assert render(view) =~ "Broken faucet"
     assert render(view) =~ "Locker room"
+    assert has_element?(view, "#report-move-modal[data-open=\"false\"]")
 
     {:ok, _issue_view, issue_html} = live(conn, ~p"/app/#{org.id}/issues/#{issue_b.id}")
     assert issue_html =~ "This is actually about the faucet"

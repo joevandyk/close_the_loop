@@ -11,7 +11,8 @@ defmodule CloseTheLoopWeb.ReportsLive.Show do
       |> assign(:report, nil)
       |> assign(:issue_options, [])
       |> assign(:move_form, to_form(%{"issue_id" => ""}, as: :move))
-      |> assign(:new_issue_open?, false)
+      |> assign(:move_modal_open?, false)
+      |> assign(:move_modal_tab, "existing")
       |> assign(:new_issue_form, to_form(%{"title" => "", "description" => ""}, as: :new_issue))
 
     tenant = socket.assigns.current_tenant
@@ -169,89 +170,140 @@ defmodule CloseTheLoopWeb.ReportsLive.Show do
             <span class="text-foreground-soft">{@report.issue.status}</span>
           </.alert>
 
-          <div class="grid gap-6 lg:grid-cols-2">
-            <div class="space-y-3">
-              <h3 class="text-sm font-semibold">Move to another issue</h3>
-              <p class="text-sm text-foreground-soft">
-                Use this when a report was grouped into the wrong issue (including a different location).
-              </p>
+          <div class="flex items-start justify-between gap-4">
+            <p class="text-sm text-foreground-soft max-w-prose">
+              If this report was assigned to the wrong issue, you can move it to an existing issue (even at a different
+              location) or create a new issue for it.
+            </p>
 
-              <%= if @issue_options == [] do %>
-                <div class="text-sm text-foreground-soft">
-                  No other issues exist yet.
-                </div>
-              <% else %>
-                <.form
-                  for={@move_form}
-                  id="report-move-form"
-                  phx-submit="move_report"
-                  class="space-y-3"
-                >
-                  <.select
-                    field={@move_form[:issue_id]}
-                    label="Issue"
-                    placeholder="Select an issue"
-                    searchable
-                    options={@issue_options}
-                  />
+            <.button
+              id="report-open-move-modal"
+              type="button"
+              variant="solid"
+              color="primary"
+              phx-click={Fluxon.open_dialog("report-move-modal") |> JS.push("open_move_modal")}
+            >
+              Move to another issue
+            </.button>
+          </div>
 
-                  <.button type="submit" variant="solid" color="primary" phx-disable-with="Moving...">
-                    Move report
-                  </.button>
-                </.form>
-              <% end %>
-            </div>
+          <.modal
+            id="report-move-modal"
+            open={@move_modal_open?}
+            on_close={JS.push("close_move_modal")}
+            class="w-full max-w-2xl"
+          >
+            <div class="p-6 space-y-4">
+              <div>
+                <h3 class="text-lg font-semibold">Move report</h3>
+                <p class="mt-1 text-sm text-foreground-soft">
+                  Reassign to an existing issue, or create a new issue and move it there.
+                </p>
+              </div>
 
-            <div class="space-y-3">
-              <div class="flex items-center justify-between gap-4">
-                <h3 class="text-sm font-semibold">Create a new issue</h3>
+              <.tabs id="report-move-tabs">
+                <.tabs_list active_tab={@move_modal_tab} variant="segmented" size="sm">
+                  <:tab name="existing" phx-click={JS.push("set_move_tab", value: %{tab: "existing"})}>
+                    Existing issue
+                  </:tab>
+                  <:tab name="new" phx-click={JS.push("set_move_tab", value: %{tab: "new"})}>
+                    New issue
+                  </:tab>
+                </.tabs_list>
+
+                <.tabs_panel name="existing" active={@move_modal_tab == "existing"} class="mt-4 space-y-3">
+                  <p class="text-sm text-foreground-soft">
+                    Use this when the report belongs on another issue (including an issue at a different location).
+                  </p>
+
+                  <%= if @issue_options == [] do %>
+                    <.alert color="warning" hide_close>
+                      No other issues exist yet. Create a new issue instead.
+                    </.alert>
+
+                    <div class="flex justify-end">
+                      <.button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        phx-click="set_move_tab"
+                        phx-value-tab="new"
+                      >
+                        Create a new issue
+                      </.button>
+                    </div>
+                  <% else %>
+                    <.form
+                      for={@move_form}
+                      id="report-move-form"
+                      phx-submit="move_report"
+                      class="space-y-3"
+                    >
+                      <.select
+                        field={@move_form[:issue_id]}
+                        label="Issue"
+                        placeholder="Select an issue"
+                        searchable
+                        options={@issue_options}
+                      />
+
+                      <div class="flex items-center justify-end gap-2">
+                        <.button type="submit" variant="solid" color="primary" phx-disable-with="Moving...">
+                          Move report
+                        </.button>
+                      </div>
+                    </.form>
+                  <% end %>
+                </.tabs_panel>
+
+                <.tabs_panel name="new" active={@move_modal_tab == "new"} class="mt-4 space-y-3">
+                  <p class="text-sm text-foreground-soft">
+                    Use this when the report describes a separate problem that deserves its own thread.
+                  </p>
+
+                  <div class="rounded-xl border border-base bg-accent p-4">
+                    <.form
+                      for={@new_issue_form}
+                      id="report-new-issue-form"
+                      phx-submit="create_issue"
+                      class="space-y-3"
+                    >
+                      <.input field={@new_issue_form[:title]} label="Issue title" required />
+
+                      <.textarea
+                        field={@new_issue_form[:description]}
+                        label="Issue description"
+                        rows={4}
+                        required
+                      />
+
+                      <div class="flex items-center justify-end gap-2">
+                        <.button
+                          type="submit"
+                          variant="solid"
+                          color="primary"
+                          phx-disable-with="Creating..."
+                        >
+                          Create issue + move report
+                        </.button>
+                      </div>
+                    </.form>
+                  </div>
+                </.tabs_panel>
+              </.tabs>
+
+              <div class="flex justify-end pt-2">
                 <.button
+                  id="report-move-modal-cancel"
                   type="button"
-                  size="sm"
-                  variant="ghost"
-                  phx-click="toggle_new_issue"
-                  aria-expanded={to_string(@new_issue_open?)}
+                  variant="outline"
+                  phx-click={Fluxon.close_dialog("report-move-modal") |> JS.push("close_move_modal")}
                 >
-                  {if @new_issue_open?, do: "Hide", else: "Show"}
+                  Cancel
                 </.button>
               </div>
-
-              <p class="text-sm text-foreground-soft">
-                Use this when the report describes a separate problem that deserves its own thread.
-              </p>
-
-              <div :if={@new_issue_open?} class="rounded-xl border border-base bg-accent p-4">
-                <.form
-                  for={@new_issue_form}
-                  id="report-new-issue-form"
-                  phx-submit="create_issue"
-                  class="space-y-3"
-                >
-                  <.input
-                    field={@new_issue_form[:title]}
-                    label="Issue title"
-                    required
-                  />
-
-                  <.textarea
-                    field={@new_issue_form[:description]}
-                    label="Issue description"
-                    rows={4}
-                    required
-                  />
-
-                  <.button
-                    type="submit"
-                    variant="solid"
-                    color="primary"
-                    phx-disable-with="Creating..."
-                  >
-                    Create issue + move report
-                  </.button>
-                </.form>
-              </div>
             </div>
-          </div>
+          </.modal>
         </div>
       </div>
     </Layouts.app>
@@ -259,8 +311,19 @@ defmodule CloseTheLoopWeb.ReportsLive.Show do
   end
 
   @impl true
-  def handle_event("toggle_new_issue", _params, socket) do
-    {:noreply, assign(socket, :new_issue_open?, not socket.assigns.new_issue_open?)}
+  def handle_event("open_move_modal", _params, socket) do
+    tab = if socket.assigns.issue_options == [], do: "new", else: "existing"
+    {:noreply, socket |> assign(:move_modal_open?, true) |> assign(:move_modal_tab, tab)}
+  end
+
+  @impl true
+  def handle_event("close_move_modal", _params, socket) do
+    {:noreply, reset_move_modal(socket)}
+  end
+
+  @impl true
+  def handle_event("set_move_tab", %{"tab" => tab}, socket) when tab in ["existing", "new"] do
+    {:noreply, assign(socket, :move_modal_tab, tab)}
   end
 
   @impl true
@@ -276,7 +339,7 @@ defmodule CloseTheLoopWeb.ReportsLive.Show do
          ) do
       {:ok, _updated} ->
         _ = log_report_move(tenant, user, report.id, from_issue, issue_id)
-        {:noreply, refresh(socket, "Report moved.")}
+        {:noreply, socket |> refresh("Report moved.") |> reset_move_modal()}
 
       {:error, err} ->
         {:noreply, put_flash(socket, :error, "Failed to move report: #{inspect(err)}")}
@@ -313,7 +376,7 @@ defmodule CloseTheLoopWeb.ReportsLive.Show do
              actor: user
            ) do
       _ = log_report_split(tenant, user, report.id, from_issue, issue)
-      {:noreply, refresh(socket, "Created a new issue and moved the report.")}
+      {:noreply, socket |> refresh("Created a new issue and moved the report.") |> reset_move_modal()}
     else
       {:error, msg} when is_binary(msg) ->
         {:noreply, put_flash(socket, :error, msg)}
@@ -321,6 +384,22 @@ defmodule CloseTheLoopWeb.ReportsLive.Show do
       {:error, err} ->
         {:noreply, put_flash(socket, :error, "Failed to create issue: #{inspect(err)}")}
     end
+  end
+
+  defp reset_move_modal(socket) do
+    report = socket.assigns.report
+
+    socket
+    |> assign(:move_modal_open?, false)
+    |> assign(:move_modal_tab, "existing")
+    |> assign(:move_form, to_form(%{"issue_id" => ""}, as: :move))
+    |> assign(
+      :new_issue_form,
+      to_form(
+        %{"title" => default_issue_title(report.body), "description" => report.body},
+        as: :new_issue
+      )
+    )
   end
 
   defp refresh(socket, flash_msg) do
