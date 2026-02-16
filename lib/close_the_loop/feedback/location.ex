@@ -3,11 +3,18 @@ defmodule CloseTheLoop.Feedback.Location do
     otp_app: :close_the_loop,
     domain: CloseTheLoop.Feedback,
     data_layer: AshPostgres.DataLayer,
-    authorizers: [Ash.Policy.Authorizer]
+    authorizers: [Ash.Policy.Authorizer],
+    extensions: [AshEvents.Events]
 
   postgres do
     table "locations"
     repo CloseTheLoop.Repo
+  end
+
+  events do
+    event_log(CloseTheLoop.Events.Event)
+    create_timestamp :inserted_at
+    update_timestamp :updated_at
   end
 
   actions do
@@ -38,6 +45,7 @@ defmodule CloseTheLoop.Feedback.Location do
 
     attribute :name, :string do
       allow_nil? false
+      constraints min_length: 1, trim?: true
       public? true
     end
 

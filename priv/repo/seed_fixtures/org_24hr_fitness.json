@@ -1,0 +1,758 @@
+{
+  "ai_business_context": "24 Hour Fitness is a full-service gym with cardio and weight equipment, functional training areas, group fitness studios, locker rooms (men's and women's), showers, pool, sauna, hot tub, and steam room. Members submit feedback about equipment malfunctions, cleanliness/sanitation, safety hazards, temperature/ventilation, water features, lockers/showers, and general facility maintenance.",
+  "ai_categorization_instructions": "Prefer specific categories (e.g., treadmill vs. general equipment, pool vs. sauna). When unsure, use `other` and add a short note to internal context.",
+  "issue_categories": [
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "treadmill, incline trainer, belt slipping, console, speed, stop button, error code, cardio machine",
+      "description": "Treadmills and other cardio machines (ellipticals, bikes, stair climbers) not working correctly.",
+      "key": "cardio_equipment",
+      "label": "Cardio equipment"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "bench, rack, barbell, dumbbell, cable, pulley, smith machine, plate, weight machine, pin stuck",
+      "description": "Strength equipment issues (racks, benches, cables, selectorized machines, free weights).",
+      "key": "strength_equipment",
+      "label": "Strength equipment"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "clean, dirty, wipe, sanitizer, trash, smell, sweat, dust, sticky, hair",
+      "description": "General cleanliness and sanitation concerns in workout areas.",
+      "key": "cleanliness_general",
+      "label": "Cleanliness (general)"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "locker, lock, broken door, jammed, missing key, bench, cubby",
+      "description": "Locker room lockers, doors, benches, and related fixtures.",
+      "key": "locker_room_lockers",
+      "label": "Locker rooms (lockers & fixtures)"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "shower, drain, water pressure, hot water, cold water, mold, mildew, soap dispenser",
+      "description": "Shower stalls, drains, water temperature/pressure, and shower-area hygiene.",
+      "key": "showers",
+      "label": "Showers"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "toilet, urinal, sink, faucet, paper towel, soap, restroom, bathroom",
+      "description": "Restroom plumbing, supplies, and cleanliness.",
+      "key": "restrooms",
+      "label": "Restrooms"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "pool, lane, chlorine, cloudy, temperature, filter, deck, lifeguard, lap swim",
+      "description": "Pool water quality, temperature, lane setup, and pool deck issues.",
+      "key": "pool",
+      "label": "Pool"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "hot tub, spa, jets, bubbles, too hot, too cold, cloudy, foam",
+      "description": "Hot tub/spa temperature, jets, and water quality.",
+      "key": "hot_tub",
+      "label": "Hot tub / spa"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "sauna, dry sauna, heater, too hot, not hot, wood, smell, timer",
+      "description": "Dry sauna temperature, heater, and cleanliness/odor issues.",
+      "key": "sauna",
+      "label": "Sauna"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "steam room, steam, not steaming, too hot, drain, smell, tile",
+      "description": "Steam room operation, temperature, and cleanliness.",
+      "key": "steam_room",
+      "label": "Steam room"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "AC, air conditioning, heater, ventilation, stuffy, humid, temperature, fan",
+      "description": "HVAC, ventilation, and temperature comfort issues.",
+      "key": "hvac_ventilation",
+      "label": "HVAC / ventilation"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "light, lighting, bulb out, flicker, dark, electrical outlet, power",
+      "description": "Lighting and minor electrical issues.",
+      "key": "lighting_electrical",
+      "label": "Lighting / electrical"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "slip, trip, hazard, broken tile, wet floor, sharp edge, safety",
+      "description": "Safety hazards and urgent facility risks.",
+      "key": "safety_hazard",
+      "label": "Safety hazard"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "music, loud, speaker, TV, remote, channel, volume, audio",
+      "description": "Audio/TV issues in workout areas.",
+      "key": "audio_tv",
+      "label": "Audio / TV"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": null,
+      "description": "Anything that doesn't fit other categories. Internal note: use when unclear and add context in description.",
+      "key": "other",
+      "label": "Other"
+    }
+  ],
+  "issues": [
+    {
+      "category_key": "cardio_equipment",
+      "comments": [
+        {
+          "author_email": "maria.santos@example.com",
+          "body": "Thanks for looking into it. It’s the one closest to the windows—console keeps rebooting mid-run.",
+          "days_ago": 41,
+          "key": "cmt_treadmill_12_1"
+        }
+      ],
+      "days_ago": 44,
+      "description": "Treadmill #12 randomly stops and shows an error code after a few minutes. Safety concern when it abruptly slows down.",
+      "key": "iss_treadmill_12_stops",
+      "location_key": "loc_cardio_floor",
+      "reports": [
+        {
+          "body": "Treadmill #12 on the cardio floor keeps stopping with an error (E-07) and the belt jerks. Happened twice today.",
+          "consent": true,
+          "days_ago": 44,
+          "key": "rpt_treadmill_12_1",
+          "reporter_phone": "+1-415-555-0138",
+          "source": "qr"
+        },
+        {
+          "body": "Treadmill #12 on the cardio floor keeps stopping with an error (E-07) and the belt jerks. Happened twice today. Also noticed by another guest (separately reported).",
+          "consent": false,
+          "days_ago": 43,
+          "key": "rpt_treadmill_12_1_2",
+          "reporter_phone": null,
+          "source": "qr"
+        }
+      ],
+      "status": "in_progress",
+      "updates": [
+        {
+          "days_ago": 43,
+          "key": "upd_treadmill_12_1",
+          "message": "Maintenance ticket created; treadmill tagged out of service pending inspection."
+        },
+        {
+          "days_ago": 40,
+          "key": "upd_treadmill_12_2",
+          "message": "Technician ordered replacement drive belt and console cable; awaiting parts."
+        }
+      ]
+    },
+    {
+      "category_key": "strength_equipment",
+      "comments": [],
+      "days_ago": 18,
+      "description": "Cable crossover (functional trainer) left pulley is grinding and the carabiner clip looks worn. Movement feels uneven under load.",
+      "key": "iss_cable_crossover_pulley_grind",
+      "location_key": "loc_strength_floor",
+      "reports": [
+        {
+          "body": "Functional trainer/cable crossover: left side pulley makes a grinding noise and the cable feels rough. Please check before it snaps.",
+          "consent": true,
+          "days_ago": 18,
+          "key": "rpt_cable_crossover_1",
+          "reporter_phone": null,
+          "source": "qr"
+        },
+        {
+          "body": "Functional trainer/cable crossover: left side pulley makes a grinding noise and the cable feels rough. Please check before it snaps. Also noticed by another guest (separately reported).",
+          "consent": false,
+          "days_ago": 17,
+          "key": "rpt_cable_crossover_1_2",
+          "reporter_phone": null,
+          "source": "sms"
+        }
+      ],
+      "status": "acknowledged",
+      "updates": [
+        {
+          "days_ago": 17,
+          "key": "upd_cable_crossover_1",
+          "message": "Staff inspected and placed a caution tag on the left station; scheduled for maintenance service."
+        }
+      ]
+    },
+    {
+      "category_key": "cleanliness_general",
+      "comments": [
+        {
+          "author_email": null,
+          "body": "The spray bottles were empty again this morning. Could we keep a refill station nearby?",
+          "days_ago": 9,
+          "key": "cmt_sanitizer_1"
+        }
+      ],
+      "days_ago": 12,
+      "description": "Sanitizer wipes station near the dumbbells is empty most evenings; trash can overflowing and area smells sour.",
+      "key": "iss_wipes_empty_dumbbells",
+      "location_key": "loc_free_weights",
+      "reports": [
+        {
+          "body": "Wipes station by the dumbbells has been empty the last 3 nights and the trash is overflowing. Hard to clean equipment.",
+          "consent": true,
+          "days_ago": 12,
+          "key": "rpt_wipes_empty_1",
+          "reporter_phone": "+1-510-555-0199",
+          "source": "sms"
+        },
+        {
+          "body": "Wipes station by the dumbbells has been empty the last 3 nights and the trash is overflowing. Hard to clean equipment. Also noticed by another guest (separately reported).",
+          "consent": false,
+          "days_ago": 11,
+          "key": "rpt_wipes_empty_1_2",
+          "reporter_phone": null,
+          "source": "sms"
+        }
+      ],
+      "status": "in_progress",
+      "updates": [
+        {
+          "days_ago": 11,
+          "key": "upd_wipes_empty_1",
+          "message": "Evening staff reminded to check/replace wipes and empty trash during peak hours."
+        },
+        {
+          "days_ago": 8,
+          "key": "upd_wipes_empty_2",
+          "message": "Added an extra wipes dispenser and adjusted cleaning checklist for 6–9pm."
+        }
+      ]
+    },
+    {
+      "category_key": "showers",
+      "comments": [],
+      "days_ago": 63,
+      "description": "Men’s locker room shower #3 drain is clogged; water pools and spills into the walkway.",
+      "key": "iss_mens_shower3_clog",
+      "location_key": "loc_mens_showers",
+      "reports": [
+        {
+          "body": "Shower #3 in men’s locker room is backing up badly. Water is pooling and running out into the aisle.",
+          "consent": true,
+          "days_ago": 63,
+          "key": "rpt_mens_shower3_1",
+          "reporter_phone": null,
+          "source": "qr"
+        }
+      ],
+      "status": "fixed",
+      "updates": [
+        {
+          "days_ago": 62,
+          "key": "upd_mens_shower3_1",
+          "message": "Plumbing vendor scheduled; shower temporarily closed and signed."
+        },
+        {
+          "days_ago": 60,
+          "key": "upd_mens_shower3_2",
+          "message": "Drain line cleared and trap cleaned; tested for proper flow."
+        }
+      ]
+    },
+    {
+      "category_key": "locker_room_lockers",
+      "comments": [
+        {
+          "author_email": "kevin.lee@example.com",
+          "body": "Locker number is 214 (top row). Door doesn’t latch unless you lift it.",
+          "days_ago": 27,
+          "key": "cmt_locker_214_1"
+        }
+      ],
+      "days_ago": 29,
+      "description": "Women’s locker room: locker door hinge is loose and won’t latch properly (member noted locker #214).",
+      "key": "iss_womens_locker_214_hinge",
+      "location_key": "loc_womens_lockers",
+      "reports": [
+        {
+          "body": "In the women’s locker room, one of the lockers has a loose hinge and won’t close. I’m worried it’ll break off.",
+          "consent": true,
+          "days_ago": 29,
+          "key": "rpt_womens_locker_hinge_1",
+          "reporter_phone": null,
+          "source": "manual"
+        },
+        {
+          "body": "In the women’s locker room, one of the lockers has a loose hinge and won’t close. I’m worried it’ll break off. Also noticed by another guest (separately reported).",
+          "consent": false,
+          "days_ago": 28,
+          "key": "rpt_womens_locker_hinge_1_2",
+          "reporter_phone": null,
+          "source": "sms"
+        }
+      ],
+      "status": "in_progress",
+      "updates": [
+        {
+          "days_ago": 28,
+          "key": "upd_womens_locker_214_1",
+          "message": "Identified locker #214; work order created for hinge/latch adjustment."
+        }
+      ]
+    },
+    {
+      "category_key": "pool",
+      "comments": [],
+      "days_ago": 7,
+      "description": "Pool water looks cloudy in the shallow end; strong chlorine smell and eye irritation reported.",
+      "key": "iss_pool_cloudy_chlorine",
+      "location_key": "loc_pool_deck",
+      "reports": [
+        {
+          "body": "Pool is cloudy today and the chlorine smell is really strong. My eyes started burning after 10 minutes.",
+          "consent": true,
+          "days_ago": 7,
+          "key": "rpt_pool_cloudy_1",
+          "reporter_phone": "+1-650-555-0144",
+          "source": "qr"
+        },
+        {
+          "body": "Pool is cloudy today and the chlorine smell is really strong. My eyes started burning after 10 minutes. Also noticed by another guest (separately reported).",
+          "consent": false,
+          "days_ago": 6,
+          "key": "rpt_pool_cloudy_1_2",
+          "reporter_phone": null,
+          "source": "sms"
+        }
+      ],
+      "status": "acknowledged",
+      "updates": [
+        {
+          "days_ago": 6,
+          "key": "upd_pool_cloudy_1",
+          "message": "Aquatics team testing chemical levels and running filtration longer; monitoring clarity."
+        }
+      ]
+    },
+    {
+      "category_key": "hot_tub",
+      "comments": [
+        {
+          "author_email": null,
+          "body": "Appreciate the sign, but it’s been lukewarm for a week now.",
+          "days_ago": 21,
+          "key": "cmt_hot_tub_temp_1"
+        }
+      ],
+      "days_ago": 24,
+      "description": "Hot tub jets are weak and water temperature is lukewarm (around 92–94°F).",
+      "key": "iss_hot_tub_lukewarm_weak_jets",
+      "location_key": "loc_hot_tub",
+      "reports": [
+        {
+          "body": "Hot tub isn’t hot and the jets barely work. Feels like a warm bath, not a spa.",
+          "consent": true,
+          "days_ago": 24,
+          "key": "rpt_hot_tub_1",
+          "reporter_phone": null,
+          "source": "qr"
+        }
+      ],
+      "status": "in_progress",
+      "updates": [
+        {
+          "days_ago": 23,
+          "key": "upd_hot_tub_1",
+          "message": "Checked heater and pump; temperature setpoint adjusted and jets inspected. Continuing to monitor."
+        },
+        {
+          "days_ago": 20,
+          "key": "upd_hot_tub_2",
+          "message": "Vendor scheduled to service circulation pump; posted notice on spa area."
+        }
+      ]
+    },
+    {
+      "category_key": "sauna",
+      "comments": [],
+      "days_ago": 52,
+      "description": "Sauna not getting hot (stuck around 120°F) and has a musty odor.",
+      "key": "iss_sauna_not_hot_musty",
+      "location_key": "loc_sauna",
+      "reports": [
+        {
+          "body": "Dry sauna isn’t heating up—sat for 15 minutes and it never got above ~120. Also smells musty.",
+          "consent": true,
+          "days_ago": 52,
+          "key": "rpt_sauna_1",
+          "reporter_phone": null,
+          "source": "qr"
+        }
+      ],
+      "status": "fixed",
+      "updates": [
+        {
+          "days_ago": 51,
+          "key": "upd_sauna_1",
+          "message": "Heater reset attempted; scheduled electrician to check heating elements and thermostat."
+        },
+        {
+          "days_ago": 48,
+          "key": "upd_sauna_2",
+          "message": "Replaced faulty thermostat and cleaned vents; sauna reached target temperature during test."
+        }
+      ]
+    },
+    {
+      "category_key": "steam_room",
+      "comments": [
+        {
+          "author_email": "tanya.p@example.com",
+          "body": "It’s also dripping from the ceiling near the back bench—felt like cold water drops.",
+          "days_ago": 33,
+          "key": "cmt_steam_drip_1"
+        }
+      ],
+      "days_ago": 35,
+      "description": "Steam room producing very little steam; floor is slippery and there’s a persistent mildew smell.",
+      "key": "iss_steam_room_low_steam_slippery",
+      "location_key": "loc_steam_room",
+      "reports": [
+        {
+          "body": "Steam room barely has any steam and the floor is super slick. Smells like mildew too.",
+          "consent": true,
+          "days_ago": 35,
+          "key": "rpt_steam_room_1",
+          "reporter_phone": "+1-408-555-0172",
+          "source": "sms"
+        },
+        {
+          "body": "Steam room barely has any steam and the floor is super slick. Smells like mildew too. Also noticed by another guest (separately reported).",
+          "consent": false,
+          "days_ago": 34,
+          "key": "rpt_steam_room_1_2",
+          "reporter_phone": null,
+          "source": "sms"
+        }
+      ],
+      "status": "acknowledged",
+      "updates": [
+        {
+          "days_ago": 34,
+          "key": "upd_steam_room_1",
+          "message": "Staff cleaned and placed slip caution sign; maintenance to inspect steam generator and drains."
+        }
+      ]
+    },
+    {
+      "category_key": "hvac_ventilation",
+      "comments": [],
+      "days_ago": 5,
+      "description": "Group fitness studio is overly warm and stuffy during evening classes; fans don’t seem to be running.",
+      "key": "iss_studio_hvac_stuffy",
+      "location_key": "loc_group_fitness_studio_a",
+      "reports": [
+        {
+          "body": "Studio A gets really hot during the 6pm class. Air feels stagnant and it’s hard to breathe when it’s full.",
+          "consent": true,
+          "days_ago": 5,
+          "key": "rpt_studio_hvac_1",
+          "reporter_phone": null,
+          "source": "qr"
+        },
+        {
+          "body": "Studio A gets really hot during the 6pm class. Air feels stagnant and it’s hard to breathe when it’s full. Also noticed by another guest (separately reported).",
+          "consent": false,
+          "days_ago": 4,
+          "key": "rpt_studio_hvac_1_2",
+          "reporter_phone": null,
+          "source": "qr"
+        }
+      ],
+      "status": "new",
+      "updates": []
+    },
+    {
+      "category_key": "lighting_electrical",
+      "comments": [],
+      "days_ago": 76,
+      "description": "Several ceiling lights flicker over the stretching area; one section is noticeably dim.",
+      "key": "iss_stretch_lights_flicker",
+      "location_key": "loc_stretching_area",
+      "reports": [
+        {
+          "body": "Lights above the mats in the stretching area flicker constantly. One corner is pretty dark at night.",
+          "consent": true,
+          "days_ago": 76,
+          "key": "rpt_stretch_lights_1",
+          "reporter_phone": null,
+          "source": "manual"
+        }
+      ],
+      "status": "fixed",
+      "updates": [
+        {
+          "days_ago": 74,
+          "key": "upd_stretch_lights_1",
+          "message": "Replaced two bulbs and tightened fixture connections; monitoring for continued flicker."
+        },
+        {
+          "days_ago": 72,
+          "key": "upd_stretch_lights_2",
+          "message": "Ballast replaced in one fixture; lighting restored to normal."
+        }
+      ]
+    },
+    {
+      "category_key": "safety_hazard",
+      "comments": [
+        {
+          "author_email": null,
+          "body": "This is right where people step out of the pool—please keep the cones up until it’s fixed.",
+          "days_ago": 14,
+          "key": "cmt_pool_tile_1"
+        }
+      ],
+      "days_ago": 16,
+      "description": "Pool deck has a cracked/raised tile near the ladder creating a trip hazard.",
+      "key": "iss_pool_deck_tile_trip",
+      "location_key": "loc_pool_deck",
+      "reports": [
+        {
+          "body": "There’s a tile sticking up by the pool ladder (near lane 1). Almost tripped getting out.",
+          "consent": true,
+          "days_ago": 16,
+          "key": "rpt_pool_tile_1",
+          "reporter_phone": null,
+          "source": "qr"
+        },
+        {
+          "body": "There’s a tile sticking up by the pool ladder (near lane 1). Almost tripped getting out. Also noticed by another guest (separately reported).",
+          "consent": false,
+          "days_ago": 15,
+          "key": "rpt_pool_tile_1_2",
+          "reporter_phone": null,
+          "source": "sms"
+        }
+      ],
+      "status": "in_progress",
+      "updates": [
+        {
+          "days_ago": 15,
+          "key": "upd_pool_tile_1",
+          "message": "Area coned off and marked; facilities scheduled tile repair."
+        }
+      ]
+    },
+    {
+      "category_key": "audio_tv",
+      "comments": [],
+      "days_ago": 58,
+      "description": "TVs above the ellipticals are stuck on the same channel; remote appears missing and volume is very loud.",
+      "key": "iss_tv_remote_missing_loud",
+      "location_key": "loc_cardio_floor",
+      "reports": [
+        {
+          "body": "The cardio TVs are blasting volume and stuck on one channel. No remote at the stand.",
+          "consent": true,
+          "days_ago": 58,
+          "key": "rpt_tv_1",
+          "reporter_phone": null,
+          "source": "qr"
+        }
+      ],
+      "status": "fixed",
+      "updates": [
+        {
+          "days_ago": 57,
+          "key": "upd_tv_1",
+          "message": "Replacement remote added at front desk; volume reset to standard level."
+        }
+      ]
+    },
+    {
+      "category_key": "restrooms",
+      "comments": [],
+      "days_ago": 3,
+      "description": "Restroom near the front entrance: sink faucet has very low water pressure and soap dispenser is empty.",
+      "key": "iss_front_restroom_sink_low_pressure",
+      "location_key": "loc_front_restrooms",
+      "reports": [
+        {
+          "body": "Front restroom sink barely has any water pressure and the soap dispenser is empty.",
+          "consent": true,
+          "days_ago": 3,
+          "key": "rpt_front_restroom_1",
+          "reporter_phone": "+1-415-555-0106",
+          "source": "sms"
+        },
+        {
+          "body": "Front restroom sink barely has any water pressure and the soap dispenser is empty. Also noticed by another guest (separately reported).",
+          "consent": false,
+          "days_ago": 2,
+          "key": "rpt_front_restroom_1_2",
+          "reporter_phone": null,
+          "source": "sms"
+        }
+      ],
+      "status": "acknowledged",
+      "updates": [
+        {
+          "days_ago": 2,
+          "key": "upd_front_restroom_1",
+          "message": "Soap refilled; maintenance to check aerator/valve for low pressure."
+        }
+      ]
+    },
+    {
+      "category_key": "other",
+      "comments": [],
+      "days_ago": 67,
+      "description": "Other (unclear category): Water fountain by the hallway to the locker rooms tastes metallic and the stream is weak.",
+      "key": "iss_water_fountain_metallic",
+      "location_key": "loc_hallway_to_lockers",
+      "reports": [
+        {
+          "body": "The water fountain near the locker room hallway has a weird metallic taste and barely any water comes out.",
+          "consent": true,
+          "days_ago": 67,
+          "key": "rpt_water_fountain_1",
+          "reporter_phone": null,
+          "source": "qr"
+        }
+      ],
+      "status": "new",
+      "updates": []
+    }
+  ],
+  "locations": [
+    {
+      "full_path": "Front Desk & Lobby",
+      "key": "loc_front_desk",
+      "name": "Front Desk & Lobby"
+    },
+    {
+      "full_path": "Front Desk & Lobby / Front Restrooms",
+      "key": "loc_front_restrooms",
+      "name": "Front Restrooms"
+    },
+    {
+      "full_path": "Main Workout Floor",
+      "key": "loc_main_workout_floor",
+      "name": "Main Workout Floor"
+    },
+    {
+      "full_path": "Main Workout Floor / Cardio Floor",
+      "key": "loc_cardio_floor",
+      "name": "Cardio Floor"
+    },
+    {
+      "full_path": "Main Workout Floor / Strength Floor",
+      "key": "loc_strength_floor",
+      "name": "Strength Floor"
+    },
+    {
+      "full_path": "Main Workout Floor / Free Weights Area",
+      "key": "loc_free_weights",
+      "name": "Free Weights Area"
+    },
+    {
+      "full_path": "Main Workout Floor / Stretching Area",
+      "key": "loc_stretching_area",
+      "name": "Stretching Area"
+    },
+    {
+      "full_path": "Group Fitness",
+      "key": "loc_group_fitness",
+      "name": "Group Fitness"
+    },
+    {
+      "full_path": "Group Fitness / Studio A",
+      "key": "loc_group_fitness_studio_a",
+      "name": "Studio A"
+    },
+    {
+      "full_path": "Locker Rooms",
+      "key": "loc_locker_rooms",
+      "name": "Locker Rooms"
+    },
+    {
+      "full_path": "Locker Rooms / Hallway to Locker Rooms",
+      "key": "loc_hallway_to_lockers",
+      "name": "Hallway to Locker Rooms"
+    },
+    {
+      "full_path": "Locker Rooms / Men's Locker Room",
+      "key": "loc_mens_locker_room",
+      "name": "Men's Locker Room"
+    },
+    {
+      "full_path": "Locker Rooms / Men's Locker Room / Showers",
+      "key": "loc_mens_showers",
+      "name": "Showers"
+    },
+    {
+      "full_path": "Locker Rooms / Women's Locker Room",
+      "key": "loc_womens_locker_room",
+      "name": "Women's Locker Room"
+    },
+    {
+      "full_path": "Locker Rooms / Women's Locker Room / Lockers Area",
+      "key": "loc_womens_lockers",
+      "name": "Lockers Area"
+    },
+    {
+      "full_path": "Aquatics",
+      "key": "loc_aquatics",
+      "name": "Aquatics"
+    },
+    {
+      "full_path": "Aquatics / Pool Deck",
+      "key": "loc_pool_deck",
+      "name": "Pool Deck"
+    },
+    {
+      "full_path": "Aquatics / Hot Tub / Spa",
+      "key": "loc_hot_tub",
+      "name": "Hot Tub / Spa"
+    },
+    {
+      "full_path": "Recovery Area",
+      "key": "loc_recovery_area",
+      "name": "Recovery Area"
+    },
+    {
+      "full_path": "Recovery Area / Sauna",
+      "key": "loc_sauna",
+      "name": "Sauna"
+    },
+    {
+      "full_path": "Recovery Area / Steam Room",
+      "key": "loc_steam_room",
+      "name": "Steam Room"
+    }
+  ],
+  "organization_name": "24 Hour Fitness"
+}

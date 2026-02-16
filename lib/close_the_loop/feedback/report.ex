@@ -3,11 +3,20 @@ defmodule CloseTheLoop.Feedback.Report do
     otp_app: :close_the_loop,
     domain: CloseTheLoop.Feedback,
     data_layer: AshPostgres.DataLayer,
-    authorizers: [Ash.Policy.Authorizer]
+    authorizers: [Ash.Policy.Authorizer],
+    extensions: [AshEvents.Events]
+
+  alias CloseTheLoop.Feedback.Report.Changes
 
   postgres do
     table "reports"
     repo CloseTheLoop.Repo
+  end
+
+  events do
+    event_log(CloseTheLoop.Events.Event)
+    create_timestamp :inserted_at
+    update_timestamp :updated_at
   end
 
   actions do
@@ -27,6 +36,68 @@ defmodule CloseTheLoop.Feedback.Report do
         :location_id,
         :issue_id
       ]
+
+      change Changes.NormalizeBody
+      change Changes.NormalizeReporterPhone
+      change Changes.ResolveIssueAndLocation
+
+      validate match(:reporter_email, ~r/^[^\s@]+@[^\s@]+\.[^\s@]+$/) do
+        message "Email address looks invalid"
+        where present(:reporter_email)
+      end
+    end
+
+    create :create_manual do
+      accept [
+        :body,
+        :normalized_body,
+        :reporter_name,
+        :reporter_email,
+        :reporter_phone,
+        :consent,
+        :location_id,
+        :issue_id
+      ]
+
+      change set_attribute(:source, :manual)
+      change Changes.NormalizeBody
+      change Changes.NormalizeReporterPhone
+      change Changes.ResolveIssueAndLocation
+
+      validate match(:reporter_email, ~r/^[^\s@]+@[^\s@]+\.[^\s@]+$/) do
+        message "Email address looks invalid"
+        where present(:reporter_email)
+      end
+    end
+
+    update :edit_details do
+      accept [:body, :reporter_name, :reporter_email, :reporter_phone, :consent]
+
+      require_atomic? false
+
+      change Changes.NormalizeBody
+      change Changes.NormalizeReporterPhone
+
+      validate match(:reporter_email, ~r/^[^\s@]+@[^\s@]+\.[^\s@]+$/) do
+        message "Email address looks invalid"
+        where present(:reporter_email)
+      end
+    end
+
+    update :assign_issue do
+      argument :issue_id, :uuid do
+        allow_nil? false
+      end
+
+      # We must keep report.location_id consistent with the issue it belongs to.
+      require_atomic? false
+
+      change set_attribute(:ai_resolution_status, :resolved)
+      change CloseTheLoop.Feedback.Report.Changes.ReassignIssueAndLocation
+    end
+
+    update :set_ai_resolution_failed do
+      change set_attribute(:ai_resolution_status, :failed)
     end
 
     update :reassign_issue do
@@ -34,7 +105,13 @@ defmodule CloseTheLoop.Feedback.Report do
         allow_nil? false
       end
 
-      change set_attribute(:issue_id, arg(:issue_id))
+      # We must keep report.location_id consistent with the issue it belongs to.
+      # This requires loading the issue, so this action cannot be fully atomic.
+      require_atomic? false
+
+      # If a human assigns/moves the report, it's no longer pending AI resolution.
+      change set_attribute(:ai_resolution_status, :resolved)
+      change CloseTheLoop.Feedback.Report.Changes.ReassignIssueAndLocation
     end
   end
 
@@ -53,6 +130,7 @@ defmodule CloseTheLoop.Feedback.Report do
 
     attribute :body, :string do
       allow_nil? false
+      constraints min_length: 1, trim?: true
       public? true
     end
 
@@ -88,7 +166,14 @@ defmodule CloseTheLoop.Feedback.Report do
       public? false
     end
 
+    attribute :ai_resolution_status, :atom do
+      allow_nil? true
+      constraints one_of: [:pending, :resolved, :failed]
+      public? true
+    end
+
     create_timestamp :inserted_at
+    update_timestamp :updated_at
   end
 
   relationships do
@@ -98,7 +183,10 @@ defmodule CloseTheLoop.Feedback.Report do
     end
 
     belongs_to :issue, CloseTheLoop.Feedback.Issue do
-      allow_nil? false
+      # We always set this during the action (see ResolveIssueAndLocation),
+      # but AshPhoenix form validation happens before submit, so we must not
+      # require it at validate-time.
+      allow_nil? true
       public? true
     end
   end

@@ -6,7 +6,7 @@ defmodule CloseTheLoopWeb.PageController do
     |> assign(:page_title, "CloseTheLoop")
     |> assign(
       :page_description,
-      "QR + SMS issue intake. Let customers report problems in seconds - and automatically close the loop."
+      "QR issue intake. Let customers report problems in seconds - and automatically close the loop."
     )
     |> render(:home)
   end
@@ -31,14 +31,14 @@ defmodule CloseTheLoopWeb.PageController do
   def privacy(conn, _params) do
     conn
     |> assign(:page_title, "Privacy")
-    |> assign(:page_description, "Privacy policy (MVP placeholder).")
+    |> assign(:page_description, "Privacy policy.")
     |> render(:privacy)
   end
 
   def terms(conn, _params) do
     conn
     |> assign(:page_title, "Terms")
-    |> assign(:page_description, "Terms of service (MVP placeholder).")
+    |> assign(:page_description, "Terms of service.")
     |> render(:terms)
   end
 end

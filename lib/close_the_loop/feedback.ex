@@ -1,6 +1,9 @@
 defmodule CloseTheLoop.Feedback do
   use Ash.Domain,
-    otp_app: :close_the_loop
+    otp_app: :close_the_loop,
+    extensions: [AshPhoenix]
+
+  alias CloseTheLoop.Feedback.IssueUpdateInput
 
   resources do
     resource CloseTheLoop.Feedback.Location do
@@ -29,7 +32,10 @@ defmodule CloseTheLoop.Feedback do
       define :list_reports, action: :read
 
       define :create_report, action: :create
+      define :edit_report_details, action: :edit_details
+      define :assign_report_issue, action: :assign_issue
       define :reassign_report_issue, action: :reassign_issue
+      define :set_report_ai_resolution_failed, action: :set_ai_resolution_failed
     end
 
     resource CloseTheLoop.Feedback.IssueUpdate do
@@ -50,5 +56,29 @@ defmodule CloseTheLoop.Feedback do
       define :update_issue_category, action: :update
       define :destroy_issue_category, action: :destroy
     end
+  end
+
+  # Convenience wrapper for the issue detail UI: one submission can change the
+  # issue status and/or create an internal comment (each tracked as its own event).
+  def form_to_add_issue_update(issue, opts) do
+    tenant = Keyword.fetch!(opts, :tenant)
+    actor = Keyword.fetch!(opts, :actor)
+
+    AshPhoenix.Form.for_create(IssueUpdateInput, :submit,
+      as: "issue_update",
+      id: "issue_update",
+      tenant: tenant,
+      actor: actor,
+      params: %{"status" => to_string(issue.status), "comment_body" => ""},
+      prepare_source: fn changeset ->
+        Ash.Changeset.put_context(changeset, :issue, issue)
+      end
+    )
+    |> Phoenix.Component.to_form()
+  end
+
+  def add_issue_update(issue, params, opts) when is_map(params) do
+    form = form_to_add_issue_update(issue, opts)
+    AshPhoenix.Form.submit(form, params: params)
   end
 end

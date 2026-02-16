@@ -2,57 +2,31 @@ defmodule CloseTheLoopWeb.ReportsLiveTest do
   use CloseTheLoopWeb.ConnCase, async: true
 
   import Phoenix.LiveViewTest
-  import CloseTheLoop.TestHelpers, only: [unique_email: 1]
 
-  alias CloseTheLoop.Accounts.User
+  import CloseTheLoop.TestHelpers,
+    only: [create_membership!: 3, insert_org!: 1, register_user!: 1, unique_email: 1]
+
   alias CloseTheLoop.Feedback.{Issue, Location, Report}
 
   test "business can move a report to a different issue", %{conn: conn} do
     tenant = "public"
     email = unique_email("owner")
 
-    # Avoid triggering `manage_tenant` in tests (it would rerun tenant migrations).
-    org_id = Ash.UUID.generate()
-    org_id_bin = Ecto.UUID.dump!(org_id)
-    now = DateTime.utc_now()
+    org = insert_org!(tenant)
+    user = register_user!(email)
+    _membership = create_membership!(user, org.id, :owner)
 
-    {1, _} =
-      CloseTheLoop.Repo.insert_all("organizations", [
-        %{
-          id: org_id_bin,
-          name: "Test Org",
-          tenant_schema: tenant,
-          inserted_at: now,
-          updated_at: now
-        }
-      ])
-
-    {:ok, user} =
-      Ash.create(
-        User,
-        %{
-          email: email,
-          password: "password1234",
-          password_confirmation: "password1234"
-        },
-        action: :register_with_password,
-        context: %{private: %{ash_authentication?: true}}
-      )
-
-    {:ok, user} =
-      Ash.update(user, %{organization_id: org_id, role: :owner},
-        action: :set_organization,
-        actor: user
-      )
-
-    {:ok, location} =
+    {:ok, location_a} =
       Ash.create(Location, %{name: "General", full_path: "General"}, tenant: tenant)
+
+    {:ok, location_b} =
+      Ash.create(Location, %{name: "Locker room", full_path: "Locker room"}, tenant: tenant)
 
     {:ok, issue_a} =
       Ash.create(
         Issue,
         %{
-          location_id: location.id,
+          location_id: location_a.id,
           title: "Cold shower",
           description: "Cold shower",
           normalized_description: "cold shower",
@@ -65,7 +39,7 @@ defmodule CloseTheLoopWeb.ReportsLiveTest do
       Ash.create(
         Issue,
         %{
-          location_id: location.id,
+          location_id: location_b.id,
           title: "Broken faucet",
           description: "Broken faucet",
           normalized_description: "broken faucet",
@@ -78,7 +52,7 @@ defmodule CloseTheLoopWeb.ReportsLiveTest do
       Ash.create(
         Report,
         %{
-          location_id: location.id,
+          location_id: location_a.id,
           issue_id: issue_a.id,
           body: "This is actually about the faucet",
           normalized_body: "this is actually about the faucet",
@@ -94,7 +68,12 @@ defmodule CloseTheLoopWeb.ReportsLiveTest do
       |> init_test_session(%{})
       |> AshAuthentication.Plug.Helpers.store_in_session(user)
 
-    {:ok, view, _html} = live(conn, ~p"/app/reports/#{report.id}")
+    {:ok, view, _html} = live(conn, ~p"/app/#{org.id}/reports/#{report.id}")
+    assert has_element?(view, "#report-move-modal[data-open=\"false\"]")
+    assert has_element?(view, "#report-open-move-modal")
+
+    view |> element("#report-open-move-modal") |> render_click()
+    assert has_element?(view, "#report-move-modal[data-open=\"true\"]")
     assert has_element?(view, "#report-move-form")
 
     view
@@ -102,48 +81,24 @@ defmodule CloseTheLoopWeb.ReportsLiveTest do
     |> render_submit()
 
     assert render(view) =~ "Broken faucet"
+    assert render(view) =~ "Locker room"
+    assert has_element?(view, "#report-move-modal[data-open=\"false\"]")
 
-    {:ok, _issue_view, issue_html} = live(conn, ~p"/app/issues/#{issue_b.id}")
+    {:ok, _issue_view, issue_html} = live(conn, ~p"/app/#{org.id}/issues/#{issue_b.id}")
     assert issue_html =~ "This is actually about the faucet"
+
+    {:ok, updated_report} = Ash.get(Report, report.id, tenant: tenant)
+    assert updated_report.issue_id == issue_b.id
+    assert updated_report.location_id == location_b.id
   end
 
-  test "business can create a manual report (auto issue)", %{conn: conn} do
+  test "business can create a manual report (AI assignment pending)", %{conn: conn} do
     tenant = "public"
     email = unique_email("owner")
 
-    # Avoid triggering `manage_tenant` in tests (it would rerun tenant migrations).
-    org_id = Ash.UUID.generate()
-    org_id_bin = Ecto.UUID.dump!(org_id)
-    now = DateTime.utc_now()
-
-    {1, _} =
-      CloseTheLoop.Repo.insert_all("organizations", [
-        %{
-          id: org_id_bin,
-          name: "Test Org",
-          tenant_schema: tenant,
-          inserted_at: now,
-          updated_at: now
-        }
-      ])
-
-    {:ok, user} =
-      Ash.create(
-        User,
-        %{
-          email: email,
-          password: "password1234",
-          password_confirmation: "password1234"
-        },
-        action: :register_with_password,
-        context: %{private: %{ash_authentication?: true}}
-      )
-
-    {:ok, user} =
-      Ash.update(user, %{organization_id: org_id, role: :owner},
-        action: :set_organization,
-        actor: user
-      )
+    org = insert_org!(tenant)
+    user = register_user!(email)
+    _membership = create_membership!(user, org.id, :owner)
 
     {:ok, location} =
       Ash.create(Location, %{name: "General", full_path: "General"}, tenant: tenant)
@@ -153,9 +108,9 @@ defmodule CloseTheLoopWeb.ReportsLiveTest do
       |> init_test_session(%{})
       |> AshAuthentication.Plug.Helpers.store_in_session(user)
 
-    {:ok, view, _html} = live(conn, ~p"/app/reports/new?location_id=#{location.id}")
+    {:ok, view, _html} = live(conn, ~p"/app/#{org.id}/reports/new?location_id=#{location.id}")
 
-    body = "Front desk: cold water in showers"
+    body = "Front desk: cold water in showers #{System.unique_integer([:positive])}"
 
     view
     |> form("#manual-report-form",
@@ -171,11 +126,17 @@ defmodule CloseTheLoopWeb.ReportsLiveTest do
     )
     |> render_submit()
 
-    {:ok, issues} = Ash.read(Issue, tenant: tenant)
-    issue = Enum.find(issues, fn i -> i.description == body end)
-    assert issue
+    {path, _flash} = assert_redirect(view)
+    assert path =~ ~r|/app/#{org.id}/reports/|
 
-    assert_redirect(view, ~p"/app/issues/#{issue.id}")
+    report_id = path |> String.split("/reports/") |> List.last()
+    {:ok, report} = Ash.get(Report, report_id, tenant: tenant)
+
+    assert report.location_id == location.id
+    assert report.source == :manual
+    assert report.body == body
+    assert report.ai_resolution_status == :pending
+    assert is_nil(report.issue_id)
 
     {:ok, reports} = Ash.read(Report, tenant: tenant)
     assert Enum.any?(reports, fn r -> r.source == :manual end)
@@ -185,39 +146,9 @@ defmodule CloseTheLoopWeb.ReportsLiveTest do
     tenant = "public"
     email = unique_email("owner")
 
-    # Avoid triggering `manage_tenant` in tests (it would rerun tenant migrations).
-    org_id = Ash.UUID.generate()
-    org_id_bin = Ecto.UUID.dump!(org_id)
-    now = DateTime.utc_now()
-
-    {1, _} =
-      CloseTheLoop.Repo.insert_all("organizations", [
-        %{
-          id: org_id_bin,
-          name: "Test Org",
-          tenant_schema: tenant,
-          inserted_at: now,
-          updated_at: now
-        }
-      ])
-
-    {:ok, user} =
-      Ash.create(
-        User,
-        %{
-          email: email,
-          password: "password1234",
-          password_confirmation: "password1234"
-        },
-        action: :register_with_password,
-        context: %{private: %{ash_authentication?: true}}
-      )
-
-    {:ok, user} =
-      Ash.update(user, %{organization_id: org_id, role: :owner},
-        action: :set_organization,
-        actor: user
-      )
+    org = insert_org!(tenant)
+    user = register_user!(email)
+    _membership = create_membership!(user, org.id, :owner)
 
     {:ok, location} =
       Ash.create(Location, %{name: "General", full_path: "General"}, tenant: tenant)
@@ -240,7 +171,7 @@ defmodule CloseTheLoopWeb.ReportsLiveTest do
       |> init_test_session(%{})
       |> AshAuthentication.Plug.Helpers.store_in_session(user)
 
-    {:ok, view, _html} = live(conn, ~p"/app/reports/new?location_id=#{location.id}")
+    {:ok, view, _html} = live(conn, ~p"/app/#{org.id}/reports/new?location_id=#{location.id}")
 
     view
     |> form("#manual-report-form",
@@ -258,5 +189,49 @@ defmodule CloseTheLoopWeb.ReportsLiveTest do
 
     {:ok, reports} = Ash.read(Report, tenant: tenant)
     assert Enum.any?(reports, fn r -> r.source == :manual and r.issue_id == issue.id end)
+  end
+
+  test "new report issue picker populates after selecting a location", %{conn: conn} do
+    tenant = "public"
+    org = insert_org!(tenant)
+    user = register_user!(unique_email("owner-issue-picker"))
+    _membership = create_membership!(user, org.id, :owner)
+
+    {:ok, location} =
+      Ash.create(Location, %{name: "General", full_path: "General"}, tenant: tenant)
+
+    {:ok, _issue} =
+      Ash.create(
+        Issue,
+        %{
+          location_id: location.id,
+          title: "Cold shower",
+          description: "Cold shower",
+          normalized_description: "cold shower",
+          status: :new
+        },
+        tenant: tenant
+      )
+
+    conn =
+      conn
+      |> init_test_session(%{})
+      |> AshAuthentication.Plug.Helpers.store_in_session(user)
+
+    {:ok, view, _html} = live(conn, ~p"/app/#{org.id}/reports/new")
+
+    assert has_element?(view, "#manual-issue-none-wrapper")
+    refute has_element?(view, "#manual-issue-none-wrapper[data-searchable]")
+
+    view
+    |> form("#manual-report-form",
+      manual: %{
+        location_id: location.id
+      }
+    )
+    |> render_change()
+
+    assert has_element?(view, "#manual-issue-#{location.id}-wrapper[data-searchable]")
+    assert render(view) =~ "Cold shower"
   end
 end

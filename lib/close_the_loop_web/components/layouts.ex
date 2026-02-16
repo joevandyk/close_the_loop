@@ -85,17 +85,30 @@ defmodule CloseTheLoopWeb.Layouts do
           <%!-- Mobile navigation drawer --%>
           <.sheet id="app-nav-sheet" placement="left" class="w-80 h-full p-0">
             <div class="flex h-full flex-col bg-overlay">
-              <div class="border-b border-base px-5 py-4">
+              <div class="border-b border-base px-5 py-4 space-y-3">
                 <a href={~p"/"} class="flex items-center gap-2">
                   <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-zinc-900 text-white text-sm font-semibold">
                     CTL
                   </span>
                   <span class="text-sm font-semibold tracking-tight">CloseTheLoop</span>
                 </a>
+
+                <.link
+                  :if={@org}
+                  navigate={~p"/app"}
+                  class="group flex items-center gap-2 rounded-lg border border-base bg-accent px-3 py-2 text-sm transition hover:bg-base"
+                >
+                  <.icon name="hero-building-office-2" class="size-4 shrink-0 text-foreground-soft" />
+                  <span class="min-w-0 flex-1 truncate font-medium">{@org.name}</span>
+                  <.icon
+                    name="hero-chevron-up-down"
+                    class="size-3.5 shrink-0 text-foreground-soft opacity-0 transition group-hover:opacity-100"
+                  />
+                </.link>
               </div>
 
               <div class="flex-1 overflow-y-auto px-5 py-4">
-                <.app_nav current_view={@current_view} />
+                <.app_nav current_view={@current_view} org={@org} current_user={@current_user} />
               </div>
 
               <div class="border-t border-base px-5 py-4">
@@ -119,17 +132,30 @@ defmodule CloseTheLoopWeb.Layouts do
           <div class="flex min-h-screen min-w-0">
             <%!-- Desktop sidebar --%>
             <aside class="hidden md:sticky md:top-0 md:flex md:h-screen md:w-64 md:shrink-0 md:flex-col md:border-r md:border-base md:bg-base/90 md:backdrop-blur">
-              <div class="px-6 py-5">
+              <div class="px-6 py-5 space-y-3">
                 <a href={~p"/"} class="flex items-center gap-2">
                   <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-zinc-900 text-white text-sm font-semibold">
                     CTL
                   </span>
                   <span class="text-sm font-semibold tracking-tight">CloseTheLoop</span>
                 </a>
+
+                <.link
+                  :if={@org}
+                  navigate={~p"/app"}
+                  class="group flex items-center gap-2 rounded-lg border border-base bg-accent px-3 py-2 text-sm transition hover:bg-base"
+                >
+                  <.icon name="hero-building-office-2" class="size-4 shrink-0 text-foreground-soft" />
+                  <span class="min-w-0 flex-1 truncate font-medium">{@org.name}</span>
+                  <.icon
+                    name="hero-chevron-up-down"
+                    class="size-3.5 shrink-0 text-foreground-soft opacity-0 transition group-hover:opacity-100"
+                  />
+                </.link>
               </div>
 
               <div class="flex-1 overflow-y-auto px-6 pb-6">
-                <.app_nav current_view={@current_view} />
+                <.app_nav current_view={@current_view} org={@org} current_user={@current_user} />
               </div>
 
               <div class="border-t border-base px-6 py-4">
@@ -204,13 +230,11 @@ defmodule CloseTheLoopWeb.Layouts do
 
   def marketing_layout(assigns) do
     signed_in? = !!assigns[:current_user]
-    org_id = assigns[:current_user] && Map.get(assigns[:current_user], :organization_id)
 
     primary_href =
       cond do
         !signed_in? -> ~p"/register"
-        org_id -> ~p"/app"
-        true -> ~p"/app/onboarding"
+        true -> ~p"/app"
       end
 
     primary_label =
@@ -360,6 +384,8 @@ defmodule CloseTheLoopWeb.Layouts do
   (which can introduce cyclic compilation).
   """
   attr :current_view, :string, default: ""
+  attr :org, :any, default: nil
+  attr :current_user, :any, default: nil
 
   def app_nav(assigns) do
     dashboard_active = String.contains?(assigns.current_view, ".DashboardLive.")
@@ -367,51 +393,64 @@ defmodule CloseTheLoopWeb.Layouts do
     reports_active = String.contains?(assigns.current_view, ".ReportsLive.")
     locations_active = String.contains?(assigns.current_view, ".LocationsLive.")
 
-    org_settings_active = String.contains?(assigns.current_view, ".SettingsLive.Organization")
-    account_settings_active = String.contains?(assigns.current_view, ".SettingsLive.Account")
-
-    inbox_settings_active =
-      String.contains?(assigns.current_view, ".SettingsLive.Inbox") or
+    settings_active =
+      String.contains?(assigns.current_view, ".SettingsLive.") or
         String.contains?(assigns.current_view, ".IssueCategoriesLive.")
 
     onboarding_active = String.contains?(assigns.current_view, ".OnboardingLive.")
 
+    organizations_active =
+      String.contains?(assigns.current_view, ".OrgPickerLive.") or
+        String.contains?(assigns.current_view, ".OrganizationsLive.")
+
+    ops_active = String.contains?(assigns.current_view, ".OperatorLive.")
+
     assigns =
       assigns
+      |> assign(:org_id, assigns.org && Map.get(assigns.org, :id))
       |> assign(:dashboard_active, dashboard_active)
       |> assign(:inbox_active, inbox_active)
       |> assign(:reports_active, reports_active)
       |> assign(:locations_active, locations_active)
-      |> assign(:org_settings_active, org_settings_active)
-      |> assign(:account_settings_active, account_settings_active)
-      |> assign(:inbox_settings_active, inbox_settings_active)
+      |> assign(:settings_active, settings_active)
       |> assign(:onboarding_active, onboarding_active)
+      |> assign(:organizations_active, organizations_active)
+      |> assign(:ops_active, ops_active)
+      |> assign(:is_admin, !!(assigns[:current_user] && assigns.current_user.admin?))
 
     ~H"""
     <.navlist heading="Main">
-      <.navlink navigate={~p"/app"} active={@dashboard_active}>
-        <.icon name="hero-squares-2x2" class="size-5" /> Dashboard
-      </.navlink>
-      <.navlink navigate={~p"/app/issues"} active={@inbox_active}>
-        <.icon name="hero-inbox" class="size-5" /> Inbox
-      </.navlink>
-      <.navlink navigate={~p"/app/reports"} active={@reports_active}>
-        <.icon name="hero-document-text" class="size-5" /> Reports
-      </.navlink>
+      <%= if @org_id do %>
+        <.navlink navigate={~p"/app/#{@org_id}"} active={@dashboard_active}>
+          <.icon name="hero-squares-2x2" class="size-5" /> Dashboard
+        </.navlink>
+        <.navlink navigate={~p"/app"}>
+          <.icon name="hero-arrows-right-left" class="size-5" /> Switch organization
+        </.navlink>
+        <.navlink navigate={~p"/app/#{@org_id}/issues"} active={@inbox_active}>
+          <.icon name="hero-inbox" class="size-5" /> Issues
+        </.navlink>
+        <.navlink navigate={~p"/app/#{@org_id}/reports"} active={@reports_active}>
+          <.icon name="hero-document-text" class="size-5" /> Reports
+        </.navlink>
+      <% else %>
+        <.navlink navigate={~p"/app"} active={@organizations_active}>
+          <.icon name="hero-building-office-2" class="size-5" /> Organizations
+        </.navlink>
+      <% end %>
     </.navlist>
 
-    <.navlist heading="Admin">
-      <.navlink navigate={~p"/app/settings/organization"} active={@org_settings_active}>
-        <.icon name="hero-building-office-2" class="size-5" /> Organization
-      </.navlink>
-      <.navlink navigate={~p"/app/settings/account"} active={@account_settings_active}>
-        <.icon name="hero-user-circle" class="size-5" /> Account
-      </.navlink>
-      <.navlink navigate={~p"/app/settings/inbox"} active={@inbox_settings_active}>
-        <.icon name="hero-adjustments-horizontal" class="size-5" /> Inbox configuration
-      </.navlink>
-      <.navlink navigate={~p"/app/settings/locations"} active={@locations_active}>
-        <.icon name="hero-map-pin" class="size-5" /> Locations
+    <.navlist heading="Settings">
+      <%= if @org_id do %>
+        <.navlink navigate={~p"/app/#{@org_id}/settings"} active={@settings_active}>
+          <.icon name="hero-cog-6-tooth" class="size-5" /> Settings
+        </.navlink>
+        <.navlink navigate={~p"/app/#{@org_id}/settings/locations"} active={@locations_active}>
+          <.icon name="hero-map-pin" class="size-5" /> Locations
+        </.navlink>
+      <% end %>
+      <.navlink :if={@is_admin} navigate={~p"/ops"} active={@ops_active}>
+        <.icon name="hero-wrench-screwdriver" class="size-5" /> Ops Dashboard
       </.navlink>
       <.navlink href={~p"/app/oban"}>
         <.icon name="hero-queue-list" class="size-5" /> Jobs
@@ -464,43 +503,6 @@ defmodule CloseTheLoopWeb.Layouts do
         {gettext("Attempting to reconnect")}
         <.icon name="hero-arrow-path" class="ml-1 size-3 motion-safe:animate-spin" />
       </.flash>
-    </div>
-    """
-  end
-
-  @doc """
-  Provides dark vs light theme toggle based on themes defined in app.css.
-
-  See <head> in root.html.heex which applies the theme before page load.
-  """
-  def theme_toggle(assigns) do
-    ~H"""
-    <div class="relative flex flex-row items-center rounded-full border border-base bg-accent p-0.5">
-      <div class="absolute h-[calc(100%-0.25rem)] w-1/3 rounded-full border border-base bg-base shadow-base left-0 [[data-theme=light]_&]:left-1/3 [[data-theme=dark]_&]:left-2/3 transition-[left]" />
-
-      <button
-        class="relative flex p-2 cursor-pointer w-1/3"
-        phx-click={JS.dispatch("phx:set-theme")}
-        data-phx-theme="system"
-      >
-        <.icon name="hero-computer-desktop-micro" class="size-4 opacity-75 hover:opacity-100" />
-      </button>
-
-      <button
-        class="relative flex p-2 cursor-pointer w-1/3"
-        phx-click={JS.dispatch("phx:set-theme")}
-        data-phx-theme="light"
-      >
-        <.icon name="hero-sun-micro" class="size-4 opacity-75 hover:opacity-100" />
-      </button>
-
-      <button
-        class="relative flex p-2 cursor-pointer w-1/3"
-        phx-click={JS.dispatch("phx:set-theme")}
-        data-phx-theme="dark"
-      >
-        <.icon name="hero-moon-micro" class="size-4 opacity-75 hover:opacity-100" />
-      </button>
     </div>
     """
   end

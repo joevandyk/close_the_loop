@@ -177,14 +177,15 @@ defmodule CloseTheLoop.Accounts.User do
       accept [:name]
     end
 
-    update :set_organization do
-      description "Attach the user to an organization (used during onboarding)."
-      accept [:organization_id, :role]
-    end
-
     update :set_confirmed_at do
       description "Set confirmed_at (e.g. for dev seeds so user can sign in without email confirmation)."
       accept [:confirmed_at]
+    end
+
+    update :promote_to_admin do
+      description "Promote a user to platform admin (operator access)."
+      accept []
+      change set_attribute(:admin?, true)
     end
 
     read :sign_in_with_password do
@@ -325,14 +326,14 @@ defmodule CloseTheLoop.Accounts.User do
       authorize_if always()
     end
 
-    # Allow a signed-in user to attach themselves to an org during onboarding.
-    policy action(:set_organization) do
-      authorize_if expr(id == ^actor(:id))
-    end
-
     # Allow signed-in users to update their own account/profile.
     policy action([:update_profile, :change_email, :change_password, :set_confirmed_at]) do
       authorize_if expr(id == ^actor(:id))
+    end
+
+    # Admin reads (operator dashboard) - only admins can list all users.
+    policy action(:read) do
+      authorize_if expr(^actor(:admin?))
     end
   end
 
@@ -355,14 +356,23 @@ defmodule CloseTheLoop.Accounts.User do
 
     attribute :confirmed_at, :utc_datetime_usec
 
-    attribute :organization_id, :uuid do
-      allow_nil? true
+    attribute :admin?, :boolean do
+      default false
+      allow_nil? false
+      public? false
+    end
+  end
+
+  relationships do
+    has_many :user_organizations, CloseTheLoop.Accounts.UserOrganization do
+      destination_attribute :user_id
       public? false
     end
 
-    attribute :role, :atom do
-      allow_nil? true
-      constraints one_of: [:owner, :staff]
+    many_to_many :organizations, CloseTheLoop.Tenants.Organization do
+      through CloseTheLoop.Accounts.UserOrganization
+      source_attribute_on_join_resource :user_id
+      destination_attribute_on_join_resource :organization_id
       public? false
     end
   end

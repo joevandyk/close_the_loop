@@ -34,10 +34,20 @@ defmodule CloseTheLoopWeb.DashboardLive.Index do
   defp format_dt(%NaiveDateTime{} = dt), do: Calendar.strftime(dt, "%b %d, %Y %I:%M %p")
   defp format_dt(other), do: to_string(other)
 
+  defp iso8601(%DateTime{} = dt), do: DateTime.to_iso8601(dt)
+  defp iso8601(%NaiveDateTime{} = dt), do: NaiveDateTime.to_iso8601(dt)
+  defp iso8601(other) when is_binary(other), do: other
+  defp iso8601(other), do: to_string(other)
+
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} current_user={@current_user} current_scope={@current_scope}>
+    <Layouts.app
+      flash={@flash}
+      current_user={@current_user}
+      current_scope={@current_scope}
+      org={@current_org}
+    >
       <div class="max-w-6xl mx-auto space-y-8">
         <div class="flex items-start justify-between gap-4">
           <div>
@@ -48,120 +58,210 @@ defmodule CloseTheLoopWeb.DashboardLive.Index do
           </div>
 
           <div class="flex items-center gap-2">
-            <.button navigate={~p"/app/issues"} variant="outline">Open inbox</.button>
-            <.button navigate={~p"/app/reports/new"} variant="solid" color="primary">
+            <.button navigate={~p"/app/#{@current_org.id}/issues"} variant="outline">
+              Open issues
+            </.button>
+            <.button
+              navigate={~p"/app/#{@current_org.id}/reports/new"}
+              variant="solid"
+              color="primary"
+            >
               New report
             </.button>
           </div>
         </div>
 
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <.stat_card title="Open issues" value={@stats.issues_total} hint="Excludes duplicates" />
-          <.stat_card title="New" value={@stats.issues_new} hint="Needs triage" />
-          <.stat_card title="In progress" value={@stats.issues_in_progress} hint="Work ongoing" />
-          <.stat_card title="Fixed" value={@stats.issues_fixed} hint="Recently resolved" />
-          <.stat_card title="Reports" value={@stats.reports_total} hint="All time" />
+          <.stat_card
+            title="Open issues"
+            value={@stats.issues_total}
+            hint="Active"
+            navigate={~p"/app/#{@current_org.id}/issues"}
+          />
+          <.stat_card
+            title="New"
+            value={@stats.issues_new}
+            hint="Needs triage"
+            navigate={~p"/app/#{@current_org.id}/issues?#{%{status: "new"}}"}
+          />
+          <.stat_card
+            title="In progress"
+            value={@stats.issues_in_progress}
+            hint="Work ongoing"
+            navigate={~p"/app/#{@current_org.id}/issues?#{%{status: "in_progress"}}"}
+          />
+          <.stat_card
+            title="Fixed"
+            value={@stats.issues_fixed}
+            hint="Recently resolved"
+            navigate={~p"/app/#{@current_org.id}/issues?#{%{status: "fixed"}}"}
+          />
+          <.stat_card
+            title="Reports"
+            value={@stats.reports_total}
+            hint="All time"
+            navigate={~p"/app/#{@current_org.id}/reports"}
+          />
           <.stat_card title="Comments" value={@stats.comments_total} hint="Internal discussion" />
         </div>
 
         <div class="grid gap-6 lg:grid-cols-2">
           <.list_panel title="Recent issues" empty_text="No issues yet.">
-            <div :for={i <- @recent_issues} id={"dash-issue-#{i.id}"} class="py-3">
+            <.link
+              :for={i <- @recent_issues}
+              id={"dash-issue-#{i.id}"}
+              navigate={~p"/app/#{@current_org.id}/issues/#{i.id}"}
+              aria-label={"View issue: #{i.title}"}
+              class={[
+                "block py-3 -mx-2 px-2 rounded-xl",
+                "transition hover:bg-accent/60 hover:shadow-sm",
+                "focus-visible:outline-hidden focus-visible:ring-3 focus-visible:ring-focus"
+              ]}
+            >
               <div class="flex items-start gap-3">
                 <div class="min-w-0 flex-1">
-                  <.link
-                    navigate={~p"/app/issues/#{i.id}"}
-                    class="text-sm font-medium hover:underline"
-                  >
+                  <div class="text-sm font-medium text-foreground line-clamp-2">
                     {i.title}
-                  </.link>
+                  </div>
                   <div class="mt-1 flex items-center gap-2 text-xs text-foreground-soft min-w-0">
                     <.icon name="hero-map-pin" class="size-4 shrink-0" />
-                    <span class="truncate">{i.location.full_path || i.location.name}</span>
-                    <span class="ml-auto inline-flex items-center gap-1 whitespace-nowrap">
+                    <span class="min-w-0 line-clamp-2">
+                      {i.location.full_path || i.location.name}
+                    </span>
+                    <span class="inline-flex items-center gap-1 whitespace-nowrap shrink-0">
                       <.icon name="hero-users" class="size-4" />
                       {i.reporter_count}
                     </span>
+                    <time
+                      id={"dash-issue-time-#{i.id}"}
+                      phx-hook="LocalTime"
+                      data-iso={iso8601(i.inserted_at)}
+                      class="ml-auto shrink-0 whitespace-nowrap"
+                    >
+                      {format_dt(i.inserted_at)}
+                    </time>
                   </div>
                 </div>
-                <.button size="sm" variant="outline" navigate={~p"/app/issues/#{i.id}"}>View</.button>
+
+                <.icon name="hero-chevron-right" class="mt-0.5 size-4 shrink-0 text-foreground-soft" />
               </div>
-            </div>
+            </.link>
           </.list_panel>
 
           <.list_panel title="Recent reports" empty_text="No reports yet.">
-            <div :for={r <- @recent_reports} id={"dash-report-#{r.id}"} class="py-3">
+            <.link
+              :for={r <- @recent_reports}
+              id={"dash-report-#{r.id}"}
+              navigate={~p"/app/#{@current_org.id}/reports/#{r.id}"}
+              aria-label={"View report: #{r.body |> to_string() |> String.slice(0, 80)}"}
+              class={[
+                "block py-3 -mx-2 px-2 rounded-xl",
+                "transition hover:bg-accent/60 hover:shadow-sm",
+                "focus-visible:outline-hidden focus-visible:ring-3 focus-visible:ring-focus"
+              ]}
+            >
               <div class="flex items-start gap-3">
                 <div class="min-w-0 flex-1">
-                  <.link
-                    navigate={~p"/app/reports/#{r.id}"}
-                    class="text-sm font-medium hover:underline"
-                  >
-                    {r.body |> to_string() |> String.slice(0, 70)}
-                  </.link>
+                  <div class="text-sm font-medium text-foreground line-clamp-2">
+                    {r.body |> to_string()}
+                  </div>
                   <div class="mt-1 flex items-center gap-2 text-xs text-foreground-soft min-w-0">
                     <.icon name="hero-map-pin" class="size-4 shrink-0" />
-                    <span class="truncate">{r.location.full_path || r.location.name}</span>
-                  </div>
-                  <div class="mt-1 flex items-center gap-2 text-xs text-foreground-soft min-w-0">
-                    <.icon name="hero-inbox" class="size-4 shrink-0" />
-                    <span class="truncate">{r.issue.title}</span>
-                    <span class="ml-auto whitespace-nowrap">{format_dt(r.inserted_at)}</span>
+                    <span class="min-w-0 line-clamp-2">
+                      {r.location.full_path || r.location.name}
+                    </span>
+                    <time
+                      id={"dash-report-time-#{r.id}"}
+                      phx-hook="LocalTime"
+                      data-iso={iso8601(r.inserted_at)}
+                      class="ml-auto shrink-0 whitespace-nowrap"
+                    >
+                      {format_dt(r.inserted_at)}
+                    </time>
                   </div>
                 </div>
-                <.button size="sm" variant="outline" navigate={~p"/app/reports/#{r.id}"}>
-                  View
-                </.button>
+
+                <.icon name="hero-chevron-right" class="mt-0.5 size-4 shrink-0 text-foreground-soft" />
               </div>
-            </div>
+            </.link>
           </.list_panel>
         </div>
 
         <div class="grid gap-6 lg:grid-cols-2">
           <.list_panel title="Recent comments" empty_text="No comments yet.">
-            <div :for={c <- @recent_comments} id={"dash-comment-#{c.id}"} class="py-3">
+            <.link
+              :for={c <- @recent_comments}
+              id={"dash-comment-#{c.id}"}
+              navigate={~p"/app/#{@current_org.id}/issues/#{c.issue_id}"}
+              aria-label={"View issue: #{c.issue.title}"}
+              class={[
+                "block py-3 -mx-2 px-2 rounded-xl",
+                "transition hover:bg-accent/60 hover:shadow-sm",
+                "focus-visible:outline-hidden focus-visible:ring-3 focus-visible:ring-focus"
+              ]}
+            >
               <div class="flex items-start gap-3">
                 <div class="min-w-0 flex-1">
                   <div class="text-xs text-foreground-soft">
                     <span class="font-medium text-foreground">{c.author_email || "Internal"}</span>
                     <span class="mx-1 opacity-60">•</span>
-                    <span>{format_dt(c.inserted_at)}</span>
+                    <time
+                      id={"dash-comment-time-#{c.id}"}
+                      phx-hook="LocalTime"
+                      data-iso={iso8601(c.inserted_at)}
+                    >
+                      {format_dt(c.inserted_at)}
+                    </time>
                   </div>
-                  <div class="mt-1 text-sm text-foreground break-words">
+                  <div class="mt-1 text-sm text-foreground line-clamp-2">
                     {c.body}
                   </div>
-                  <div class="mt-1 text-xs text-foreground-soft">
-                    On:
-                    <.link navigate={~p"/app/issues/#{c.issue_id}"} class="hover:underline">
-                      {c.issue.title}
-                    </.link>
+                  <div class="mt-1 text-xs text-foreground-soft line-clamp-1">
+                    On: <span class="font-medium text-foreground">{c.issue.title}</span>
                   </div>
                 </div>
+
+                <.icon name="hero-chevron-right" class="mt-0.5 size-4 shrink-0 text-foreground-soft" />
               </div>
-            </div>
+            </.link>
           </.list_panel>
 
           <.list_panel title="Recent updates" empty_text="No updates yet.">
-            <div :for={u <- @recent_updates} id={"dash-update-#{u.id}"} class="py-3">
+            <.link
+              :for={u <- @recent_updates}
+              id={"dash-update-#{u.id}"}
+              navigate={~p"/app/#{@current_org.id}/issues/#{u.issue_id}"}
+              aria-label={"View issue: #{u.issue.title}"}
+              class={[
+                "block py-3 -mx-2 px-2 rounded-xl",
+                "transition hover:bg-accent/60 hover:shadow-sm",
+                "focus-visible:outline-hidden focus-visible:ring-3 focus-visible:ring-focus"
+              ]}
+            >
               <div class="flex items-start gap-3">
                 <div class="min-w-0 flex-1">
                   <div class="text-xs text-foreground-soft">
                     <span class="font-medium text-foreground">Update queued</span>
                     <span class="mx-1 opacity-60">•</span>
-                    <span>{format_dt(u.inserted_at)}</span>
+                    <time
+                      id={"dash-update-time-#{u.id}"}
+                      phx-hook="LocalTime"
+                      data-iso={iso8601(u.inserted_at)}
+                    >
+                      {format_dt(u.inserted_at)}
+                    </time>
                   </div>
-                  <div class="mt-1 text-sm text-foreground break-words">
+                  <div class="mt-1 text-sm text-foreground line-clamp-2">
                     {u.message}
                   </div>
-                  <div class="mt-1 text-xs text-foreground-soft">
-                    For:
-                    <.link navigate={~p"/app/issues/#{u.issue_id}"} class="hover:underline">
-                      {u.issue.title}
-                    </.link>
+                  <div class="mt-1 text-xs text-foreground-soft line-clamp-1">
+                    For: <span class="font-medium text-foreground">{u.issue.title}</span>
                   </div>
                 </div>
+
+                <.icon name="hero-chevron-right" class="mt-0.5 size-4 shrink-0 text-foreground-soft" />
               </div>
-            </div>
+            </.link>
           </.list_panel>
         </div>
       </div>
@@ -172,10 +272,27 @@ defmodule CloseTheLoopWeb.DashboardLive.Index do
   attr :title, :string, required: true
   attr :value, :any, required: true
   attr :hint, :string, required: true
+  attr :navigate, :string, default: nil
 
   defp stat_card(assigns) do
     ~H"""
-    <div class="rounded-2xl border border-base bg-base p-5 shadow-base">
+    <.link
+      :if={@navigate}
+      navigate={@navigate}
+      class={[
+        "block rounded-2xl border border-base bg-base p-5 shadow-base",
+        "transition hover:bg-accent hover:shadow-lg hover:-translate-y-[1px]"
+      ]}
+    >
+      <div class="flex items-center justify-between gap-3">
+        <p class="text-sm font-medium text-foreground-soft">{@title}</p>
+        <.icon name="hero-arrow-right" class="size-4 text-foreground-soft" />
+      </div>
+      <p class="mt-2 text-3xl font-semibold tracking-tight">{@value}</p>
+      <p class="mt-1 text-xs text-foreground-soft">{@hint}</p>
+    </.link>
+
+    <div :if={!@navigate} class="rounded-2xl border border-base bg-base p-5 shadow-base">
       <div class="flex items-center justify-between gap-3">
         <p class="text-sm font-medium text-foreground-soft">{@title}</p>
       </div>

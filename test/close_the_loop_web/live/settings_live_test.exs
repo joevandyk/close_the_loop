@@ -2,58 +2,24 @@ defmodule CloseTheLoopWeb.SettingsLiveTest do
   use CloseTheLoopWeb.ConnCase, async: true
 
   import Phoenix.LiveViewTest
-  import CloseTheLoop.TestHelpers, only: [unique_email: 1]
 
-  alias CloseTheLoop.Accounts.User
-
-  defp create_org_row!(tenant) do
-    org_id = Ash.UUID.generate()
-    org_id_bin = Ecto.UUID.dump!(org_id)
-    now = DateTime.utc_now()
-
-    {1, _} =
-      CloseTheLoop.Repo.insert_all("organizations", [
-        %{
-          id: org_id_bin,
-          name: "Test Org",
-          tenant_schema: tenant,
-          inserted_at: now,
-          updated_at: now
-        }
-      ])
-
-    org_id
-  end
+  import CloseTheLoop.TestHelpers,
+    only: [create_membership!: 3, insert_org!: 1, register_user!: 1, unique_email: 1]
 
   test "user can update their name", %{conn: conn} do
     tenant = "public"
-    org_id = create_org_row!(tenant)
+    org = insert_org!(tenant)
     email = unique_email("owner-name")
 
-    {:ok, user} =
-      Ash.create(
-        User,
-        %{
-          email: email,
-          password: "password1234",
-          password_confirmation: "password1234"
-        },
-        action: :register_with_password,
-        context: %{private: %{ash_authentication?: true}}
-      )
-
-    {:ok, user} =
-      Ash.update(user, %{organization_id: org_id, role: :owner},
-        action: :set_organization,
-        actor: user
-      )
+    user = register_user!(email)
+    _membership = create_membership!(user, org.id, :owner)
 
     conn =
       conn
       |> init_test_session(%{})
       |> AshAuthentication.Plug.Helpers.store_in_session(user)
 
-    {:ok, view, _html} = live(conn, ~p"/app/settings/account")
+    {:ok, view, _html} = live(conn, ~p"/app/#{org.id}/settings/account")
     assert has_element?(view, "#user-profile-form")
 
     view
@@ -66,34 +32,19 @@ defmodule CloseTheLoopWeb.SettingsLiveTest do
 
   test "change email with incorrect password shows error and does not update email", %{conn: conn} do
     tenant = "public"
-    org_id = create_org_row!(tenant)
+    org = insert_org!(tenant)
     email_old = unique_email("owner-email-wrong-pw")
     email_new = unique_email("owner-email-changed")
 
-    {:ok, user} =
-      Ash.create(
-        User,
-        %{
-          email: email_old,
-          password: "password1234",
-          password_confirmation: "password1234"
-        },
-        action: :register_with_password,
-        context: %{private: %{ash_authentication?: true}}
-      )
-
-    {:ok, user} =
-      Ash.update(user, %{organization_id: org_id, role: :owner},
-        action: :set_organization,
-        actor: user
-      )
+    user = register_user!(email_old)
+    _membership = create_membership!(user, org.id, :owner)
 
     conn =
       conn
       |> init_test_session(%{})
       |> AshAuthentication.Plug.Helpers.store_in_session(user)
 
-    {:ok, view, _html} = live(conn, ~p"/app/settings/account")
+    {:ok, view, _html} = live(conn, ~p"/app/#{org.id}/settings/account")
     assert has_element?(view, "#user-email-form")
 
     view
@@ -114,34 +65,19 @@ defmodule CloseTheLoopWeb.SettingsLiveTest do
 
   test "user can change their email (with current password)", %{conn: conn} do
     tenant = "public"
-    org_id = create_org_row!(tenant)
+    org = insert_org!(tenant)
     email_old = unique_email("owner-email-old")
     email_new = unique_email("owner-email-new")
 
-    {:ok, user} =
-      Ash.create(
-        User,
-        %{
-          email: email_old,
-          password: "password1234",
-          password_confirmation: "password1234"
-        },
-        action: :register_with_password,
-        context: %{private: %{ash_authentication?: true}}
-      )
-
-    {:ok, user} =
-      Ash.update(user, %{organization_id: org_id, role: :owner},
-        action: :set_organization,
-        actor: user
-      )
+    user = register_user!(email_old)
+    _membership = create_membership!(user, org.id, :owner)
 
     conn =
       conn
       |> init_test_session(%{})
       |> AshAuthentication.Plug.Helpers.store_in_session(user)
 
-    {:ok, view, _html} = live(conn, ~p"/app/settings/account")
+    {:ok, view, _html} = live(conn, ~p"/app/#{org.id}/settings/account")
     assert has_element?(view, "#user-email-form")
 
     view
@@ -163,33 +99,18 @@ defmodule CloseTheLoopWeb.SettingsLiveTest do
     conn: conn
   } do
     tenant = "public"
-    org_id = create_org_row!(tenant)
+    org = insert_org!(tenant)
     email = unique_email("owner-password-wrong")
 
-    {:ok, user} =
-      Ash.create(
-        User,
-        %{
-          email: email,
-          password: "password1234",
-          password_confirmation: "password1234"
-        },
-        action: :register_with_password,
-        context: %{private: %{ash_authentication?: true}}
-      )
-
-    {:ok, user} =
-      Ash.update(user, %{organization_id: org_id, role: :owner},
-        action: :set_organization,
-        actor: user
-      )
+    user = register_user!(email)
+    _membership = create_membership!(user, org.id, :owner)
 
     conn =
       conn
       |> init_test_session(%{})
       |> AshAuthentication.Plug.Helpers.store_in_session(user)
 
-    {:ok, view, _html} = live(conn, ~p"/app/settings/account")
+    {:ok, view, _html} = live(conn, ~p"/app/#{org.id}/settings/account")
     assert has_element?(view, "#user-password-form")
 
     view
@@ -216,33 +137,18 @@ defmodule CloseTheLoopWeb.SettingsLiveTest do
 
   test "user can change their password (with current password)", %{conn: conn} do
     tenant = "public"
-    org_id = create_org_row!(tenant)
+    org = insert_org!(tenant)
     email = unique_email("owner-password")
 
-    {:ok, user} =
-      Ash.create(
-        User,
-        %{
-          email: email,
-          password: "password1234",
-          password_confirmation: "password1234"
-        },
-        action: :register_with_password,
-        context: %{private: %{ash_authentication?: true}}
-      )
-
-    {:ok, user} =
-      Ash.update(user, %{organization_id: org_id, role: :owner},
-        action: :set_organization,
-        actor: user
-      )
+    user = register_user!(email)
+    _membership = create_membership!(user, org.id, :owner)
 
     conn =
       conn
       |> init_test_session(%{})
       |> AshAuthentication.Plug.Helpers.store_in_session(user)
 
-    {:ok, view, _html} = live(conn, ~p"/app/settings/account")
+    {:ok, view, _html} = live(conn, ~p"/app/#{org.id}/settings/account")
     assert has_element?(view, "#user-password-form")
 
     view

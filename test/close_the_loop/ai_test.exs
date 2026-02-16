@@ -3,7 +3,7 @@ defmodule CloseTheLoop.AITest do
 
   alias CloseTheLoop.AI
 
-  test "categorize_issue/1 errors when OPENAI_API_KEY missing" do
+  test "categorize_issue/2 errors when OPENAI_API_KEY missing" do
     prev = System.get_env("OPENAI_API_KEY")
 
     on_exit(fn ->
@@ -14,6 +14,7 @@ defmodule CloseTheLoop.AITest do
 
     System.delete_env("OPENAI_API_KEY")
 
-    assert {:error, :missing_openai_api_key} = AI.categorize_issue("The shower is cold")
+    assert {:error, :missing_openai_api_key} =
+             AI.categorize_issue("The shower is cold", "org_demo")
   end
 end

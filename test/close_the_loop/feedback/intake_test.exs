@@ -1,38 +1,51 @@
-defmodule CloseTheLoop.Feedback.IntakeTest do
+defmodule CloseTheLoop.Feedback.ReportIntakeTest do
   use CloseTheLoop.DataCase, async: true
 
   import Ash.Expr
   require Ash.Query
 
-  alias CloseTheLoop.Feedback.{Intake, Issue, Location, Report}
+  alias CloseTheLoop.Feedback
+  alias CloseTheLoop.Feedback.{Location, Report}
 
-  test "dedupes identical reports at same location" do
+  test "creates reports without an issue when issue is omitted" do
     tenant = "public"
 
     {:ok, location} =
-      Ash.create(Location, %{name: "Gym / Showers", full_path: "Gym → Men’s showers"},
+      Ash.create(Location, %{name: "Gym / Showers", full_path: "Gym -> Mens showers"},
         tenant: tenant
       )
 
-    {:ok, %{issue: issue1}} =
-      Intake.submit_report(tenant, location.id, %{
-        body: "Cold water in the back-left stall",
-        source: :qr,
-        consent: false
-      })
+    body = "Cold water in the back-left stall #{System.unique_integer([:positive])}"
 
-    {:ok, %{issue: issue2}} =
-      Intake.submit_report(tenant, location.id, %{
-        body: "Cold water in the back-left stall",
-        source: :sms,
-        reporter_phone: "+15555550100",
-        consent: true
-      })
+    {:ok, report1} =
+      Feedback.create_report(
+        %{location_id: location.id, body: body, source: :qr},
+        tenant: tenant,
+        authorize?: false,
+        actor: nil
+      )
 
-    assert issue1.id == issue2.id
+    {:ok, report2} =
+      Feedback.create_report(
+        %{
+          location_id: location.id,
+          body: body,
+          source: :sms,
+          reporter_phone: "+15555550100",
+          consent: true
+        },
+        tenant: tenant,
+        authorize?: false,
+        actor: nil
+      )
 
-    {:ok, issue} = Ash.get(Issue, issue1.id, load: [:reporter_count], tenant: tenant)
-    assert issue.reporter_count == 2
+    # Issue assignment is done asynchronously (OpenAI-backed). Intake saves the reports
+    # immediately and queues background resolution.
+    assert is_nil(report1.issue_id)
+    assert is_nil(report2.issue_id)
+
+    assert report1.ai_resolution_status == :pending
+    assert report2.ai_resolution_status == :pending
   end
 
   test "rejects invalid phone numbers when provided" do
@@ -41,20 +54,26 @@ defmodule CloseTheLoop.Feedback.IntakeTest do
     {:ok, location} =
       Ash.create(Location, %{name: "Gym", full_path: "Gym"}, tenant: tenant)
 
-    assert {:error, msg} =
-             Intake.submit_report(tenant, location.id, %{
-               body: "Cold water",
-               source: :qr,
-               reporter_phone: "555-555-010",
-               consent: true
-             })
+    body = "Cold water #{System.unique_integer([:positive])}"
 
-    assert is_binary(msg)
+    assert {:error, _} =
+             Feedback.create_report(
+               %{
+                 location_id: location.id,
+                 body: body,
+                 source: :qr,
+                 reporter_phone: "555-555-010",
+                 consent: true
+               },
+               tenant: tenant,
+               authorize?: false,
+               actor: nil
+             )
 
     # Ensure we didn't store a report with that invalid phone.
     query =
       Report
-      |> Ash.Query.filter(expr(body == "Cold water"))
+      |> Ash.Query.filter(expr(body == ^body))
 
     {:ok, reports} = Ash.read(query, tenant: tenant)
     assert reports == []
@@ -66,14 +85,22 @@ defmodule CloseTheLoop.Feedback.IntakeTest do
     {:ok, location} =
       Ash.create(Location, %{name: "Gym", full_path: "Gym"}, tenant: tenant)
 
-    {:ok, %{report: report}} =
-      Intake.submit_report(tenant, location.id, %{
-        body: "The sauna is too cold",
-        source: :qr,
-        reporter_name: "  Alex  ",
-        reporter_email: " alex@example.com ",
-        consent: false
-      })
+    body = "The sauna is too cold #{System.unique_integer([:positive])}"
+
+    {:ok, report} =
+      Feedback.create_report(
+        %{
+          location_id: location.id,
+          body: body,
+          source: :qr,
+          reporter_name: "  Alex  ",
+          reporter_email: " alex@example.com ",
+          consent: false
+        },
+        tenant: tenant,
+        authorize?: false,
+        actor: nil
+      )
 
     assert report.reporter_name == "Alex"
     assert report.reporter_email == "alex@example.com"

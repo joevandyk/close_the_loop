@@ -64,7 +64,12 @@ config :spark,
 config :close_the_loop,
   ecto_repos: [CloseTheLoop.Repo],
   generators: [timestamp_type: :utc_datetime],
-  ash_domains: [CloseTheLoop.Accounts, CloseTheLoop.Tenants, CloseTheLoop.Feedback],
+  ash_domains: [
+    CloseTheLoop.Accounts,
+    CloseTheLoop.Tenants,
+    CloseTheLoop.Feedback,
+    CloseTheLoop.Events
+  ],
   ash_authentication: [return_error_on_invalid_magic_link_token?: true]
 
 config :ex_twilio,

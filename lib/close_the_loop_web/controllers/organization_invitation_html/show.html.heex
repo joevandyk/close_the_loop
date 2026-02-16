@@ -1,0 +1,38 @@
+<div class="min-h-screen bg-base text-foreground">
+  <div class="mx-auto max-w-lg px-6 py-12">
+    <div class="rounded-2xl border border-base bg-base p-6 shadow-base space-y-6">
+      <div>
+        <h1 class="text-xl font-semibold">Join {@org.name}</h1>
+        <p class="mt-2 text-sm text-foreground-soft">
+          You've been invited as <span class="font-medium">{@invite.role}</span>.
+        </p>
+      </div>
+
+      <.alert :if={@message} color={if(@state == :ok, do: "info", else: "warning")} hide_close>
+        {@message}
+      </.alert>
+
+      <%= if @state == :ok do %>
+        <.form
+          for={to_form(%{}, as: :accept)}
+          id="accept-invite-form"
+          action={~p"/invites/#{@invite.token}/accept"}
+          method="post"
+          class="space-y-3"
+        >
+          <.button type="submit" variant="solid" color="primary" class="w-full">
+            Accept invitation
+          </.button>
+        </.form>
+      <% else %>
+        <.button href={~p"/"} variant="ghost" class="w-full">
+          Back to home
+        </.button>
+      <% end %>
+    </div>
+
+    <p class="mt-6 text-xs text-foreground-soft text-center">
+      If you didn't expect this invitation, you can safely ignore it.
+    </p>
+  </div>
+</div>

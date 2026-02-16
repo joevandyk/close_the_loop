@@ -4,11 +4,13 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
 
   alias CloseTheLoop.Feedback, as: FeedbackDomain
   alias CloseTheLoop.Feedback.Location
+  alias CloseTheLoop.Events.ChangeMetadata
 
   @impl true
   def mount(_params, _session, socket) do
     tenant = socket.assigns.current_tenant
     org = socket.assigns.current_org
+    user = socket.assigns.current_user
 
     with true <- is_binary(tenant) || {:error, :missing_tenant},
          {:ok, locations} <- list_locations(tenant) do
@@ -16,8 +18,10 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
        socket
        |> assign(:org, org)
        |> assign(:locations, decorate_locations(tenant, locations))
+       |> assign(:location_modal_open?, false)
        |> assign(:editing_id, nil)
-       |> assign(:location_form, to_form(%{"name" => "", "full_path" => ""}, as: :location))
+       |> assign(:editing_location, nil)
+       |> assign(:location_form, new_location_form(tenant, user))
        |> assign(:error, nil)}
     else
       _ ->
@@ -30,7 +34,8 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
   end
 
   defp decorate_locations(tenant, locations) do
-    Enum.map(locations, fn loc ->
+    locations
+    |> Enum.map(fn loc ->
       reporter_link = CloseTheLoopWeb.Endpoint.url() <> "/r/#{tenant}/#{loc.id}"
 
       %{
@@ -40,32 +45,67 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
         reporter_link: reporter_link
       }
     end)
+    |> Enum.sort_by(fn loc -> loc.full_path || loc.name end)
   end
 
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} current_user={@current_user} current_scope={@current_scope}>
+    <Layouts.app
+      flash={@flash}
+      current_user={@current_user}
+      current_scope={@current_scope}
+      org={@current_org}
+    >
       <div class="max-w-5xl mx-auto space-y-8">
-        <div>
-          <h1 class="text-2xl font-semibold">Locations</h1>
-          <p class="mt-2 text-foreground-soft text-sm">
-            Create a QR code for each location. Each location has its own reporter link.
-          </p>
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h1 class="text-2xl font-semibold">Locations</h1>
+            <p class="mt-2 text-foreground-soft text-sm">
+              Create a QR code for each location. Each location has its own reporter link.
+            </p>
+          </div>
+
+          <.button
+            id="locations-open-new"
+            type="button"
+            variant="solid"
+            color="primary"
+            phx-click="open_new_location_modal"
+          >
+            <.icon name="hero-plus" class="size-4" /> Add location
+          </.button>
         </div>
 
-        <div class="grid gap-6 lg:grid-cols-2">
-          <div class="rounded-2xl border border-base bg-base p-6 shadow-base">
-            <h2 class="text-sm font-semibold">
-              <%= if @editing_id do %>
-                Edit location
-              <% else %>
-                Add a location
-              <% end %>
-            </h2>
+        <.modal
+          id="location-modal"
+          open={@location_modal_open?}
+          on_close={JS.push("close_location_modal")}
+          class="w-full max-w-lg"
+        >
+          <div class="p-6 space-y-4">
+            <div>
+              <h2 class="text-lg font-semibold">
+                <%= if @editing_id do %>
+                  Edit location
+                <% else %>
+                  Add location
+                <% end %>
+              </h2>
+              <p class="mt-1 text-sm text-foreground-soft">
+                Used on posters and in reporting links.
+              </p>
+            </div>
 
-            <.form for={@location_form} id="location-form" phx-submit="save" class="mt-4 space-y-4">
+            <.form
+              for={@location_form}
+              id="location-modal-form"
+              phx-change="validate"
+              phx-submit="save"
+              class="space-y-4"
+            >
               <.input
+                id="location-modal-name"
                 field={@location_form[:name]}
                 type="text"
                 label="Name"
@@ -74,6 +114,7 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
               />
 
               <.input
+                id="location-modal-full-path"
                 field={@location_form[:full_path]}
                 type="text"
                 label="Full path (optional)"
@@ -84,118 +125,144 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
                 <.alert color="danger" hide_close>{@error}</.alert>
               <% end %>
 
-              <div class="flex gap-2">
-                <.button type="submit" variant="solid" color="primary" class="flex-1">
+              <div class="flex items-center justify-end gap-2 pt-2">
+                <.button
+                  id="location-modal-cancel"
+                  type="button"
+                  variant="outline"
+                  phx-click="close_location_modal"
+                >
+                  Cancel
+                </.button>
+
+                <.button type="submit" variant="solid" color="primary" phx-disable-with="Saving...">
                   <%= if @editing_id do %>
                     Save changes
                   <% else %>
                     Create location
                   <% end %>
                 </.button>
-
-                <%= if @editing_id do %>
-                  <.button type="button" phx-click="cancel_edit" variant="outline">
-                    Cancel
-                  </.button>
-                <% end %>
               </div>
             </.form>
           </div>
+        </.modal>
 
-          <div class="rounded-2xl border border-base bg-accent p-6">
-            <h2 class="text-sm font-semibold">Tips</h2>
-            <ul class="mt-3 text-sm text-foreground space-y-2">
-              <li>Print the QR code and post it where customers will see it.</li>
-              <li>Use one location per physical site or area (e.g. locker room).</li>
-              <li>Customers can optionally opt in to SMS updates.</li>
-            </ul>
+        <.alert color="default" title="Tips" hide_close>
+          <ul class="text-sm space-y-1">
+            <li>Print the QR code and post it where customers will see it.</li>
+            <li>Use one location per physical site or area (e.g. locker room).</li>
+            <li>Customers can optionally opt in to SMS updates.</li>
+          </ul>
+        </.alert>
+
+        <.navlist class="space-y-3 rounded-none border-0 p-0 [&>*]:block">
+          <div
+            :for={loc <- @locations}
+            data-location-card
+            id={"location-item-#{loc.id}"}
+            class="rounded-2xl border border-base bg-base p-5 shadow-base grid grid-cols-[1fr_auto] items-center gap-4"
+          >
+            <div class="min-w-0">
+              <div
+                class="text-sm font-semibold text-foreground line-clamp-2"
+                title={loc.full_path || loc.name}
+              >
+                {loc.full_path || loc.name}
+              </div>
+            </div>
+            <div class="flex items-center justify-end gap-2 flex-nowrap">
+              <.button
+                href={loc.reporter_link}
+                target="_blank"
+                rel="noreferrer"
+                variant="outline"
+                size="sm"
+              >
+                <.icon name="hero-arrow-top-right-on-square" class="size-4" /> Report an issue
+              </.button>
+              <.button
+                href={~p"/app/#{@current_org.id}/settings/locations/#{loc.id}/poster"}
+                target="_blank"
+                rel="noreferrer"
+                variant="outline"
+                size="sm"
+              >
+                <.icon name="hero-printer" class="size-4" /> Poster (PDF)
+              </.button>
+              <.button
+                id={"locations-open-edit-#{loc.id}"}
+                type="button"
+                size="sm"
+                variant="solid"
+                color="primary"
+                phx-click="edit"
+                phx-value-id={loc.id}
+              >
+                <.icon name="hero-pencil-square" class="size-4" /> Edit
+              </.button>
+            </div>
           </div>
-        </div>
-
-        <div class="overflow-x-auto">
-          <.table>
-            <.table_head>
-              <:col>Location</:col>
-              <:col>Reporter</:col>
-              <:col>Poster</:col>
-              <:col class="text-right"><span class="sr-only">Actions</span></:col>
-            </.table_head>
-            <.table_body>
-              <.table_row :for={loc <- @locations}>
-                <:cell>{loc.full_path || loc.name}</:cell>
-                <:cell>
-                  <.button
-                    href={loc.reporter_link}
-                    target="_blank"
-                    rel="noreferrer"
-                    variant="ghost"
-                    size="sm"
-                  >
-                    Open link
-                  </.button>
-                </:cell>
-                <:cell>
-                  <.button
-                    href={~p"/app/settings/locations/#{loc.id}/poster"}
-                    target="_blank"
-                    rel="noreferrer"
-                    variant="ghost"
-                    size="sm"
-                  >
-                    Print / Save PDF
-                  </.button>
-                </:cell>
-                <:cell class="text-right">
-                  <.button_group>
-                    <.button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      phx-click="edit"
-                      phx-value-id={loc.id}
-                    >
-                      Edit
-                    </.button>
-                  </.button_group>
-                </:cell>
-              </.table_row>
-            </.table_body>
-          </.table>
 
           <div :if={@locations == []} class="py-10 text-center text-sm text-foreground-soft">
             No locations yet.
           </div>
-        </div>
+        </.navlist>
       </div>
     </Layouts.app>
     """
   end
 
   @impl true
-  def handle_event("edit", %{"id" => id}, socket) do
-    case Enum.find(socket.assigns.locations, &("#{&1.id}" == to_string(id))) do
-      nil ->
-        {:noreply, put_flash(socket, :error, "Location not found")}
+  def handle_event("validate", %{"location" => params}, socket) when is_map(params) do
+    form = AshPhoenix.Form.validate(socket.assigns.location_form, params)
+    {:noreply, socket |> assign(:location_form, form) |> assign(:error, nil)}
+  end
 
-      loc ->
-        {:noreply,
-         socket
-         |> assign(:editing_id, loc.id)
-         |> assign(
-           :location_form,
-           to_form(%{"name" => loc.name || "", "full_path" => loc.full_path || ""}, as: :location)
-         )
-         |> assign(:error, nil)}
-    end
+  def handle_event("open_new_location_modal", _params, socket) do
+    tenant = socket.assigns.current_tenant
+    user = socket.assigns.current_user
+
+    {:noreply,
+     socket
+     |> assign(:location_modal_open?, true)
+     |> assign(:editing_id, nil)
+     |> assign(:editing_location, nil)
+     |> assign(:location_form, new_location_form(tenant, user))
+     |> assign(:error, nil)}
   end
 
   @impl true
-  def handle_event("cancel_edit", _params, socket) do
+  def handle_event("close_location_modal", _params, socket) do
+    tenant = socket.assigns.current_tenant
+    user = socket.assigns.current_user
+
     {:noreply,
      socket
+     |> assign(:location_modal_open?, false)
      |> assign(:editing_id, nil)
-     |> assign(:location_form, to_form(%{"name" => "", "full_path" => ""}, as: :location))
+     |> assign(:editing_location, nil)
+     |> assign(:location_form, new_location_form(tenant, user))
      |> assign(:error, nil)}
+  end
+
+  @impl true
+  def handle_event("edit", %{"id" => id}, socket) do
+    tenant = socket.assigns.current_tenant
+    user = socket.assigns.current_user
+
+    case FeedbackDomain.get_location_by_id(id, tenant: tenant) do
+      {:ok, %Location{} = loc} ->
+        {:noreply,
+         socket
+         |> assign(:location_modal_open?, true)
+         |> assign(:editing_id, loc.id)
+         |> assign(:editing_location, loc)
+         |> assign(:location_form, edit_location_form(tenant, loc, user))
+         |> assign(:error, nil)}
+
+      _ ->
+        {:noreply, put_flash(socket, :error, "Location not found")}
+    end
   end
 
   @impl true
@@ -203,65 +270,68 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
     tenant = socket.assigns.current_tenant
     user = socket.assigns.current_user
 
-    name = params |> Map.get("name", "") |> to_string() |> String.trim()
-    full_path = params |> Map.get("full_path", "") |> to_string() |> String.trim()
-
-    socket =
-      assign(
-        socket,
-        :location_form,
-        to_form(%{"name" => name, "full_path" => full_path}, as: :location)
-      )
-
-    full_path =
-      case full_path do
-        "" -> nil
-        v -> v
-      end
-
-    result =
-      case socket.assigns.editing_id do
-        nil ->
-          FeedbackDomain.create_location(%{name: name, full_path: full_path},
-            tenant: tenant,
-            actor: user
+    context =
+      case socket.assigns.editing_location do
+        %Location{} = loc ->
+          loc
+          |> ChangeMetadata.diff(params,
+            fields: [:name, :full_path],
+            trim?: true,
+            empty_to_nil?: true
           )
+          |> ChangeMetadata.context_for_changes()
 
-        id ->
-          with {:ok, %Location{} = loc} <- FeedbackDomain.get_location_by_id(id, tenant: tenant) do
-            FeedbackDomain.update_location(loc, %{name: name, full_path: full_path},
-              tenant: tenant,
-              actor: user
-            )
-          end
+        _ ->
+          %{}
       end
 
-    with true <- name != "" || {:error, "Name is required"},
-         {:ok, %Location{}} <- result,
-         {:ok, locations} <- list_locations(tenant) do
-      flash_msg =
-        if socket.assigns.editing_id do
-          "Location updated."
-        else
-          "Location created."
-        end
+    case AshPhoenix.Form.submit(socket.assigns.location_form, params: params, context: context) do
+      {:ok, %Location{}} ->
+        {:ok, locations} = list_locations(tenant)
 
-      {:noreply,
-       socket
-       |> put_flash(:info, flash_msg)
-       |> assign(:locations, decorate_locations(tenant, locations))
-       |> assign(:editing_id, nil)
-       |> assign(:location_form, to_form(%{"name" => "", "full_path" => ""}, as: :location))
-       |> assign(:error, nil)}
-    else
-      {:error, msg} when is_binary(msg) ->
-        {:noreply, assign(socket, :error, msg)}
+        flash_msg =
+          if socket.assigns.editing_id do
+            "Location updated."
+          else
+            "Location created."
+          end
+
+        {:noreply,
+         socket
+         |> put_flash(:info, flash_msg)
+         |> assign(:locations, decorate_locations(tenant, locations))
+         |> assign(:location_modal_open?, false)
+         |> assign(:editing_id, nil)
+         |> assign(:editing_location, nil)
+         |> assign(:location_form, new_location_form(tenant, user))
+         |> assign(:error, nil)}
+
+      {:error, %Phoenix.HTML.Form{} = form} ->
+        {:noreply, assign(socket, :location_form, form)}
 
       {:error, err} ->
         {:noreply, assign(socket, :error, Exception.message(err))}
-
-      other ->
-        {:noreply, assign(socket, :error, "Failed to save: #{inspect(other)}")}
     end
+  end
+
+  defp new_location_form(tenant, user) do
+    AshPhoenix.Form.for_create(Location, :create,
+      as: "location",
+      id: "location",
+      tenant: tenant,
+      actor: user,
+      params: %{"name" => "", "full_path" => ""}
+    )
+    |> to_form()
+  end
+
+  defp edit_location_form(tenant, %Location{} = loc, user) do
+    AshPhoenix.Form.for_update(loc, :update,
+      as: "location",
+      id: "location",
+      tenant: tenant,
+      actor: user
+    )
+    |> to_form()
   end
 end

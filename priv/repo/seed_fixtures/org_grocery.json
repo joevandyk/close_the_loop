@@ -1,0 +1,884 @@
+{
+  "ai_business_context": "Fresh Mart is a grocery store with produce, dairy, checkout lanes, and customer restrooms. Shoppers submit feedback about spills, equipment issues (refrigeration, doors, carts), cleanliness, safety hazards, and suggestions for products or service improvements.",
+  "ai_categorization_instructions": "Prefer specific categories. When unsure, use `other` and add a short note to internal context.",
+  "issue_categories": [
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "spill, leak, puddle, wet floor, mop, slippery",
+      "description": "Spills, leaks, and wet-floor conditions needing cleanup.",
+      "key": "spills_leaks",
+      "label": "Spills & Leaks"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "dirty, sticky, smell, trash, overflowing, grime, sanitize, mold",
+      "description": "General cleanliness concerns (floors, surfaces, trash, odors).",
+      "key": "cleanliness",
+      "label": "Cleanliness"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "broken, not working, malfunction, cooler, freezer, refrigeration, temperature, door, handle, cart, wheel, scanner, register",
+      "description": "Equipment and fixture problems (refrigeration, doors, carts, checkout equipment).",
+      "key": "equipment_maintenance",
+      "label": "Equipment & Maintenance"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "hazard, unsafe, trip, fall, sharp, glass, obstruction, blocked, caution",
+      "description": "Safety hazards (trip/fall risks, obstructions, broken glass).",
+      "key": "safety_hazard",
+      "label": "Safety Hazard"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "out of stock, empty, missing, restock, expired, rotten, bruised, quality, fresh",
+      "description": "Product availability and quality issues (stock, freshness, expired items).",
+      "key": "product_stock_quality",
+      "label": "Product Stock & Quality"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "line, wait, slow, cashier, self-checkout, service desk, rude, helpful, training",
+      "description": "Customer service and checkout experience issues.",
+      "key": "service_checkout",
+      "label": "Service & Checkout"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "suggest, request, carry, add, bring back, hours, signage, improve",
+      "description": "Suggestions for products, layout, signage, or service improvements.",
+      "key": "suggestion",
+      "label": "Suggestion"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": null,
+      "description": "Other/unclear issues. Use sparingly; add a short note in internal context when possible.",
+      "key": "other",
+      "label": "Other"
+    }
+  ],
+  "issues": [
+    {
+      "category_key": "spills_leaks",
+      "comments": [
+        {
+          "author_email": null,
+          "body": "Thanks for flagging—team is on the way with wet-floor signs.",
+          "days_ago": 27,
+          "key": "com_001a"
+        }
+      ],
+      "days_ago": 28,
+      "description": "Water pooling near the cart corral entrance area; floor is slippery and needs immediate cleanup and signage.",
+      "key": "iss_001",
+      "location_key": "loc_entrance_cart_corral",
+      "reports": [
+        {
+          "body": "There’s a puddle right by the cart return—almost slipped.",
+          "consent": false,
+          "days_ago": 28,
+          "key": "rep_001a",
+          "reporter_phone": null,
+          "source": "qr"
+        },
+        {
+          "body": "Wet floor near the carts. No cone/sign when I walked in.",
+          "consent": false,
+          "days_ago": 27,
+          "key": "rep_001b",
+          "reporter_phone": null,
+          "source": "sms"
+        },
+        {
+          "body": "Looks like it’s dripping from somewhere above the cart corral area.",
+          "consent": false,
+          "days_ago": 27,
+          "key": "rep_001c",
+          "reporter_phone": null,
+          "source": "manual"
+        }
+      ],
+      "status": "fixed",
+      "title": "Slippery puddle by cart corral",
+      "updates": [
+        {
+          "days_ago": 27,
+          "key": "upd_001a",
+          "message": "Wet-floor signs placed and area mopped; investigating possible drip source near entrance."
+        },
+        {
+          "days_ago": 26,
+          "key": "upd_001b",
+          "message": "Drip traced to condensation line; maintenance adjusted and monitored—no further pooling observed."
+        }
+      ]
+    },
+    {
+      "category_key": "equipment_maintenance",
+      "comments": [],
+      "days_ago": 12,
+      "description": "The vestibule automatic door hesitates and sometimes doesn’t open fully, causing a bottleneck and potential accessibility issue.",
+      "key": "iss_002",
+      "location_key": "loc_entrance_vestibule",
+      "reports": [
+        {
+          "body": "The outer door stuttered and only opened halfway when I walked in.",
+          "consent": false,
+          "days_ago": 12,
+          "key": "rep_002a",
+          "reporter_phone": null,
+          "source": "qr"
+        },
+        {
+          "body": "Door sensor seems off—had to wave my hand to get it to open.",
+          "consent": false,
+          "days_ago": 11,
+          "key": "rep_002b",
+          "reporter_phone": null,
+          "source": "sms"
+        }
+      ],
+      "status": "in_progress",
+      "title": "Vestibule door not opening reliably",
+      "updates": [
+        {
+          "days_ago": 10,
+          "key": "upd_002a",
+          "message": "Maintenance notified; sensor alignment and safety beam scheduled for service."
+        }
+      ]
+    },
+    {
+      "category_key": "product_stock_quality",
+      "comments": [],
+      "days_ago": 44,
+      "description": "Multiple berry clamshells had visible mold and leaking juice on the display; needs culling and wipe-down.",
+      "key": "iss_003",
+      "location_key": "loc_produce_berries_display",
+      "reports": [
+        {
+          "body": "Saw several moldy strawberries on the front of the berries display.",
+          "consent": false,
+          "days_ago": 44,
+          "key": "rep_003a",
+          "reporter_phone": null,
+          "source": "qr"
+        },
+        {
+          "body": "Raspberries were leaking and sticky on the shelf—looks like it’s been there a while.",
+          "consent": false,
+          "days_ago": 43,
+          "key": "rep_003b",
+          "reporter_phone": null,
+          "source": "manual"
+        },
+        {
+          "body": "Please check dates/quality on the berries—lots of soft ones today.",
+          "consent": false,
+          "days_ago": 43,
+          "key": "rep_003c",
+          "reporter_phone": null,
+          "source": "sms"
+        }
+      ],
+      "status": "fixed",
+      "title": "Moldy berries on display",
+      "updates": [
+        {
+          "days_ago": 43,
+          "key": "upd_003a",
+          "message": "Produce team culled affected product and sanitized the berries display; added mid-day quality check."
+        }
+      ]
+    },
+    {
+      "category_key": "spills_leaks",
+      "comments": [],
+      "days_ago": 6,
+      "description": "Milk residue and a small puddle in front of the dairy wall cooler; floor is slick and smells sour.",
+      "key": "iss_004",
+      "location_key": "loc_dairy_wall_cooler",
+      "reports": [
+        {
+          "body": "There’s spilled milk in front of the dairy cooler—very slippery.",
+          "consent": false,
+          "days_ago": 6,
+          "key": "rep_004a",
+          "reporter_phone": null,
+          "source": "qr"
+        },
+        {
+          "body": "Smells like sour milk near the dairy wall. Needs a mop ASAP.",
+          "consent": false,
+          "days_ago": 6,
+          "key": "rep_004b",
+          "reporter_phone": null,
+          "source": "sms"
+        }
+      ],
+      "status": "acknowledged",
+      "title": "Spilled milk in front of dairy cooler",
+      "updates": [
+        {
+          "days_ago": 6,
+          "key": "upd_004a",
+          "message": "Team alerted to clean spill and place wet-floor signage."
+        }
+      ]
+    },
+    {
+      "category_key": "equipment_maintenance",
+      "comments": [
+        {
+          "author_email": null,
+          "body": "If you notice any specific door number/section, please share—helps us pinpoint the gasket.",
+          "days_ago": 20,
+          "key": "com_005a"
+        }
+      ],
+      "days_ago": 22,
+      "description": "One section of the dairy wall cooler feels warmer than the rest; condensation on the door and items not as cold.",
+      "key": "iss_005",
+      "location_key": "loc_dairy_wall_cooler",
+      "reports": [
+        {
+          "body": "The right-side dairy cooler door area feels warm and foggy.",
+          "consent": false,
+          "days_ago": 22,
+          "key": "rep_005a",
+          "reporter_phone": null,
+          "source": "manual"
+        },
+        {
+          "body": "Yogurt cups weren’t cold in one spot of the dairy wall.",
+          "consent": false,
+          "days_ago": 21,
+          "key": "rep_005b",
+          "reporter_phone": null,
+          "source": "qr"
+        },
+        {
+          "body": "Lots of condensation on a dairy door—might not be sealing.",
+          "consent": false,
+          "days_ago": 20,
+          "key": "rep_005c",
+          "reporter_phone": null,
+          "source": "sms"
+        }
+      ],
+      "status": "in_progress",
+      "title": "Dairy wall cooler running warm in one section",
+      "updates": [
+        {
+          "days_ago": 21,
+          "key": "upd_005a",
+          "message": "Temperature check logged; maintenance inspecting door gasket and airflow."
+        },
+        {
+          "days_ago": 19,
+          "key": "upd_005b",
+          "message": "Temporary product move completed from warm zone; service call placed for cooler section."
+        }
+      ]
+    },
+    {
+      "category_key": "cleanliness",
+      "comments": [],
+      "days_ago": 58,
+      "description": "Yogurt section shelves have dried spills and sticky residue; looks like it hasn’t been wiped down recently.",
+      "key": "iss_006",
+      "location_key": "loc_dairy_yogurt_section",
+      "reports": [
+        {
+          "body": "Yogurt shelves are sticky with old spills—hands got gross grabbing items.",
+          "consent": false,
+          "days_ago": 58,
+          "key": "rep_006a",
+          "reporter_phone": null,
+          "source": "qr"
+        },
+        {
+          "body": "There’s dried yogurt on the shelf edges in the yogurt section.",
+          "consent": false,
+          "days_ago": 57,
+          "key": "rep_006b",
+          "reporter_phone": null,
+          "source": "manual"
+        }
+      ],
+      "status": "fixed",
+      "title": "Sticky shelves in yogurt section",
+      "updates": [
+        {
+          "days_ago": 57,
+          "key": "upd_006a",
+          "message": "Shelves wiped and sanitized; added to nightly detail checklist."
+        }
+      ]
+    },
+    {
+      "category_key": "equipment_maintenance",
+      "comments": [],
+      "days_ago": 33,
+      "description": "Freezer aisle door handle is loose and hard to pull; could break or pinch fingers.",
+      "key": "iss_007",
+      "location_key": "loc_frozen_frozen_aisle",
+      "reports": [
+        {
+          "body": "One freezer door handle is wobbly and feels like it will come off.",
+          "consent": false,
+          "days_ago": 33,
+          "key": "rep_007a",
+          "reporter_phone": null,
+          "source": "qr"
+        },
+        {
+          "body": "Handle on a freezer door is loose—hard to open with gloves.",
+          "consent": false,
+          "days_ago": 32,
+          "key": "rep_007b",
+          "reporter_phone": null,
+          "source": "sms"
+        }
+      ],
+      "status": "acknowledged",
+      "title": "Loose handle on freezer door",
+      "updates": [
+        {
+          "days_ago": 31,
+          "key": "upd_007a",
+          "message": "Work order submitted to tighten/replace handle hardware; door tagged for monitoring."
+        }
+      ]
+    },
+    {
+      "category_key": "safety_hazard",
+      "comments": [],
+      "days_ago": 9,
+      "description": "Aisle 2 endcap has boxes protruding into the walkway; creates a trip hazard and blocks carts.",
+      "key": "iss_008",
+      "location_key": "loc_grocery_aisles_aisle_2_endcap",
+      "reports": [
+        {
+          "body": "Endcap display in aisle 2 sticks out—my cart clipped it.",
+          "consent": false,
+          "days_ago": 9,
+          "key": "rep_008a",
+          "reporter_phone": null,
+          "source": "qr"
+        },
+        {
+          "body": "Boxes on the endcap are in the aisle and people are squeezing by.",
+          "consent": false,
+          "days_ago": 8,
+          "key": "rep_008b",
+          "reporter_phone": null,
+          "source": "manual"
+        }
+      ],
+      "status": "fixed",
+      "title": "Endcap boxes blocking aisle",
+      "updates": [
+        {
+          "days_ago": 8,
+          "key": "upd_008a",
+          "message": "Display reset to within footprint; excess cases moved to backstock."
+        }
+      ]
+    },
+    {
+      "category_key": "product_stock_quality",
+      "comments": [],
+      "days_ago": 17,
+      "description": "Cereal aisle endcap is frequently empty by afternoon; shoppers requesting better restock timing.",
+      "key": "iss_009",
+      "location_key": "loc_grocery_aisles_aisle_5_cereal",
+      "reports": [
+        {
+          "body": "Cereal endcap was totally empty again around 5pm.",
+          "consent": false,
+          "days_ago": 17,
+          "key": "rep_009a",
+          "reporter_phone": null,
+          "source": "sms"
+        },
+        {
+          "body": "Seems like the promo cereal runs out every day—can you restock later in the day too?",
+          "consent": false,
+          "days_ago": 16,
+          "key": "rep_009b",
+          "reporter_phone": null,
+          "source": "qr"
+        }
+      ],
+      "status": "in_progress",
+      "title": "Cereal endcap often empty",
+      "updates": [
+        {
+          "days_ago": 15,
+          "key": "upd_009a",
+          "message": "Replenishment adjusted: added mid-afternoon pull for Aisle 5 endcap during promotion."
+        }
+      ]
+    },
+    {
+      "category_key": "service_checkout",
+      "comments": [
+        {
+          "author_email": null,
+          "body": "We’re reviewing staffing coverage for peak hours—thanks for the detail.",
+          "days_ago": 3,
+          "key": "com_010a"
+        }
+      ],
+      "days_ago": 4,
+      "description": "Self-checkout area had multiple stations closed and one attendant; line backed up and customers needed help with age verification.",
+      "key": "iss_010",
+      "location_key": "loc_checkout_self_checkout",
+      "reports": [
+        {
+          "body": "Only a few self-checkouts were open and the line was long.",
+          "consent": false,
+          "days_ago": 4,
+          "key": "rep_010a",
+          "reporter_phone": null,
+          "source": "qr"
+        },
+        {
+          "body": "Waited for the attendant for an age check—took several minutes.",
+          "consent": false,
+          "days_ago": 4,
+          "key": "rep_010b",
+          "reporter_phone": null,
+          "source": "manual"
+        },
+        {
+          "body": "Two machines had ‘card only’ signs and another was out of order.",
+          "consent": false,
+          "days_ago": 3,
+          "key": "rep_010c",
+          "reporter_phone": null,
+          "source": "sms"
+        }
+      ],
+      "status": "acknowledged",
+      "title": "Long line at self-checkout",
+      "updates": [
+        {
+          "days_ago": 3,
+          "key": "upd_010a",
+          "message": "Front-end lead notified; checking machine status and adjusting coverage for evening rush."
+        }
+      ]
+    },
+    {
+      "category_key": "equipment_maintenance",
+      "comments": [],
+      "days_ago": 39,
+      "description": "Lane 3 card reader intermittently fails and forces customers to retry or move lanes.",
+      "key": "iss_011",
+      "location_key": "loc_checkout_lane_3",
+      "reports": [
+        {
+          "body": "Card reader at lane 3 declined twice then worked on the third try.",
+          "consent": false,
+          "days_ago": 39,
+          "key": "rep_011a",
+          "reporter_phone": null,
+          "source": "qr"
+        },
+        {
+          "body": "Lane 3 terminal froze during tap-to-pay and cashier had to reboot.",
+          "consent": false,
+          "days_ago": 38,
+          "key": "rep_011b",
+          "reporter_phone": null,
+          "source": "manual"
+        }
+      ],
+      "status": "fixed",
+      "title": "Lane 3 card reader glitches",
+      "updates": [
+        {
+          "days_ago": 37,
+          "key": "upd_011a",
+          "message": "Payment terminal firmware updated and cables reseated; monitored for repeat errors."
+        }
+      ]
+    },
+    {
+      "category_key": "cleanliness",
+      "comments": [],
+      "days_ago": 25,
+      "description": "Service desk area has overflowing trash and dusty brochure holders; looks cluttered and unclean.",
+      "key": "iss_012",
+      "location_key": "loc_customer_service_service_desk",
+      "reports": [
+        {
+          "body": "Trash can by customer service was overflowing with receipts.",
+          "consent": false,
+          "days_ago": 25,
+          "key": "rep_012a",
+          "reporter_phone": null,
+          "source": "qr"
+        },
+        {
+          "body": "The counter area had dust and old flyers everywhere.",
+          "consent": false,
+          "days_ago": 24,
+          "key": "rep_012b",
+          "reporter_phone": null,
+          "source": "sms"
+        }
+      ],
+      "status": "fixed",
+      "title": "Overflowing trash at service desk",
+      "updates": [
+        {
+          "days_ago": 24,
+          "key": "upd_012a",
+          "message": "Trash removed and area wiped down; added mid-shift check for customer service zone."
+        }
+      ]
+    },
+    {
+      "category_key": "cleanliness",
+      "comments": [],
+      "days_ago": 14,
+      "description": "Restroom hallway has a lingering odor and the floor looks like it needs a mop; paper scraps on the ground.",
+      "key": "iss_013",
+      "location_key": "loc_restrooms_restroom_hallway",
+      "reports": [
+        {
+          "body": "Restroom hallway smells bad and there’s paper on the floor.",
+          "consent": false,
+          "days_ago": 14,
+          "key": "rep_013a",
+          "reporter_phone": null,
+          "source": "qr"
+        },
+        {
+          "body": "Floor in the hallway to the bathrooms looked dirty/streaky.",
+          "consent": false,
+          "days_ago": 13,
+          "key": "rep_013b",
+          "reporter_phone": null,
+          "source": "manual"
+        }
+      ],
+      "status": "acknowledged",
+      "title": "Odor and litter in restroom hallway",
+      "updates": [
+        {
+          "days_ago": 13,
+          "key": "upd_013a",
+          "message": "Janitorial notified for hallway mop and deodorizer; added check during peak hours."
+        }
+      ]
+    },
+    {
+      "category_key": "cleanliness",
+      "comments": [
+        {
+          "author_email": null,
+          "body": "We’re increasing restroom checks on weekends—appreciate the report.",
+          "days_ago": 61,
+          "key": "com_014a"
+        }
+      ],
+      "days_ago": 63,
+      "description": "Women’s restroom had empty soap dispenser and paper towels running low; sink area messy.",
+      "key": "iss_014",
+      "location_key": "loc_restrooms_womens_restroom",
+      "reports": [
+        {
+          "body": "No soap in the women’s restroom dispenser.",
+          "consent": false,
+          "days_ago": 63,
+          "key": "rep_014a",
+          "reporter_phone": null,
+          "source": "sms"
+        },
+        {
+          "body": "Paper towels were almost out and the counter was wet/dirty.",
+          "consent": false,
+          "days_ago": 62,
+          "key": "rep_014b",
+          "reporter_phone": null,
+          "source": "qr"
+        }
+      ],
+      "status": "fixed",
+      "title": "Women’s restroom out of soap",
+      "updates": [
+        {
+          "days_ago": 62,
+          "key": "upd_014a",
+          "message": "Soap refilled and paper towels restocked; sink area cleaned."
+        }
+      ]
+    },
+    {
+      "category_key": "safety_hazard",
+      "comments": [],
+      "days_ago": 2,
+      "description": "Cracked floor tile near the main checkout area; uneven edge could catch carts or cause a trip.",
+      "key": "iss_015",
+      "location_key": "loc_checkout",
+      "reports": [
+        {
+          "body": "There’s a cracked/raised tile near checkout—almost tripped.",
+          "consent": false,
+          "days_ago": 2,
+          "key": "rep_015a",
+          "reporter_phone": null,
+          "source": "qr"
+        }
+      ],
+      "status": "new",
+      "title": "Cracked tile near checkout",
+      "updates": []
+    },
+    {
+      "category_key": "suggestion",
+      "comments": [],
+      "days_ago": 71,
+      "description": "Request to add clearer signage for gluten-free items and group them more consistently in grocery aisles.",
+      "key": "iss_016",
+      "location_key": "loc_grocery_aisles",
+      "reports": [
+        {
+          "body": "Could you add a gluten-free section or at least better shelf tags? Hard to find items.",
+          "consent": false,
+          "days_ago": 71,
+          "key": "rep_016a",
+          "reporter_phone": null,
+          "source": "qr"
+        },
+        {
+          "body": "Would love clearer signage for gluten-free products across aisles.",
+          "consent": false,
+          "days_ago": 69,
+          "key": "rep_016b",
+          "reporter_phone": null,
+          "source": "sms"
+        }
+      ],
+      "status": "acknowledged",
+      "title": "Add clearer gluten-free signage",
+      "updates": [
+        {
+          "days_ago": 66,
+          "key": "upd_016a",
+          "message": "Suggestion shared with merchandising; evaluating shelf-tag program for dietary attributes."
+        }
+      ]
+    },
+    {
+      "category_key": "cleanliness",
+      "comments": [],
+      "days_ago": 19,
+      "description": "Bakery area has crumbs and sticky spots near the tongs/bag station; needs wipe-down and more frequent sweeping.",
+      "key": "iss_017",
+      "location_key": "loc_bakery_bakery_area",
+      "reports": [
+        {
+          "body": "The counter by the bakery bags/tongs is sticky and has crumbs everywhere.",
+          "consent": false,
+          "days_ago": 19,
+          "key": "rep_017a",
+          "reporter_phone": null,
+          "source": "qr"
+        },
+        {
+          "body": "Bakery self-serve area looked messy—crumbs on the floor too.",
+          "consent": false,
+          "days_ago": 18,
+          "key": "rep_017b",
+          "reporter_phone": null,
+          "source": "manual"
+        }
+      ],
+      "status": "in_progress",
+      "title": "Messy bakery bag/tongs station",
+      "updates": [
+        {
+          "days_ago": 18,
+          "key": "upd_017a",
+          "message": "Bakery team reminded to wipe station hourly; added sweep to mid-shift routine."
+        }
+      ]
+    },
+    {
+      "category_key": "equipment_maintenance",
+      "comments": [],
+      "days_ago": 52,
+      "description": "Several carts have squeaky wheels and one cart has a sticking wheel that pulls to the side.",
+      "key": "iss_018",
+      "location_key": "loc_entrance_cart_corral",
+      "reports": [
+        {
+          "body": "Cart wheels are really squeaky and one cart kept veering left.",
+          "consent": false,
+          "days_ago": 52,
+          "key": "rep_018a",
+          "reporter_phone": null,
+          "source": "sms"
+        },
+        {
+          "body": "Please service the carts—some are hard to push and wobble.",
+          "consent": false,
+          "days_ago": 51,
+          "key": "rep_018b",
+          "reporter_phone": null,
+          "source": "qr"
+        },
+        {
+          "body": "Found a cart with a stuck wheel near the entrance cart area.",
+          "consent": false,
+          "days_ago": 50,
+          "key": "rep_018c",
+          "reporter_phone": null,
+          "source": "manual"
+        }
+      ],
+      "status": "fixed",
+      "title": "Carts with squeaky/sticking wheels",
+      "updates": [
+        {
+          "days_ago": 49,
+          "key": "upd_018a",
+          "message": "Problem carts pulled from service; wheels lubricated and two carts sent for repair."
+        }
+      ]
+    }
+  ],
+  "locations": [
+    {
+      "full_path": "Entrance",
+      "key": "loc_entrance",
+      "name": "Entrance"
+    },
+    {
+      "full_path": "Entrance / Vestibule",
+      "key": "loc_entrance_vestibule",
+      "name": "Vestibule"
+    },
+    {
+      "full_path": "Entrance / Cart Corral",
+      "key": "loc_entrance_cart_corral",
+      "name": "Cart Corral"
+    },
+    {
+      "full_path": "Produce",
+      "key": "loc_produce",
+      "name": "Produce"
+    },
+    {
+      "full_path": "Produce / Berries Display",
+      "key": "loc_produce_berries_display",
+      "name": "Berries Display"
+    },
+    {
+      "full_path": "Dairy",
+      "key": "loc_dairy",
+      "name": "Dairy"
+    },
+    {
+      "full_path": "Dairy / Dairy Wall Cooler",
+      "key": "loc_dairy_wall_cooler",
+      "name": "Dairy Wall Cooler"
+    },
+    {
+      "full_path": "Dairy / Yogurt Section",
+      "key": "loc_dairy_yogurt_section",
+      "name": "Yogurt Section"
+    },
+    {
+      "full_path": "Frozen",
+      "key": "loc_frozen",
+      "name": "Frozen"
+    },
+    {
+      "full_path": "Frozen / Frozen Aisle",
+      "key": "loc_frozen_frozen_aisle",
+      "name": "Frozen Aisle"
+    },
+    {
+      "full_path": "Grocery Aisles",
+      "key": "loc_grocery_aisles",
+      "name": "Grocery Aisles"
+    },
+    {
+      "full_path": "Grocery Aisles / Aisle 2 Endcap",
+      "key": "loc_grocery_aisles_aisle_2_endcap",
+      "name": "Aisle 2 Endcap"
+    },
+    {
+      "full_path": "Grocery Aisles / Aisle 5 (Cereal)",
+      "key": "loc_grocery_aisles_aisle_5_cereal",
+      "name": "Aisle 5 (Cereal)"
+    },
+    {
+      "full_path": "Checkout",
+      "key": "loc_checkout",
+      "name": "Checkout"
+    },
+    {
+      "full_path": "Checkout / Self-Checkout",
+      "key": "loc_checkout_self_checkout",
+      "name": "Self-Checkout"
+    },
+    {
+      "full_path": "Checkout / Lane 3",
+      "key": "loc_checkout_lane_3",
+      "name": "Lane 3"
+    },
+    {
+      "full_path": "Customer Service",
+      "key": "loc_customer_service",
+      "name": "Customer Service"
+    },
+    {
+      "full_path": "Customer Service / Service Desk",
+      "key": "loc_customer_service_service_desk",
+      "name": "Service Desk"
+    },
+    {
+      "full_path": "Restrooms",
+      "key": "loc_restrooms",
+      "name": "Restrooms"
+    },
+    {
+      "full_path": "Restrooms / Restroom Hallway",
+      "key": "loc_restrooms_restroom_hallway",
+      "name": "Restroom Hallway"
+    },
+    {
+      "full_path": "Restrooms / Women's Restroom",
+      "key": "loc_restrooms_womens_restroom",
+      "name": "Women's Restroom"
+    },
+    {
+      "full_path": "Bakery",
+      "key": "loc_bakery",
+      "name": "Bakery"
+    },
+    {
+      "full_path": "Bakery / Bakery Area",
+      "key": "loc_bakery_bakery_area",
+      "name": "Bakery Area"
+    }
+  ],
+  "organization_name": "Fresh Mart"
+}

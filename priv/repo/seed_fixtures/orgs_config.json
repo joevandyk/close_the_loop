@@ -1,0 +1,34 @@
+{
+  "organizations": [
+    {
+      "tenant_schema": "org_demo",
+      "organization_name": "Demo Organization",
+      "ai_business_context": "A demo environment for staff to triage and close the loop on facility feedback.",
+      "ai_categorization_instructions": "Prefer specific categories. When unsure, use `other` and add a short note to internal context."
+    },
+    {
+      "tenant_schema": "org_24hr_fitness",
+      "organization_name": "24 Hour Fitness",
+      "ai_business_context": "A gym with cardio and weight equipment, locker rooms, pool, sauna, hot tub, and steam room. Members report equipment issues, cleanliness, and facility problems.",
+      "ai_categorization_instructions": "Prefer specific categories. When unsure, use `other` and add a short note to internal context."
+    },
+    {
+      "tenant_schema": "org_the_spot",
+      "organization_name": "The Spot",
+      "ai_business_context": "A new restaurant with dining room, kitchen, bar, and patio. Customers report service, cleanliness, and facility issues.",
+      "ai_categorization_instructions": "Prefer specific categories. When unsure, use `other` and add a short note to internal context."
+    },
+    {
+      "tenant_schema": "org_laundromat",
+      "organization_name": "Sudzy Laundromat",
+      "ai_business_context": "A laundromat with washers, dryers, and change machines. Customers report broken equipment, leaks, and cleanliness.",
+      "ai_categorization_instructions": "Prefer specific categories. When unsure, use `other` and add a short note to internal context."
+    },
+    {
+      "tenant_schema": "org_grocery",
+      "organization_name": "Fresh Mart",
+      "ai_business_context": "A grocery store with produce, dairy, checkout, and restrooms. Shoppers report spills, equipment issues, and suggestions.",
+      "ai_categorization_instructions": "Prefer specific categories. When unsure, use `other` and add a short note to internal context."
+    }
+  ]
+}

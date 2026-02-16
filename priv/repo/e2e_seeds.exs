@@ -48,7 +48,14 @@ Repo.query!(
 
 IO.puts("E2E seed user ensured (password auth): #{email}")
 
-# Force onboarding to run every time by clearing org assignment.
-Repo.query!("UPDATE users SET organization_id = NULL, role = NULL WHERE email = $1", [email])
-IO.puts("E2E user org cleared (onboarding will create a new org).")
+# Force onboarding to run every time by clearing org memberships.
+Repo.query!(
+  """
+  DELETE FROM user_organizations
+  WHERE user_id = (SELECT id FROM users WHERE email = $1)
+  """,
+  [email]
+)
+
+IO.puts("E2E user org memberships cleared (onboarding will create a new org).")
 

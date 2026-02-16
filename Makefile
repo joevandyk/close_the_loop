@@ -4,6 +4,7 @@
 
 .PHONY: install dev build test lint migrate seed worker cron docker-build docker-run docker-test clean
 .PHONY: e2e e2e-install
+.PHONY: precommit
 
 # ─── Devcontainer (Linux) build isolation ─────────────────────────────
 #
@@ -35,6 +36,10 @@ test:
 
 lint:
 	mix format --check-formatted
+
+precommit:
+	mix precommit
+	$(MAKE) e2e
 
 # ─── Database ────────────────────────────────────────────────────────
 

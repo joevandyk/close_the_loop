@@ -62,6 +62,7 @@ defmodule CloseTheLoop.Tenants.Organization do
 
     attribute :name, :string do
       allow_nil? false
+      constraints min_length: 1, trim?: true
       public? true
     end
 

@@ -3,11 +3,18 @@ defmodule CloseTheLoop.Feedback.Issue do
     otp_app: :close_the_loop,
     domain: CloseTheLoop.Feedback,
     data_layer: AshPostgres.DataLayer,
-    authorizers: [Ash.Policy.Authorizer]
+    authorizers: [Ash.Policy.Authorizer],
+    extensions: [AshEvents.Events]
 
   postgres do
     table "issues"
     repo CloseTheLoop.Repo
+  end
+
+  events do
+    event_log(CloseTheLoop.Events.Event)
+    create_timestamp :inserted_at
+    update_timestamp :updated_at
   end
 
   actions do
@@ -51,15 +58,7 @@ defmodule CloseTheLoop.Feedback.Issue do
       accept [:title, :description]
       require_atomic? false
 
-      change fn changeset, _ctx ->
-        desc = Ash.Changeset.get_attribute(changeset, :description)
-
-        Ash.Changeset.change_attribute(
-          changeset,
-          :normalized_description,
-          CloseTheLoop.Feedback.Text.normalize_for_dedupe(desc)
-        )
-      end
+      change CloseTheLoop.Feedback.Issue.Changes.NormalizeDescription
     end
   end
 
@@ -78,11 +77,13 @@ defmodule CloseTheLoop.Feedback.Issue do
 
     attribute :title, :string do
       allow_nil? false
+      constraints min_length: 1, trim?: true
       public? true
     end
 
     attribute :description, :string do
       allow_nil? false
+      constraints min_length: 1, trim?: true
       public? true
     end
 

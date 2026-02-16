@@ -21,34 +21,36 @@ end
 
 {:ok, _} = Application.ensure_all_started(:close_the_loop)
 
-org = CloseTheLoop.DevSeeds.run()
-user = CloseTheLoop.DevSeeds.ensure_dev_user!(org)
+admin = CloseTheLoop.DevSeeds.ensure_admin_user!()
+orgs = CloseTheLoop.DevSeeds.run_all_sample_orgs!()
+dev_logins = CloseTheLoop.DevSeeds.ensure_dev_users_for_orgs!(orgs)
 
 require Ash.Query
 
-tenant = org.tenant_schema
-
+demo_tenant = hd(orgs).tenant_schema
 mens_full_path = "Demo Facility / Locker Rooms / Mens Locker Room"
 
 mens =
   CloseTheLoop.Feedback.Location
   |> Ash.Query.filter(full_path == ^mens_full_path)
-  |> Ash.read_one!(tenant: tenant)
+  |> Ash.read_one!(tenant: demo_tenant)
 
 IO.puts("""
 
-Seeded:
-  org.name=#{org.name}
-  org.tenant_schema=#{org.tenant_schema}
+Platform admin (operator dashboard at /ops):
+  #{admin.email} / password
 
-Dev login:
-  /sign-in → #{user.email} / #{user.password}
+Seeded organizations (each has an owner; sign in with that email to see that org):
+#{Enum.map_join(dev_logins, "\n", fn l -> "  #{l.org_name}  → #{l.email} / #{l.password}" end)}
+
+Dev logins (all use same password):
+  /sign-in → see table above
 
 Try:
   /sign-in
   /app/issues
   /app/locations
 
-Reporter link (example):
-  /r/#{tenant}/#{mens && mens.id}
+Reporter link (example, Demo org):
+  /r/#{demo_tenant}/#{mens && mens.id}
 """)

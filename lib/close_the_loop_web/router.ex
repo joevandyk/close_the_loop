@@ -37,7 +37,7 @@ defmodule CloseTheLoopWeb.Router do
     pipe_through :browser
 
     oban_dashboard("/app/oban",
-      logo_path: "/app/issues",
+      logo_path: "/app",
       on_mount: [
         {CloseTheLoopWeb.LiveUserAuth, :current_user},
         {CloseTheLoopWeb.LiveUserAuth, :live_user_required}
@@ -56,33 +56,42 @@ defmodule CloseTheLoopWeb.Router do
       # If an authenticated user must *not* be present:
       # on_mount {CloseTheLoopWeb.LiveUserAuth, :live_no_user}
 
+      live "/ops", OperatorLive.Dashboard, :index
+
       live "/app/onboarding", OnboardingLive, :index
 
-      live "/app", DashboardLive.Index, :index
+      # Org selection / switcher landing page (org is in URL elsewhere).
+      live "/app", OrgPickerLive.Index, :index
 
-      live "/app/issues", IssuesLive.Index, :index
+      live "/app/organizations/new", OrganizationsLive.New, :new
 
-      live "/app/issues/:id", IssuesLive.Show, :show
+      live "/app/:org_id", DashboardLive.Index, :index
 
-      live "/app/reports", ReportsLive.Index, :index
+      live "/app/:org_id/issues", IssuesLive.Index, :index
 
-      live "/app/reports/new", ReportsLive.New, :new
+      live "/app/:org_id/issues/:id", IssuesLive.Show, :show
 
-      live "/app/reports/:id", ReportsLive.Show, :show
+      live "/app/:org_id/reports", ReportsLive.Index, :index
 
-      live "/app/settings/locations", LocationsLive.Index, :index
+      live "/app/:org_id/reports/new", ReportsLive.New, :new
 
-      live "/app/settings", SettingsLive.Index, :index
+      live "/app/:org_id/reports/:id", ReportsLive.Show, :show
 
-      live "/app/settings/organization", SettingsLive.Organization, :index
-      live "/app/settings/account", SettingsLive.Account, :index
-      live "/app/settings/inbox", SettingsLive.Inbox, :index
+      live "/app/:org_id/settings/locations", LocationsLive.Index, :index
 
-      live "/app/settings/issue-categories", IssueCategoriesLive.Index, :index
+      live "/app/:org_id/settings", SettingsLive.Index, :index
+
+      live "/app/:org_id/settings/help", SettingsLive.Help, :index
+      live "/app/:org_id/settings/organization", SettingsLive.Organization, :index
+      live "/app/:org_id/settings/team", SettingsLive.Team, :index
+      live "/app/:org_id/settings/account", SettingsLive.Account, :index
+      live "/app/:org_id/settings/inbox", SettingsLive.Inbox, :index
+
+      live "/app/:org_id/settings/issue-categories", IssueCategoriesLive.Index, :index
     end
 
     # Printable poster (HTML -> browser "Save as PDF")
-    get "/app/settings/locations/:id/poster", LocationPosterController, :show
+    get "/app/:org_id/settings/locations/:id/poster", LocationPosterController, :show
   end
 
   scope "/", CloseTheLoopWeb do
@@ -93,6 +102,9 @@ defmodule CloseTheLoopWeb.Router do
     get "/pricing", PageController, :pricing
     get "/privacy", PageController, :privacy
     get "/terms", PageController, :terms
+
+    get "/invites/:token", OrganizationInvitationController, :show
+    post "/invites/:token/accept", OrganizationInvitationController, :accept
 
     live_session :reporter, layout: false do
       live "/r/:tenant/:location_id", ReporterLive.New, :new

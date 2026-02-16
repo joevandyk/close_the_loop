@@ -1,0 +1,800 @@
+{
+  "ai_business_context": "The Spot is a new restaurant with a dining room, kitchen, bar, and patio. Customers and staff submit feedback about service quality, cleanliness, and facility/maintenance issues across front-of-house and back-of-house areas.",
+  "ai_categorization_instructions": "Prefer specific categories. When unsure, use `other` and add a short note to internal context.",
+  "issue_categories": [
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "dirty, sticky, smell, trash, spill, grime, sanitize, pests, flies, gnats",
+      "description": "Cleanliness, sanitation, trash, odors, and pest concerns.",
+      "key": "cleanliness_hygiene",
+      "label": "Cleanliness & Hygiene"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "broken, leaking, clogged, plumbing, toilet, sink, faucet, door, handle, lock, drain",
+      "description": "Plumbing, fixtures, doors, and general facility repairs.",
+      "key": "maintenance_repair",
+      "label": "Maintenance & Repair"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "hot, cold, AC, air conditioning, heater, ventilation, hood, smoke, stuffy",
+      "description": "HVAC, ventilation, temperature comfort, and air quality.",
+      "key": "hvac_ventilation",
+      "label": "HVAC & Ventilation"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "light, lighting, dim, flicker, bulb, dark",
+      "description": "Lighting issues (bulbs, flicker, insufficient lighting).",
+      "key": "lighting",
+      "label": "Lighting"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "noise, loud, music, speaker, volume",
+      "description": "Noise levels and sound issues.",
+      "key": "noise_ambience",
+      "label": "Noise & Ambience"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "service, slow, wait, rude, attentive, host, bartender, server, communication",
+      "description": "Customer service and hospitality experience.",
+      "key": "service_quality",
+      "label": "Service Quality"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "safety, hazard, slippery, trip, broken glass, sharp, blocked, emergency",
+      "description": "Safety hazards and risk concerns.",
+      "key": "safety_hazard",
+      "label": "Safety Hazard"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "equipment, POS, printer, soda, ice, dishwasher, cooler, fridge, oven, fryer",
+      "description": "Operational equipment issues impacting service or kitchen/bar operations.",
+      "key": "equipment_operational",
+      "label": "Equipment / Operational"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "restroom, bathroom, soap, paper towels, toilet paper, hand dryer",
+      "description": "Restroom supplies, cleanliness, and functionality (customer-facing).",
+      "key": "restroom_experience",
+      "label": "Restroom Experience"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": "menu, food, taste, cold food, wrong order, allergy, quality",
+      "description": "Food quality, accuracy, and menu-related feedback.",
+      "key": "food_quality_accuracy",
+      "label": "Food Quality & Order Accuracy"
+    },
+    {
+      "active": true,
+      "ai_exclude_keywords": null,
+      "ai_include_keywords": null,
+      "description": "Use when unsure; add a short note to internal context.",
+      "key": "other",
+      "label": "Other"
+    }
+  ],
+  "issues": [
+    {
+      "category_key": "restroom_experience",
+      "comments": [
+        {
+          "author_email": "manager@thespot.example",
+          "body": "Thanks—restroom checklist updated. Please keep reporting if supplies run low during peak.",
+          "days_ago": 11,
+          "key": "com_001a"
+        }
+      ],
+      "days_ago": 14,
+      "description": "Women's restroom ran out of paper towels during dinner rush; hand dryer is weak so guests had no good way to dry hands.",
+      "key": "iss_001",
+      "location_key": "loc_restrooms_womens",
+      "reports": [
+        {
+          "body": "No paper towels in the women's bathroom around 7:30pm.",
+          "consent": false,
+          "days_ago": 14,
+          "key": "rep_001a",
+          "reporter_phone": null,
+          "source": "qr"
+        },
+        {
+          "body": "Paper towel dispenser was empty and the hand dryer barely works.",
+          "consent": false,
+          "days_ago": 13,
+          "key": "rep_001b",
+          "reporter_phone": null,
+          "source": "sms"
+        },
+        {
+          "body": "Still empty when I checked again before leaving (about 8:10).",
+          "consent": false,
+          "days_ago": 13,
+          "key": "rep_001c",
+          "reporter_phone": null,
+          "source": "manual"
+        }
+      ],
+      "status": "fixed",
+      "title": "Women's restroom out of paper towels",
+      "updates": [
+        {
+          "days_ago": 13,
+          "key": "upd_001a",
+          "message": "Restocked paper towels; added backup rolls to storage cabinet."
+        },
+        {
+          "days_ago": 12,
+          "key": "upd_001b",
+          "message": "Replaced hand dryer filter and increased maintenance frequency."
+        }
+      ]
+    },
+    {
+      "category_key": "service_quality",
+      "comments": [
+        {
+          "author_email": "gm@thespot.example",
+          "body": "We’re coaching the host team on quoting accurate waits and doing table touch-backs for delays.",
+          "days_ago": 27,
+          "key": "com_002a"
+        }
+      ],
+      "days_ago": 31,
+      "description": "Guests reported long waits at the host stand with unclear communication about table timing; some parties were skipped or not updated.",
+      "key": "iss_002",
+      "location_key": "loc_entrance_host",
+      "reports": [
+        {
+          "body": "Waited ~15 minutes past the quoted time and no one checked in with us.",
+          "consent": false,
+          "days_ago": 31,
+          "key": "rep_002a",
+          "reporter_phone": null,
+          "source": "qr"
+        },
+        {
+          "body": "Host seemed overwhelmed—our name got lost and we had to ask twice.",
+          "consent": false,
+          "days_ago": 30,
+          "key": "rep_002b",
+          "reporter_phone": null,
+          "source": "sms"
+        },
+        {
+          "body": "Not sure if there’s a text system, but we didn’t get any updates while waiting.",
+          "consent": false,
+          "days_ago": 29,
+          "key": "rep_002c",
+          "reporter_phone": null,
+          "source": "manual"
+        }
+      ],
+      "status": "in_progress",
+      "title": "Long waits and unclear communication at host stand",
+      "updates": [
+        {
+          "days_ago": 28,
+          "key": "upd_002a",
+          "message": "Implemented a waitlist script and added a 10-minute check-in reminder for hosts."
+        }
+      ]
+    },
+    {
+      "category_key": "cleanliness_hygiene",
+      "comments": [],
+      "days_ago": 9,
+      "description": "Soda station area is sticky with syrup residue; drip tray and nozzles appear overdue for deep clean, attracting small gnats.",
+      "key": "iss_003",
+      "location_key": "loc_dining_soda",
+      "reports": [
+        {
+          "body": "The floor by the soda machine was sticky and my shoes kept catching.",
+          "consent": false,
+          "days_ago": 9,
+          "key": "rep_003a",
+          "reporter_phone": null,
+          "source": "qr"
+        },
+        {
+          "body": "Soda nozzles looked crusty and there were a couple tiny flies around it.",
+          "consent": false,
+          "days_ago": 8,
+          "key": "rep_003b",
+          "reporter_phone": null,
+          "source": "sms"
+        }
+      ],
+      "status": "acknowledged",
+      "title": "Sticky soda station and gnats",
+      "updates": [
+        {
+          "days_ago": 8,
+          "key": "upd_003a",
+          "message": "Assigned nightly deep-clean of soda nozzles and drip tray; added mid-shift wipe-down."
+        }
+      ]
+    },
+    {
+      "category_key": "maintenance_repair",
+      "comments": [
+        {
+          "author_email": "maintenance@thespot.example",
+          "body": "If it starts sticking again, please note the time—humidity seems to affect it.",
+          "days_ago": 56,
+          "key": "com_004a"
+        }
+      ],
+      "days_ago": 63,
+      "description": "Patio door is hard to open/close and sometimes doesn’t latch, letting warm air and insects in.",
+      "key": "iss_004",
+      "location_key": "loc_patio_door",
+      "reports": [
+        {
+          "body": "Patio door sticks and takes two hands to pull open.",
+          "consent": false,
+          "days_ago": 63,
+          "key": "rep_004a",
+          "reporter_phone": null,
+          "source": "manual"
+        },
+        {
+          "body": "Door didn’t latch behind someone and it stayed cracked open.",
+          "consent": false,
+          "days_ago": 61,
+          "key": "rep_004b",
+          "reporter_phone": null,
+          "source": "qr"
+        },
+        {
+          "body": "We had bugs coming in near the patio entrance because the door wasn’t closing all the way.",
+          "consent": false,
+          "days_ago": 60,
+          "key": "rep_004c",
+          "reporter_phone": null,
+          "source": "sms"
+        }
+      ],
+      "status": "fixed",
+      "title": "Patio door sticking and not latching",
+      "updates": [
+        {
+          "days_ago": 59,
+          "key": "upd_004a",
+          "message": "Adjusted door closer and strike plate; lubricated hinges."
+        },
+        {
+          "days_ago": 56,
+          "key": "upd_004b",
+          "message": "Replaced worn weather stripping to improve seal."
+        }
+      ]
+    },
+    {
+      "category_key": "equipment_operational",
+      "comments": [],
+      "days_ago": 22,
+      "description": "Bar POS printer intermittently stops printing tickets; bartenders are reprinting from the terminal which slows service.",
+      "key": "iss_005",
+      "location_key": "loc_bar_counter",
+      "reports": [
+        {
+          "body": "Ticket printer at the bar kept flashing red and wouldn’t print for a few minutes.",
+          "consent": false,
+          "days_ago": 22,
+          "key": "rep_005a",
+          "reporter_phone": null,
+          "source": "manual"
+        },
+        {
+          "body": "Had to reprint drink tickets twice—printer jammed again.",
+          "consent": false,
+          "days_ago": 21,
+          "key": "rep_005b",
+          "reporter_phone": null,
+          "source": "sms"
+        }
+      ],
+      "status": "in_progress",
+      "title": "Bar ticket printer intermittently failing",
+      "updates": [
+        {
+          "days_ago": 20,
+          "key": "upd_005a",
+          "message": "Swapped paper roll and cleaned feed rollers; monitoring for repeat jams."
+        }
+      ]
+    },
+    {
+      "category_key": "safety_hazard",
+      "comments": [
+        {
+          "author_email": "shiftlead@thespot.example",
+          "body": "We placed a wet-floor sign and added a reminder to mop immediately after ice runs.",
+          "days_ago": 6,
+          "key": "com_006a"
+        }
+      ],
+      "days_ago": 7,
+      "description": "Water pooling near bar service station creates a slip hazard, likely from ice melt and splash during busy service.",
+      "key": "iss_006",
+      "location_key": "loc_bar_service",
+      "reports": [
+        {
+          "body": "Floor behind the bar (near the service station) was wet and slippery.",
+          "consent": false,
+          "days_ago": 7,
+          "key": "rep_006a",
+          "reporter_phone": null,
+          "source": "manual"
+        },
+        {
+          "body": "Almost slipped walking past the bar service area—there was a puddle.",
+          "consent": false,
+          "days_ago": 7,
+          "key": "rep_006b",
+          "reporter_phone": null,
+          "source": "qr"
+        },
+        {
+          "body": "Seems like it happens when they’re scooping ice; water ends up on the floor.",
+          "consent": false,
+          "days_ago": 6,
+          "key": "rep_006c",
+          "reporter_phone": null,
+          "source": "sms"
+        }
+      ],
+      "status": "acknowledged",
+      "title": "Slippery floor near bar service station",
+      "updates": [
+        {
+          "days_ago": 6,
+          "key": "upd_006a",
+          "message": "Added absorbent bar mats and checked ice bin drain line for clogs."
+        }
+      ]
+    },
+    {
+      "category_key": "hvac_ventilation",
+      "comments": [],
+      "days_ago": 45,
+      "description": "Dining room main floor feels stuffy and warm during peak hours; airflow seems uneven with hot spots near the center tables.",
+      "key": "iss_007",
+      "location_key": "loc_dining_main",
+      "reports": [
+        {
+          "body": "It was noticeably warm inside even though it wasn’t that hot outside.",
+          "consent": false,
+          "days_ago": 45,
+          "key": "rep_007a",
+          "reporter_phone": null,
+          "source": "qr"
+        },
+        {
+          "body": "Air felt stagnant near the middle of the dining room—no breeze at all.",
+          "consent": false,
+          "days_ago": 44,
+          "key": "rep_007b",
+          "reporter_phone": null,
+          "source": "sms"
+        }
+      ],
+      "status": "in_progress",
+      "title": "Dining room feels warm and stuffy",
+      "updates": [
+        {
+          "days_ago": 42,
+          "key": "upd_007a",
+          "message": "Scheduled HVAC contractor to balance vents; replaced two clogged filters."
+        }
+      ]
+    },
+    {
+      "category_key": "maintenance_repair",
+      "comments": [],
+      "days_ago": 18,
+      "description": "Men's restroom toilet intermittently runs and sometimes won’t flush fully; handle feels loose.",
+      "key": "iss_008",
+      "location_key": "loc_restrooms_mens",
+      "reports": [
+        {
+          "body": "Toilet in the men’s room kept running after flushing.",
+          "consent": false,
+          "days_ago": 18,
+          "key": "rep_008a",
+          "reporter_phone": null,
+          "source": "qr"
+        },
+        {
+          "body": "Flush handle is loose and you have to jiggle it to stop the water.",
+          "consent": false,
+          "days_ago": 17,
+          "key": "rep_008b",
+          "reporter_phone": null,
+          "source": "sms"
+        }
+      ],
+      "status": "acknowledged",
+      "title": "Men's restroom toilet running / loose handle",
+      "updates": [
+        {
+          "days_ago": 16,
+          "key": "upd_008a",
+          "message": "Inspected flapper chain and handle; parts ordered for replacement."
+        }
+      ]
+    },
+    {
+      "category_key": "cleanliness_hygiene",
+      "comments": [],
+      "days_ago": 52,
+      "description": "Dish pit area has a lingering sour odor and visible buildup around the floor drain; likely needs a drain clean-out and deodorizing.",
+      "key": "iss_009",
+      "location_key": "loc_kitchen_dish",
+      "reports": [
+        {
+          "body": "Dish area smells sour, especially near the drain.",
+          "consent": false,
+          "days_ago": 52,
+          "key": "rep_009a",
+          "reporter_phone": null,
+          "source": "manual"
+        },
+        {
+          "body": "There’s gunk around the floor drain in dish pit—needs a deep clean.",
+          "consent": false,
+          "days_ago": 51,
+          "key": "rep_009b",
+          "reporter_phone": null,
+          "source": "manual"
+        },
+        {
+          "body": "Odor gets worse at close; maybe the drain is backing up a bit.",
+          "consent": false,
+          "days_ago": 50,
+          "key": "rep_009c",
+          "reporter_phone": null,
+          "source": "sms"
+        }
+      ],
+      "status": "fixed",
+      "title": "Sour odor and buildup at dish pit drain",
+      "updates": [
+        {
+          "days_ago": 49,
+          "key": "upd_009a",
+          "message": "Performed drain clean-out and enzymatic treatment; added weekly drain maintenance to closing checklist."
+        }
+      ]
+    },
+    {
+      "category_key": "lighting",
+      "comments": [],
+      "days_ago": 26,
+      "description": "A light fixture over window seating flickers and occasionally goes out, making that section feel dim at night.",
+      "key": "iss_010",
+      "location_key": "loc_dining_window",
+      "reports": [
+        {
+          "body": "Light above our table by the window kept flickering.",
+          "consent": false,
+          "days_ago": 26,
+          "key": "rep_010a",
+          "reporter_phone": null,
+          "source": "qr"
+        },
+        {
+          "body": "The window-side seating area is darker than the rest because one light is out.",
+          "consent": false,
+          "days_ago": 25,
+          "key": "rep_010b",
+          "reporter_phone": null,
+          "source": "sms"
+        }
+      ],
+      "status": "fixed",
+      "title": "Flickering light over window seating",
+      "updates": [
+        {
+          "days_ago": 24,
+          "key": "upd_010a",
+          "message": "Replaced bulb and tightened fixture connection; flicker resolved."
+        }
+      ]
+    },
+    {
+      "category_key": "food_quality_accuracy",
+      "comments": [
+        {
+          "author_email": "chef@thespot.example",
+          "body": "We’re re-training expo on allergy callouts and adding a second verification on modified tickets.",
+          "days_ago": 34,
+          "key": "com_011a"
+        }
+      ],
+      "days_ago": 38,
+      "description": "A modified order was delivered incorrectly (requested no cheese, arrived with cheese). Guest flagged allergy concern and needed a remake.",
+      "key": "iss_011",
+      "location_key": "loc_dining_main",
+      "reports": [
+        {
+          "body": "Asked for no cheese due to allergy and it came out with cheese on it.",
+          "consent": false,
+          "days_ago": 38,
+          "key": "rep_011a",
+          "reporter_phone": null,
+          "source": "qr"
+        },
+        {
+          "body": "Server handled it quickly but it was still stressful—please double check allergy mods.",
+          "consent": false,
+          "days_ago": 37,
+          "key": "rep_011b",
+          "reporter_phone": null,
+          "source": "sms"
+        }
+      ],
+      "status": "acknowledged",
+      "title": "Modified order delivered incorrectly (allergy concern)",
+      "updates": [
+        {
+          "days_ago": 35,
+          "key": "upd_011a",
+          "message": "Added allergy/mod verification step at expo; reminded staff to verbally confirm on delivery."
+        }
+      ]
+    },
+    {
+      "category_key": "noise_ambience",
+      "comments": [],
+      "days_ago": 5,
+      "description": "Music volume in the bar area is loud enough that guests have trouble hearing each other, especially near the speakers.",
+      "key": "iss_012",
+      "location_key": "loc_bar",
+      "reports": [
+        {
+          "body": "Music was so loud at the bar we had to shout to talk.",
+          "consent": false,
+          "days_ago": 5,
+          "key": "rep_012a",
+          "reporter_phone": null,
+          "source": "qr"
+        },
+        {
+          "body": "Could you turn it down a notch? It’s hard to hear the bartender too.",
+          "consent": false,
+          "days_ago": 4,
+          "key": "rep_012b",
+          "reporter_phone": null,
+          "source": "sms"
+        }
+      ],
+      "status": "new",
+      "title": "Bar music volume too loud",
+      "updates": []
+    },
+    {
+      "category_key": "cleanliness_hygiene",
+      "comments": [],
+      "days_ago": 73,
+      "description": "Patio trash and bus station gets overfilled on weekends; odors and flies build up when bins aren’t emptied mid-shift.",
+      "key": "iss_013",
+      "location_key": "loc_patio_trash",
+      "reports": [
+        {
+          "body": "Trash cans by the patio bus station were overflowing and smelled bad.",
+          "consent": false,
+          "days_ago": 73,
+          "key": "rep_013a",
+          "reporter_phone": null,
+          "source": "manual"
+        },
+        {
+          "body": "Lots of flies around the patio trash area—needs more frequent emptying.",
+          "consent": false,
+          "days_ago": 72,
+          "key": "rep_013b",
+          "reporter_phone": null,
+          "source": "qr"
+        },
+        {
+          "body": "Weekend lunch rush: bins were full by 1pm.",
+          "consent": false,
+          "days_ago": 71,
+          "key": "rep_013c",
+          "reporter_phone": null,
+          "source": "sms"
+        }
+      ],
+      "status": "fixed",
+      "title": "Overflowing patio trash attracting flies",
+      "updates": [
+        {
+          "days_ago": 70,
+          "key": "upd_013a",
+          "message": "Added a scheduled mid-shift trash run on weekends; replaced one bin with a larger lidded can."
+        }
+      ]
+    },
+    {
+      "category_key": "equipment_operational",
+      "comments": [],
+      "days_ago": 12,
+      "description": "Kitchen line heat lamp over the pass is intermittently cutting out; food sits without heat while waiting for runners.",
+      "key": "iss_014",
+      "location_key": "loc_kitchen_line",
+      "reports": [
+        {
+          "body": "Heat lamp over the pass keeps shutting off—noticed plates cooling while waiting.",
+          "consent": false,
+          "days_ago": 12,
+          "key": "rep_014a",
+          "reporter_phone": null,
+          "source": "manual"
+        },
+        {
+          "body": "Lamp flickered and went out twice during service.",
+          "consent": false,
+          "days_ago": 11,
+          "key": "rep_014b",
+          "reporter_phone": null,
+          "source": "manual"
+        }
+      ],
+      "status": "in_progress",
+      "title": "Heat lamp cutting out on kitchen pass",
+      "updates": [
+        {
+          "days_ago": 10,
+          "key": "upd_014a",
+          "message": "Checked wiring and replaced bulb; monitoring during next services. If it fails again, electrician scheduled."
+        }
+      ]
+    },
+    {
+      "category_key": "safety_hazard",
+      "comments": [],
+      "days_ago": 2,
+      "description": "Entrance mat curls up at one corner creating a trip hazard, especially when the door swings and catches the edge.",
+      "key": "iss_015",
+      "location_key": "loc_entrance",
+      "reports": [
+        {
+          "body": "The mat at the front door is curled up—almost tripped walking in.",
+          "consent": false,
+          "days_ago": 2,
+          "key": "rep_015a",
+          "reporter_phone": null,
+          "source": "qr"
+        },
+        {
+          "body": "Door catches the corner of the mat and flips it up.",
+          "consent": false,
+          "days_ago": 1,
+          "key": "rep_015b",
+          "reporter_phone": null,
+          "source": "manual"
+        }
+      ],
+      "status": "new",
+      "title": "Front entrance mat curled (trip hazard)",
+      "updates": []
+    }
+  ],
+  "locations": [
+    {
+      "full_path": "Entrance",
+      "key": "loc_entrance",
+      "name": "Entrance"
+    },
+    {
+      "full_path": "Entrance / Host Stand",
+      "key": "loc_entrance_host",
+      "name": "Host Stand"
+    },
+    {
+      "full_path": "Dining Room",
+      "key": "loc_dining",
+      "name": "Dining Room"
+    },
+    {
+      "full_path": "Dining Room / Main Floor",
+      "key": "loc_dining_main",
+      "name": "Main Floor"
+    },
+    {
+      "full_path": "Dining Room / Window Seating",
+      "key": "loc_dining_window",
+      "name": "Window Seating"
+    },
+    {
+      "full_path": "Dining Room / Soda Station",
+      "key": "loc_dining_soda",
+      "name": "Soda Station"
+    },
+    {
+      "full_path": "Bar",
+      "key": "loc_bar",
+      "name": "Bar"
+    },
+    {
+      "full_path": "Bar / Bar Counter",
+      "key": "loc_bar_counter",
+      "name": "Bar Counter"
+    },
+    {
+      "full_path": "Bar / Service Station",
+      "key": "loc_bar_service",
+      "name": "Service Station"
+    },
+    {
+      "full_path": "Kitchen",
+      "key": "loc_kitchen",
+      "name": "Kitchen"
+    },
+    {
+      "full_path": "Kitchen / Line",
+      "key": "loc_kitchen_line",
+      "name": "Line"
+    },
+    {
+      "full_path": "Kitchen / Dish Pit",
+      "key": "loc_kitchen_dish",
+      "name": "Dish Pit"
+    },
+    {
+      "full_path": "Restrooms",
+      "key": "loc_restrooms",
+      "name": "Restrooms"
+    },
+    {
+      "full_path": "Restrooms / Women's Restroom",
+      "key": "loc_restrooms_womens",
+      "name": "Women's Restroom"
+    },
+    {
+      "full_path": "Restrooms / Men's Restroom",
+      "key": "loc_restrooms_mens",
+      "name": "Men's Restroom"
+    },
+    {
+      "full_path": "Patio",
+      "key": "loc_patio",
+      "name": "Patio"
+    },
+    {
+      "full_path": "Patio / Seating Area",
+      "key": "loc_patio_seating",
+      "name": "Seating Area"
+    },
+    {
+      "full_path": "Patio / Patio Door",
+      "key": "loc_patio_door",
+      "name": "Patio Door"
+    },
+    {
+      "full_path": "Patio / Trash & Bus Station",
+      "key": "loc_patio_trash",
+      "name": "Trash & Bus Station"
+    }
+  ],
+  "organization_name": "The Spot"
+}

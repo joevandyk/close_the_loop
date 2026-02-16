@@ -2,7 +2,7 @@ defmodule CloseTheLoopWeb.OnboardingLive do
   use CloseTheLoopWeb, :live_view
   on_mount {CloseTheLoopWeb.LiveUserAuth, :live_user_required}
 
-  alias CloseTheLoop.Accounts.User
+  alias CloseTheLoop.Accounts
   alias CloseTheLoop.Feedback.Categories
   alias CloseTheLoop.Feedback.Location
   alias CloseTheLoop.Tenants.Organization
@@ -11,13 +11,21 @@ defmodule CloseTheLoopWeb.OnboardingLive do
   def mount(_params, _session, socket) do
     user = socket.assigns.current_user
 
-    if user.organization_id do
-      {:ok, push_navigate(socket, to: ~p"/app/issues")}
-    else
-      {:ok,
-       socket
-       |> assign(:form, to_form(%{"org_name" => ""}, as: :onboarding))
-       |> assign(:error, nil)}
+    case Accounts.list_user_organizations(
+           query: [filter: [user_id: user.id], limit: 1],
+           authorize?: false
+         ) do
+      {:ok, [_ | _]} ->
+        {:ok, push_navigate(socket, to: ~p"/app")}
+
+      {:ok, []} ->
+        {:ok,
+         socket
+         |> assign(:form, to_form(%{"org_name" => ""}, as: :onboarding))
+         |> assign(:error, nil)}
+
+      _ ->
+        {:ok, push_navigate(socket, to: ~p"/app")}
     end
   end
 
@@ -69,18 +77,18 @@ defmodule CloseTheLoopWeb.OnboardingLive do
              tenant: org.tenant_schema,
              actor: user
            ),
-         {:ok, %User{} = updated_user} <-
-           CloseTheLoop.Accounts.set_user_organization(
-             user,
-             %{organization_id: org.id, role: :owner}, actor: user) do
+         {:ok, _membership} <-
+           Accounts.create_user_organization(
+             %{user_id: user.id, organization_id: org.id, role: :owner},
+             actor: user
+           ) do
       # Seed default categories for this business (best-effort).
       _ = Categories.ensure_defaults(org.tenant_schema)
 
       socket =
         socket
-        |> assign(:current_user, updated_user)
         |> put_flash(:info, "Organization created. Your first location is ready.")
-        |> push_navigate(to: ~p"/app/issues")
+        |> push_navigate(to: ~p"/app/#{org.id}/issues")
 
       # The reporter link is deterministic; we show it once on the issues page (later).
       {:noreply, socket}

@@ -12,7 +12,11 @@ defmodule CloseTheLoop.Workers.DedupeIssueWorker do
 
   @impl true
   def perform(%Oban.Job{args: %{"tenant" => tenant, "issue_id" => issue_id}}) do
-    with {:ok, %Issue{} = issue} <- Ash.get(Issue, issue_id, tenant: tenant),
+    with {:ok, %Issue{} = issue} <-
+           Ash.get(Issue, issue_id,
+             tenant: tenant,
+             load: [location: [:name, :full_path]]
+           ),
          true <- issue.status != :fixed,
          true <- is_nil(issue.duplicate_of_issue_id) do
       candidates = list_candidates(tenant, issue)
@@ -20,12 +24,23 @@ defmodule CloseTheLoop.Workers.DedupeIssueWorker do
       if candidates == [] do
         :ok
       else
+        new_issue_text =
+          case issue.location do
+            nil -> issue.description
+            loc -> "Location: #{location_display_name(loc)}\n\n#{issue.description}"
+          end
+
         payload =
           Enum.map(candidates, fn c ->
-            %{id: c.id, title: c.title, description: c.description}
+            %{
+              id: c.id,
+              title: c.title,
+              description: c.description,
+              location: location_display_name(c.location)
+            }
           end)
 
-        case AI.match_duplicate_issue(issue.description, payload) do
+        case AI.match_duplicate_issue(new_issue_text, payload) do
           {:ok, nil} ->
             :ok
 
@@ -50,13 +65,11 @@ defmodule CloseTheLoop.Workers.DedupeIssueWorker do
     query =
       Issue
       |> Ash.Query.filter(
-        expr(
-          location_id == ^issue.location_id and status != :fixed and is_nil(duplicate_of_issue_id) and
-            id != ^issue.id
-        )
+        expr(status != :fixed and is_nil(duplicate_of_issue_id) and id != ^issue.id)
       )
       |> Ash.Query.sort(inserted_at: :desc)
-      |> Ash.Query.limit(15)
+      |> Ash.Query.limit(25)
+      |> Ash.Query.load(location: [:name, :full_path])
 
     case Ash.read(query, tenant: tenant) do
       {:ok, issues} -> issues
@@ -81,6 +94,12 @@ defmodule CloseTheLoop.Workers.DedupeIssueWorker do
       _ ->
         :ok
     end
+  end
+
+  defp location_display_name(nil), do: ""
+
+  defp location_display_name(loc) do
+    loc.full_path || loc.name
   end
 
   defp move_reports(tenant, from_issue_id, to_issue_id) do

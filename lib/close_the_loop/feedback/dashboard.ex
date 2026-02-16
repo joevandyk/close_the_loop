@@ -58,15 +58,15 @@ defmodule CloseTheLoop.Feedback.Dashboard do
   def recent_reports(tenant) when is_binary(tenant) do
     Feedback.list_reports(
       tenant: tenant,
-      query: [sort: [inserted_at: :desc], limit: 8],
-      load: [issue: [:title], location: [:name, :full_path]]
+      query: [sort: [updated_at: :desc, inserted_at: :desc], limit: 8],
+      load: [location: [:name, :full_path]]
     )
   end
 
   def recent_comments(tenant) when is_binary(tenant) do
     Feedback.list_issue_comments(
       tenant: tenant,
-      query: [sort: [inserted_at: :desc], limit: 6],
+      query: [sort: [updated_at: :desc, inserted_at: :desc], limit: 6],
       load: [issue: [:title]]
     )
   end

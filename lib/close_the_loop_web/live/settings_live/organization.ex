@@ -3,26 +3,16 @@ defmodule CloseTheLoopWeb.SettingsLive.Organization do
   on_mount {CloseTheLoopWeb.LiveUserAuth, :live_org_required}
 
   alias CloseTheLoop.Tenants.Organization
-  alias CloseTheLoop.Tenants
-
   @impl true
   def mount(_params, _session, socket) do
     org = socket.assigns.current_org
     tenant = socket.assigns.current_tenant
+    user = socket.assigns.current_user
 
     case org do
       %Organization{} = org ->
-        org_form = to_form(%{"name" => org.name || ""}, as: :org)
-
-        brand_form =
-          to_form(
-            %{
-              "public_display_name" => org.public_display_name || "",
-              "reporter_tagline" => org.reporter_tagline || "",
-              "reporter_footer_note" => org.reporter_footer_note || ""
-            },
-            as: :brand
-          )
+        org_form = org_form(org, user)
+        brand_form = brand_form(org, user)
 
         {:ok,
          socket
@@ -40,7 +30,12 @@ defmodule CloseTheLoopWeb.SettingsLive.Organization do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} current_user={@current_user} current_scope={@current_scope}>
+    <Layouts.app
+      flash={@flash}
+      current_user={@current_user}
+      current_scope={@current_scope}
+      org={@current_org}
+    >
       <div class="max-w-4xl mx-auto space-y-8">
         <div class="flex items-start justify-between gap-4">
           <div>
@@ -59,6 +54,7 @@ defmodule CloseTheLoopWeb.SettingsLive.Organization do
           <.form
             for={@org_form}
             id="org-basics-form"
+            phx-change="validate"
             phx-submit="save_basics"
             class="mt-4 space-y-4"
           >
@@ -142,83 +138,83 @@ defmodule CloseTheLoopWeb.SettingsLive.Organization do
   end
 
   @impl true
-  def handle_event("save_basics", %{"org" => %{"name" => name}}, socket) do
-    org = socket.assigns.org
-    user = socket.assigns.current_user
-    name = String.trim(name || "")
-    socket = assign(socket, :org_form, to_form(%{"name" => name}, as: :org))
+  def handle_event("validate", %{"org" => params}, socket) when is_map(params) do
+    form = AshPhoenix.Form.validate(socket.assigns.org_form, params)
+    {:noreply, socket |> assign(:org_form, form) |> assign(:error, nil)}
+  end
 
-    with true <- name != "" || {:error, "Name is required"},
-         {:ok, %Organization{} = org} <-
-           Tenants.update_organization(org, %{name: name}, actor: user) do
-      {:noreply,
-       socket
-       |> put_flash(:info, "Organization updated.")
-       |> assign(:org, org)
-       |> assign(:org_form, to_form(%{"name" => org.name || ""}, as: :org))
-       |> assign(:error, nil)}
-    else
-      {:error, msg} when is_binary(msg) ->
-        {:noreply, assign(socket, :error, msg)}
+  def handle_event("save_basics", %{"org" => params}, socket) when is_map(params) do
+    user = socket.assigns.current_user
+
+    case AshPhoenix.Form.submit(socket.assigns.org_form, params: params) do
+      {:ok, %Organization{} = org} ->
+        {:noreply,
+         socket
+         |> put_flash(:info, "Organization updated.")
+         |> assign(:org, org)
+         |> assign(:org_form, org_form(org, user))
+         |> assign(:error, nil)}
+
+      {:error, %Phoenix.HTML.Form{} = form} ->
+        {:noreply, assign(socket, :org_form, form)}
 
       {:error, err} ->
         {:noreply, assign(socket, :error, Exception.message(err))}
-
-      other ->
-        {:noreply, assign(socket, :error, "Failed to save: #{inspect(other)}")}
     end
   end
 
   @impl true
   def handle_event("save_branding", %{"brand" => params}, socket) when is_map(params) do
-    org = socket.assigns.org
     user = socket.assigns.current_user
-    socket = assign(socket, :brand_form, to_form(params, as: :brand))
 
-    public_display_name =
-      params |> Map.get("public_display_name", "") |> to_string() |> String.trim()
+    socket =
+      assign(socket, :brand_form, AshPhoenix.Form.validate(socket.assigns.brand_form, params))
 
-    reporter_tagline = params |> Map.get("reporter_tagline", "") |> to_string() |> String.trim()
-
-    reporter_footer_note =
-      params
-      |> Map.get("reporter_footer_note", "")
-      |> to_string()
-      |> String.trim()
-
-    case Tenants.update_organization(
-           org,
-           %{
-             public_display_name: blank_to_nil(public_display_name),
-             reporter_tagline: blank_to_nil(reporter_tagline),
-             reporter_footer_note: blank_to_nil(reporter_footer_note)
-           }, actor: user) do
+    case AshPhoenix.Form.submit(socket.assigns.brand_form, params: params) do
       {:ok, %Organization{} = org} ->
         {:noreply,
          socket
          |> put_flash(:info, "Branding updated.")
          |> assign(:org, org)
-         |> assign(
-           :brand_form,
-           to_form(
-             %{
-               "public_display_name" => org.public_display_name || "",
-               "reporter_tagline" => org.reporter_tagline || "",
-               "reporter_footer_note" => org.reporter_footer_note || ""
-             },
-             as: :brand
-           )
-         )
+         |> assign(:brand_form, brand_form(org, user))
          |> assign(:error, nil)}
 
-      {:error, msg} when is_binary(msg) ->
-        {:noreply, assign(socket, :error, msg)}
+      {:error, %Phoenix.HTML.Form{} = form} ->
+        {:noreply, socket |> assign(:brand_form, form) |> assign(:error, nil)}
 
       {:error, err} ->
-        {:noreply, assign(socket, :error, Exception.message(err))}
+        message =
+          if Kernel.is_exception(err) do
+            Exception.message(err)
+          else
+            inspect(err)
+          end
+
+        {:noreply, assign(socket, :error, message)}
     end
   end
 
-  defp blank_to_nil(""), do: nil
-  defp blank_to_nil(str), do: str
+  defp org_form(%Organization{} = org, user) do
+    AshPhoenix.Form.for_update(org, :update,
+      as: "org",
+      id: "org",
+      actor: user,
+      params: %{"name" => org.name}
+    )
+    |> to_form()
+  end
+
+  defp brand_form(%Organization{} = org, user) do
+    AshPhoenix.Form.for_update(org, :update,
+      as: "brand",
+      id: "brand",
+      actor: user,
+      params: %{
+        "public_display_name" => org.public_display_name,
+        "reporter_tagline" => org.reporter_tagline,
+        "reporter_footer_note" => org.reporter_footer_note
+      }
+    )
+    |> to_form()
+  end
 end

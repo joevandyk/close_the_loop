@@ -63,6 +63,7 @@ defmodule CloseTheLoop.MixProject do
       {:ash_authentication, "~> 4.0"},
       {:ash_phoenix, "~> 2.0"},
       {:ash_postgres, "~> 2.0"},
+      {:ash_events, "~> 0.6.0"},
       {:ash, "~> 3.0"},
       {:phoenix, "~> 1.8.3"},
       {:phoenix_ecto, "~> 4.5"},
@@ -114,7 +115,14 @@ defmodule CloseTheLoop.MixProject do
         "esbuild close_the_loop --minify",
         "phx.digest"
       ],
-      precommit: ["compile --warnings-as-errors", "deps.unlock --unused", "format", "test"]
+      precommit: [
+        "compile --warnings-as-errors",
+        # Catch Ash pending codegen (same error shown by CheckCodegenStatus plug).
+        "ash.codegen --check",
+        "deps.unlock --unused",
+        "format",
+        "test"
+      ]
     ]
   end
 end
