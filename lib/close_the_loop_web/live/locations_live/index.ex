@@ -16,6 +16,7 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
        socket
        |> assign(:org, org)
        |> assign(:locations, decorate_locations(tenant, locations))
+       |> assign(:location_modal_open?, false)
        |> assign(:editing_id, nil)
        |> assign(:location_form, to_form(%{"name" => "", "full_path" => ""}, as: :location))
        |> assign(:error, nil)}
@@ -52,25 +53,48 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
       org={@current_org}
     >
       <div class="max-w-5xl mx-auto space-y-8">
-        <div>
-          <h1 class="text-2xl font-semibold">Locations</h1>
-          <p class="mt-2 text-foreground-soft text-sm">
-            Create a QR code for each location. Each location has its own reporter link.
-          </p>
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h1 class="text-2xl font-semibold">Locations</h1>
+            <p class="mt-2 text-foreground-soft text-sm">
+              Create a QR code for each location. Each location has its own reporter link.
+            </p>
+          </div>
+
+          <.button
+            id="locations-open-new"
+            type="button"
+            variant="solid"
+            color="primary"
+            phx-click="open_new_location_modal"
+          >
+            <.icon name="hero-plus" class="size-4" /> Add location
+          </.button>
         </div>
 
-        <div class="grid gap-6 lg:grid-cols-2">
-          <div class="rounded-2xl border border-base bg-base p-6 shadow-base">
-            <h2 class="text-sm font-semibold">
-              <%= if @editing_id do %>
-                Edit location
-              <% else %>
-                Add a location
-              <% end %>
-            </h2>
+        <.modal
+          id="location-modal"
+          open={@location_modal_open?}
+          on_close={JS.push("close_location_modal")}
+          class="w-full max-w-lg"
+        >
+          <div class="p-6 space-y-4">
+            <div>
+              <h2 class="text-lg font-semibold">
+                <%= if @editing_id do %>
+                  Edit location
+                <% else %>
+                  Add location
+                <% end %>
+              </h2>
+              <p class="mt-1 text-sm text-foreground-soft">
+                Used on posters and in reporting links.
+              </p>
+            </div>
 
-            <.form for={@location_form} id="location-form" phx-submit="save" class="mt-4 space-y-4">
+            <.form for={@location_form} id="location-modal-form" phx-submit="save" class="space-y-4">
               <.input
+                id="location-modal-name"
                 field={@location_form[:name]}
                 type="text"
                 label="Name"
@@ -79,6 +103,7 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
               />
 
               <.input
+                id="location-modal-full-path"
                 field={@location_form[:full_path]}
                 type="text"
                 label="Full path (optional)"
@@ -89,83 +114,88 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
                 <.alert color="danger" hide_close>{@error}</.alert>
               <% end %>
 
-              <div class="flex gap-2">
-                <.button type="submit" variant="solid" color="primary" class="flex-1">
+              <div class="flex items-center justify-end gap-2 pt-2">
+                <.button
+                  id="location-modal-cancel"
+                  type="button"
+                  variant="outline"
+                  phx-click="close_location_modal"
+                >
+                  Cancel
+                </.button>
+
+                <.button type="submit" variant="solid" color="primary" phx-disable-with="Saving...">
                   <%= if @editing_id do %>
                     Save changes
                   <% else %>
                     Create location
                   <% end %>
                 </.button>
-
-                <%= if @editing_id do %>
-                  <.button type="button" phx-click="cancel_edit" variant="outline">
-                    Cancel
-                  </.button>
-                <% end %>
               </div>
             </.form>
           </div>
+        </.modal>
 
-          <div class="rounded-2xl border border-base bg-accent p-6">
-            <h2 class="text-sm font-semibold">Tips</h2>
-            <ul class="mt-3 text-sm text-foreground space-y-2">
-              <li>Print the QR code and post it where customers will see it.</li>
-              <li>Use one location per physical site or area (e.g. locker room).</li>
-              <li>Customers can optionally opt in to SMS updates.</li>
-            </ul>
+        <.alert color="info" title="Tips">
+          <ul class="text-sm space-y-1">
+            <li>Print the QR code and post it where customers will see it.</li>
+            <li>Use one location per physical site or area (e.g. locker room).</li>
+            <li>Customers can optionally opt in to SMS updates.</li>
+          </ul>
+        </.alert>
+
+        <div class="space-y-3">
+          <div
+            :for={loc <- @locations}
+            data-location-card
+            id={"location-item-#{loc.id}"}
+            class="rounded-2xl border border-base bg-base p-5 shadow-base"
+          >
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div class="min-w-0">
+                <div class="text-sm font-semibold text-foreground truncate">
+                  {loc.full_path || loc.name}
+                </div>
+                <div class="mt-1 text-xs text-foreground-soft">
+                  Reporter link + poster for this location
+                </div>
+              </div>
+
+              <div class="flex flex-wrap items-center gap-2 sm:justify-end">
+                <.button
+                  href={loc.reporter_link}
+                  target="_blank"
+                  rel="noreferrer"
+                  variant="outline"
+                  size="sm"
+                >
+                  <.icon name="hero-arrow-top-right-on-square" class="size-4" /> Open reporter
+                </.button>
+
+                <.button
+                  href={~p"/app/#{@current_org.id}/settings/locations/#{loc.id}/poster"}
+                  target="_blank"
+                  rel="noreferrer"
+                  variant="outline"
+                  size="sm"
+                >
+                  <.icon name="hero-printer" class="size-4" /> Poster (PDF)
+                </.button>
+
+                <.button
+                  id={"locations-open-edit-#{loc.id}"}
+                  type="button"
+                  size="sm"
+                  variant="solid"
+                  color="primary"
+                  phx-click="edit"
+                  phx-value-id={loc.id}
+                >
+                  <.icon name="hero-pencil-square" class="size-4" /> Edit
+                </.button>
+              </div>
+            </div>
           </div>
-        </div>
-
-        <div class="overflow-x-auto">
-          <.table>
-            <.table_head>
-              <:col>Location</:col>
-              <:col>Reporter</:col>
-              <:col>Poster</:col>
-              <:col class="text-right"><span class="sr-only">Actions</span></:col>
-            </.table_head>
-            <.table_body>
-              <.table_row :for={loc <- @locations}>
-                <:cell>{loc.full_path || loc.name}</:cell>
-                <:cell>
-                  <.button
-                    href={loc.reporter_link}
-                    target="_blank"
-                    rel="noreferrer"
-                    variant="ghost"
-                    size="sm"
-                  >
-                    Open link
-                  </.button>
-                </:cell>
-                <:cell>
-                  <.button
-                    href={~p"/app/#{@current_org.id}/settings/locations/#{loc.id}/poster"}
-                    target="_blank"
-                    rel="noreferrer"
-                    variant="ghost"
-                    size="sm"
-                  >
-                    Print / Save PDF
-                  </.button>
-                </:cell>
-                <:cell class="text-right">
-                  <.button_group>
-                    <.button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      phx-click="edit"
-                      phx-value-id={loc.id}
-                    >
-                      Edit
-                    </.button>
-                  </.button_group>
-                </:cell>
-              </.table_row>
-            </.table_body>
-          </.table>
 
           <div :if={@locations == []} class="py-10 text-center text-sm text-foreground-soft">
             No locations yet.
@@ -177,6 +207,26 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
   end
 
   @impl true
+  def handle_event("open_new_location_modal", _params, socket) do
+    {:noreply,
+     socket
+     |> assign(:location_modal_open?, true)
+     |> assign(:editing_id, nil)
+     |> assign(:location_form, to_form(%{"name" => "", "full_path" => ""}, as: :location))
+     |> assign(:error, nil)}
+  end
+
+  @impl true
+  def handle_event("close_location_modal", _params, socket) do
+    {:noreply,
+     socket
+     |> assign(:location_modal_open?, false)
+     |> assign(:editing_id, nil)
+     |> assign(:location_form, to_form(%{"name" => "", "full_path" => ""}, as: :location))
+     |> assign(:error, nil)}
+  end
+
+  @impl true
   def handle_event("edit", %{"id" => id}, socket) do
     case Enum.find(socket.assigns.locations, &("#{&1.id}" == to_string(id))) do
       nil ->
@@ -185,6 +235,7 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
       loc ->
         {:noreply,
          socket
+         |> assign(:location_modal_open?, true)
          |> assign(:editing_id, loc.id)
          |> assign(
            :location_form,
@@ -192,15 +243,6 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
          )
          |> assign(:error, nil)}
     end
-  end
-
-  @impl true
-  def handle_event("cancel_edit", _params, socket) do
-    {:noreply,
-     socket
-     |> assign(:editing_id, nil)
-     |> assign(:location_form, to_form(%{"name" => "", "full_path" => ""}, as: :location))
-     |> assign(:error, nil)}
   end
 
   @impl true
@@ -255,6 +297,7 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
        socket
        |> put_flash(:info, flash_msg)
        |> assign(:locations, decorate_locations(tenant, locations))
+       |> assign(:location_modal_open?, false)
        |> assign(:editing_id, nil)
        |> assign(:location_form, to_form(%{"name" => "", "full_path" => ""}, as: :location))
        |> assign(:error, nil)}

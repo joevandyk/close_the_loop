@@ -16,14 +16,17 @@ defmodule CloseTheLoopWeb.ReportsLiveTest do
     user = register_user!(email)
     _membership = create_membership!(user, org.id, :owner)
 
-    {:ok, location} =
+    {:ok, location_a} =
       Ash.create(Location, %{name: "General", full_path: "General"}, tenant: tenant)
+
+    {:ok, location_b} =
+      Ash.create(Location, %{name: "Locker room", full_path: "Locker room"}, tenant: tenant)
 
     {:ok, issue_a} =
       Ash.create(
         Issue,
         %{
-          location_id: location.id,
+          location_id: location_a.id,
           title: "Cold shower",
           description: "Cold shower",
           normalized_description: "cold shower",
@@ -36,7 +39,7 @@ defmodule CloseTheLoopWeb.ReportsLiveTest do
       Ash.create(
         Issue,
         %{
-          location_id: location.id,
+          location_id: location_b.id,
           title: "Broken faucet",
           description: "Broken faucet",
           normalized_description: "broken faucet",
@@ -49,7 +52,7 @@ defmodule CloseTheLoopWeb.ReportsLiveTest do
       Ash.create(
         Report,
         %{
-          location_id: location.id,
+          location_id: location_a.id,
           issue_id: issue_a.id,
           body: "This is actually about the faucet",
           normalized_body: "this is actually about the faucet",
@@ -73,9 +76,14 @@ defmodule CloseTheLoopWeb.ReportsLiveTest do
     |> render_submit()
 
     assert render(view) =~ "Broken faucet"
+    assert render(view) =~ "Locker room"
 
     {:ok, _issue_view, issue_html} = live(conn, ~p"/app/#{org.id}/issues/#{issue_b.id}")
     assert issue_html =~ "This is actually about the faucet"
+
+    {:ok, updated_report} = Ash.get(Report, report.id, tenant: tenant)
+    assert updated_report.issue_id == issue_b.id
+    assert updated_report.location_id == location_b.id
   end
 
   test "business can create a manual report (auto issue)", %{conn: conn} do
@@ -169,5 +177,49 @@ defmodule CloseTheLoopWeb.ReportsLiveTest do
 
     {:ok, reports} = Ash.read(Report, tenant: tenant)
     assert Enum.any?(reports, fn r -> r.source == :manual and r.issue_id == issue.id end)
+  end
+
+  test "new report issue picker populates after selecting a location", %{conn: conn} do
+    tenant = "public"
+    org = insert_org!(tenant)
+    user = register_user!(unique_email("owner-issue-picker"))
+    _membership = create_membership!(user, org.id, :owner)
+
+    {:ok, location} =
+      Ash.create(Location, %{name: "General", full_path: "General"}, tenant: tenant)
+
+    {:ok, _issue} =
+      Ash.create(
+        Issue,
+        %{
+          location_id: location.id,
+          title: "Cold shower",
+          description: "Cold shower",
+          normalized_description: "cold shower",
+          status: :new
+        },
+        tenant: tenant
+      )
+
+    conn =
+      conn
+      |> init_test_session(%{})
+      |> AshAuthentication.Plug.Helpers.store_in_session(user)
+
+    {:ok, view, _html} = live(conn, ~p"/app/#{org.id}/reports/new")
+
+    assert has_element?(view, "#manual-issue-none-wrapper")
+    refute has_element?(view, "#manual-issue-none-wrapper[data-searchable]")
+
+    view
+    |> form("#manual-report-form",
+      manual: %{
+        location_id: location.id
+      }
+    )
+    |> render_change()
+
+    assert has_element?(view, "#manual-issue-#{location.id}-wrapper[data-searchable]")
+    assert render(view) =~ "Cold shower"
   end
 end

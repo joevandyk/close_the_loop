@@ -59,31 +59,29 @@ defmodule CloseTheLoopWeb.OrgPickerLive.Index do
             </div>
           </div>
 
-          <div :if={@memberships != []} class="divide-y divide-base">
-            <.link
+          <.navlist
+            :if={@memberships != []}
+            class="divide-y divide-base space-y-0 rounded-2xl border-0 p-0 [&+[data-part=navlist]]:mt-0"
+          >
+            <.navlink
               :for={m <- @memberships}
               id={"org-#{m.organization_id}"}
               navigate={~p"/app/#{m.organization_id}"}
-              class={[
-                "block p-5 transition cursor-pointer",
-                "hover:bg-accent"
-              ]}
+              class="ml-0 px-4 py-3 rounded-none first:rounded-t-2xl last:rounded-b-2xl"
             >
-              <div class="flex items-start gap-4">
-                <div class="min-w-0 flex-1">
-                  <div class="text-sm font-semibold text-foreground">
-                    {m.organization.name}
-                  </div>
-                  <div class="mt-1 text-xs text-foreground-soft">
-                    Role: {m.role}
-                  </div>
+              <div class="min-w-0 flex-1">
+                <div class="text-sm font-semibold text-foreground">
+                  {m.organization.name}
                 </div>
-                <.button size="sm" variant="outline" navigate={~p"/app/#{m.organization_id}"}>
-                  Open
-                </.button>
+                <div class="mt-0.5 text-xs text-foreground-soft">
+                  Role: {m.role}
+                </div>
               </div>
-            </.link>
-          </div>
+              <span class="ml-auto shrink-0 text-sm font-medium text-foreground-soft">
+                Open
+              </span>
+            </.navlink>
+          </.navlist>
         </div>
       </div>
     </Layouts.app>

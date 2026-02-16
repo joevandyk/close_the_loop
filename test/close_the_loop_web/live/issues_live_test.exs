@@ -6,7 +6,7 @@ defmodule CloseTheLoopWeb.IssuesLiveTest do
   import CloseTheLoop.TestHelpers,
     only: [create_membership!: 3, insert_org!: 1, register_user!: 1, unique_email: 1]
 
-  alias CloseTheLoop.Feedback.{Issue, Location}
+  alias CloseTheLoop.Feedback.{Issue, Location, Report}
 
   test "authenticated user with org can view issues inbox", %{conn: conn} do
     tenant = "public"
@@ -167,6 +167,100 @@ defmodule CloseTheLoopWeb.IssuesLiveTest do
     |> render_submit()
 
     assert render(view) =~ "Saw standing water near the drain."
+  end
+
+  test "issue show report items link to report detail", %{conn: conn} do
+    tenant = "public"
+    email = unique_email("owner-report-links")
+
+    org = insert_org!(tenant)
+    user = register_user!(email)
+    _membership = create_membership!(user, org.id, :owner)
+
+    {:ok, location} =
+      Ash.create(Location, %{name: "General", full_path: "General"}, tenant: tenant)
+
+    {:ok, issue} =
+      Ash.create(
+        Issue,
+        %{
+          location_id: location.id,
+          title: "Cold shower",
+          description: "Cold shower",
+          normalized_description: "cold shower",
+          status: :new
+        },
+        tenant: tenant
+      )
+
+    {:ok, report} =
+      Ash.create(
+        Report,
+        %{
+          location_id: location.id,
+          issue_id: issue.id,
+          body: "Front desk says it's still cold",
+          normalized_body: "front desk says it's still cold",
+          source: :manual,
+          reporter_phone: nil,
+          consent: false
+        },
+        tenant: tenant
+      )
+
+    conn =
+      conn
+      |> init_test_session(%{})
+      |> AshAuthentication.Plug.Helpers.store_in_session(user)
+
+    {:ok, view, _html} = live(conn, ~p"/app/#{org.id}/issues/#{issue.id}")
+
+    assert has_element?(view, "#issue-report-link-#{report.id}")
+
+    assert has_element?(
+             view,
+             "#issue-report-link-#{report.id}[href=\"/app/#{org.id}/reports/#{report.id}\"]"
+           )
+  end
+
+  test "issue status changes show what changed in activity feed", %{conn: conn} do
+    tenant = "public"
+    email = unique_email("owner-status-activity")
+
+    org = insert_org!(tenant)
+    user = register_user!(email)
+    _membership = create_membership!(user, org.id, :owner)
+
+    {:ok, location} =
+      Ash.create(Location, %{name: "General", full_path: "General"}, tenant: tenant)
+
+    {:ok, issue} =
+      Ash.create(
+        Issue,
+        %{
+          location_id: location.id,
+          title: "Cold shower",
+          description: "Cold shower",
+          normalized_description: "cold shower",
+          status: :new
+        },
+        tenant: tenant
+      )
+
+    conn =
+      conn
+      |> init_test_session(%{})
+      |> AshAuthentication.Plug.Helpers.store_in_session(user)
+
+    {:ok, view, _html} = live(conn, ~p"/app/#{org.id}/issues/#{issue.id}")
+
+    view
+    |> element("button[phx-value-status='acknowledged']")
+    |> render_click()
+
+    html = render(view)
+    assert html =~ "Status changed"
+    assert html =~ "Status set to Acknowledged" or html =~ "Status: New -> Acknowledged"
   end
 
   test "dangling org_id does not crash issues page", %{conn: conn} do

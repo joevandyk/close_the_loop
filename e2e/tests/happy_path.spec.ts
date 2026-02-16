@@ -82,16 +82,27 @@ test("business can onboard, receive a report, and view it", async ({ page }) => 
   // Ensure LiveView JS is loaded + connected before interacting.
   await page.waitForFunction(() => (window as any).liveSocket?.isConnected?.(), { timeout: 20_000 });
   await expect(page).toHaveURL(/\/app\/[^/]+\/settings\/locations/);
+  // Wait for the LiveView to finish hydrating (so phx-click reaches the server).
+  await expect(page.locator("#location-modal")).toHaveAttribute("data-phx-id", /phx-/i, {
+    timeout: 20_000,
+  });
   const locationName = `Locker room ${Date.now()}`;
-  const nameInput = page.getByRole("textbox", { name: /^name$/i });
-  await expect(nameInput).toBeVisible();
+  await page.locator("#locations-open-new").click();
+
+  const locationModal = page.locator("#location-modal");
+  await expect(locationModal).toHaveAttribute("data-open", "true", { timeout: 20_000 });
+  await expect(locationModal).not.toHaveAttribute("hidden", { timeout: 20_000 });
+
+  const nameInput = page.locator("#location-modal-name");
+  await expect(nameInput).toBeVisible({ timeout: 20_000 });
   await nameInput.fill(locationName);
   await page.getByRole("button", { name: /create location/i }).click();
   await expect(page.getByText(new RegExp(locationName, "i"))).toBeVisible({
     timeout: 30_000,
   });
 
-  const lockerRoomLink = page.locator("tr", { hasText: new RegExp(locationName, "i") }).locator('a[href*="/r/"]');
+  const locationCard = page.locator("[data-location-card]", { hasText: new RegExp(locationName, "i") });
+  const lockerRoomLink = locationCard.locator('a[href*="/r/"]').first();
 
   const reporterLink = await lockerRoomLink.getAttribute("href");
   expect(reporterLink).toBeTruthy();
@@ -133,7 +144,10 @@ test("business can onboard, receive a report, and view it", async ({ page }) => 
   await expect(page.getByText(reportBody).first()).toBeVisible();
 
   // Send an update (we don't validate SMS delivery, just that the action succeeds).
+  const smsModal = page.locator("#issue-send-sms-modal");
+  await expect(smsModal).toHaveAttribute("data-phx-id", /phx-/i, { timeout: 20_000 });
   await page.locator("#issue-open-send-sms").click();
+  await expect(smsModal).toHaveAttribute("data-open", "true", { timeout: 20_000 });
   await expect(page.locator("#issue-send-sms-form")).toBeVisible({ timeout: 20_000 });
 
   await page.locator("#issue-send-sms-form textarea").fill("Thanks - we are on it.");

@@ -21,11 +21,10 @@ defmodule CloseTheLoop.Feedback.Intake do
   def submit_report(tenant, location_id, %{body: body} = attrs) when is_binary(tenant) do
     normalized = Text.normalize_for_dedupe(body)
 
-    reporter_name =
-      blank_to_nil(Map.get(attrs, :reporter_name) || Map.get(attrs, "reporter_name"))
-
-    reporter_email =
-      blank_to_nil(Map.get(attrs, :reporter_email) || Map.get(attrs, "reporter_email"))
+    # `attrs` is an internal API: we only accept atom keys here.
+    # (Raw form params are string-keyed, but should be normalized at the boundary.)
+    reporter_name = blank_to_nil(Map.get(attrs, :reporter_name))
+    reporter_email = blank_to_nil(Map.get(attrs, :reporter_email))
 
     with :ok <- validate_email(reporter_email),
          {:ok, reporter_phone} <- Phone.normalize_e164(Map.get(attrs, :reporter_phone)),

@@ -221,7 +221,7 @@ defmodule Fluxon.Components.Button do
       # Layout and positioning
       "relative isolate inline-flex items-center justify-center whitespace-nowrap",
       "text-sm font-medium no-underline",
-      "rounded-base outline-hidden shrink-0",
+      "rounded-base outline-hidden shrink-0 cursor-pointer",
       "border",
 
       # Focus states
@@ -229,8 +229,8 @@ defmodule Fluxon.Components.Button do
       "transition-[box-shadow] duration-100",
 
       # Disabled state
-      "disabled:opacity-70 disabled:shadow-none disabled:pointer-events-none",
-      "data-disabled:opacity-70 data-disabled:shadow-none data-disabled:pointer-events-none",
+      "disabled:opacity-70 disabled:shadow-none disabled:pointer-events-none disabled:cursor-not-allowed",
+      "data-disabled:opacity-70 data-disabled:shadow-none data-disabled:pointer-events-none data-disabled:cursor-not-allowed",
 
       # Icon styles
       "[&>.icon]:shrink-0 [&>[data-part=icon]]:shrink-0",

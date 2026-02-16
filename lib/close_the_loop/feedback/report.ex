@@ -41,7 +41,11 @@ defmodule CloseTheLoop.Feedback.Report do
         allow_nil? false
       end
 
-      change set_attribute(:issue_id, arg(:issue_id))
+      # We must keep report.location_id consistent with the issue it belongs to.
+      # This requires loading the issue, so this action cannot be fully atomic.
+      require_atomic? false
+
+      change CloseTheLoop.Feedback.Report.Changes.ReassignIssueAndLocation
     end
   end
 

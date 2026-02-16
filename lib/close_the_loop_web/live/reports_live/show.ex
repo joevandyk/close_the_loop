@@ -18,7 +18,7 @@ defmodule CloseTheLoopWeb.ReportsLive.Show do
 
     with true <- is_binary(tenant) || {:error, :missing_tenant},
          {:ok, report} <- get_report(tenant, id),
-         {:ok, issues} <- list_issue_options(tenant, report.location_id, report.issue_id) do
+         {:ok, issues} <- list_issue_options(tenant, report.issue_id) do
       {:ok,
        socket
        |> assign(:report, report)
@@ -45,14 +45,14 @@ defmodule CloseTheLoopWeb.ReportsLive.Show do
     )
   end
 
-  defp list_issue_options(tenant, location_id, current_issue_id) do
+  defp list_issue_options(tenant, current_issue_id) do
     case Feedback.list_non_duplicate_issues(
            tenant: tenant,
            query: [
-             filter: [location_id: location_id],
              sort: [inserted_at: :desc],
-             limit: 101
-           ]
+             limit: 500
+           ],
+           load: [location: [:name, :full_path]]
          ) do
       {:ok, issues} ->
         {:ok, Enum.reject(issues, &(&1.id == current_issue_id))}
@@ -64,7 +64,16 @@ defmodule CloseTheLoopWeb.ReportsLive.Show do
 
   defp build_issue_options(issues) do
     Enum.map(issues, fn issue ->
-      {"#{issue.title} (#{issue.status})", issue.id}
+      location = issue.location && (issue.location.full_path || issue.location.name)
+
+      label =
+        if is_binary(location) and String.trim(location) != "" do
+          "#{location} — #{issue.title} (#{issue.status})"
+        else
+          "#{issue.title} (#{issue.status})"
+        end
+
+      {label, issue.id}
     end)
   end
 
@@ -164,12 +173,12 @@ defmodule CloseTheLoopWeb.ReportsLive.Show do
             <div class="space-y-3">
               <h3 class="text-sm font-semibold">Move to another issue</h3>
               <p class="text-sm text-foreground-soft">
-                Use this when a report was grouped into the wrong issue.
+                Use this when a report was grouped into the wrong issue (including a different location).
               </p>
 
               <%= if @issue_options == [] do %>
                 <div class="text-sm text-foreground-soft">
-                  No other issues exist for this location yet.
+                  No other issues exist yet.
                 </div>
               <% else %>
                 <.form
@@ -319,7 +328,7 @@ defmodule CloseTheLoopWeb.ReportsLive.Show do
     report_id = socket.assigns.report.id
 
     with {:ok, report} <- get_report(tenant, report_id),
-         {:ok, issues} <- list_issue_options(tenant, report.location_id, report.issue_id) do
+         {:ok, issues} <- list_issue_options(tenant, report.issue_id) do
       socket
       |> put_flash(:info, flash_msg)
       |> assign(:report, report)
@@ -330,10 +339,10 @@ defmodule CloseTheLoopWeb.ReportsLive.Show do
     end
   end
 
-  defp log_report_move(tenant, user, report_id, from_issue, to_issue_id) do
+  defp log_report_move(tenant, user, _report_id, from_issue, to_issue_id) do
     with {:ok, to_issue} <- Feedback.get_issue_by_id(to_issue_id, tenant: tenant) do
       body =
-        "Moved report #{report_id} from \"#{from_issue.title}\" to \"#{to_issue.title}\"."
+        "Moved a report from \"#{from_issue.title}\" to \"#{to_issue.title}\"."
 
       attrs = %{
         body: body,
@@ -357,7 +366,7 @@ defmodule CloseTheLoopWeb.ReportsLive.Show do
     :ok
   end
 
-  defp log_report_split(tenant, user, report_id, from_issue, new_issue) do
+  defp log_report_split(tenant, user, _report_id, from_issue, new_issue) do
     attrs = %{
       author_user_id: user.id,
       author_email: to_string(user.email)
@@ -367,7 +376,7 @@ defmodule CloseTheLoopWeb.ReportsLive.Show do
       Feedback.create_issue_comment(
         Map.merge(attrs, %{
           issue_id: from_issue.id,
-          body: "Moved report #{report_id} to a new issue: \"#{new_issue.title}\"."
+          body: "Moved a report to a new issue: \"#{new_issue.title}\"."
         }),
         tenant: tenant,
         actor: user
@@ -377,7 +386,7 @@ defmodule CloseTheLoopWeb.ReportsLive.Show do
       Feedback.create_issue_comment(
         Map.merge(attrs, %{
           issue_id: new_issue.id,
-          body: "Created from report #{report_id} (moved from \"#{from_issue.title}\")."
+          body: "Created from a moved report (from \"#{from_issue.title}\")."
         }),
         tenant: tenant,
         actor: user

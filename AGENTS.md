@@ -42,6 +42,7 @@ custom classes must fully style the input
 - Implement **subtle micro-interactions** (e.g., button hover effects, and smooth transitions)
 - Ensure **clean typography, spacing, and layout balance** for a refined, premium look
 - Focus on **delightful details** like hover effects, loading states, and smooth page transitions
+- **When the UI references another entity** (e.g. an issue, a report, a location, "Created Report", "Currently assigned to: [issue title]"), **link to it** when it makes sense so users can navigate directly. Prefer making the reference text (or an obvious target like the timestamp) a `<.link navigate={...}>` rather than plain text when the target has its own page.
 
 
 <!-- usage-rules-start -->
@@ -380,6 +381,8 @@ If you want to create a form based on `handle_event` params:
     end
 
 When you pass a map to `to_form/1`, it assumes said map contains the form params, which are expected to have string keys.
+
+When calling domain functions or other internal APIs, **do not pass raw string-keyed params maps**. Normalize at the boundary and pass atom-keyed maps (e.g. `%{reporter_name: ..., reporter_email: ...}`) so we don't have mixed `"key"`/`:key` access sprinkled through the codebase.
 
 You can also specify a name to nest the params:
 
@@ -3630,6 +3633,8 @@ _Fluxon UI Components_
 # Fluxon UI Components Usage Rules
 
 This document provides a guide for Large Language Models (LLMs) on how to use Fluxon UI components. It covers component attributes, slots, and provides usage examples for different scenarios.
+
+**Always strongly prefer Fluxon components** for layouts, lists, and UI patterns instead of building custom markup. For example: use `<.navlist>` and `<.navlink>` for lists of clickable items (e.g. organization picker, settings sections) rather than a custom card + link + button list; use Fluxon `<.table>`, `<.button>`, `<.modal>`, `<.sheet>`, form components, etc. instead of hand-rolled equivalents. This keeps UX consistent, spacing/alignment correct, and avoids invalid patterns (e.g. nested interactive elements).
 
 ## Accordion
 

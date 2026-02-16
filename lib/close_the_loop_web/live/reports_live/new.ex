@@ -198,15 +198,27 @@ defmodule CloseTheLoopWeb.ReportsLive.New do
 
                 <div class="mt-3">
                   <.select
-                    id="manual-issue"
+                    id={"manual-issue-#{@selected_location_id || "none"}"}
                     field={@manual_form[:issue_id]}
                     label="Attach to existing issue"
                     options={@issue_options}
-                    searchable
-                    placeholder="Auto (recommended)"
+                    searchable={@selected_location_id != nil}
+                    disabled={@selected_location_id == nil}
+                    placeholder={
+                      if(@selected_location_id == nil,
+                        do: "Select a location first",
+                        else: "Auto (recommended)"
+                      )
+                    }
                   />
                   <div :if={@selected_location_id == nil} class="mt-1 text-xs text-foreground-soft">
                     Select a location to see existing issues.
+                  </div>
+                  <div
+                    :if={@selected_location_id != nil and @issue_options == []}
+                    class="mt-1 text-xs text-foreground-soft"
+                  >
+                    No existing issues found for this location yet (auto-assign will create or group as needed).
                   </div>
                 </div>
               </div>

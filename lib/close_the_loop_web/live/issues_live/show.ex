@@ -7,6 +7,7 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
   alias CloseTheLoop.Feedback.Text
   alias CloseTheLoop.Events
   alias CloseTheLoop.Accounts
+  alias CloseTheLoopWeb.ActivityFeed
 
   @impl true
   def mount(%{"id" => id}, _session, socket) do
@@ -265,50 +266,6 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
           </.button_group>
         </div>
 
-        <div
-          id="issue-activity"
-          class="rounded-2xl border border-base bg-base p-6 shadow-base space-y-4"
-        >
-          <div>
-            <h2 class="text-sm font-semibold">Activity</h2>
-            <p class="mt-1 text-sm text-foreground-soft">
-              Status changes, internal comments, and SMS updates.
-            </p>
-          </div>
-
-          <div :if={@activity_events == []} class="text-sm text-foreground-soft">
-            No activity yet.
-          </div>
-
-          <ul :if={@activity_events != []} class="space-y-3">
-            <li
-              :for={e <- @activity_events}
-              id={"issue-activity-event-#{e.id}"}
-              class="rounded-xl border border-base bg-accent p-4"
-            >
-              <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-foreground-soft">
-                <span class="font-medium text-foreground">
-                  {activity_actor_label(@current_user, @activity_users_by_id, e)}
-                </span>
-                <span class="opacity-60">•</span>
-                <span class="font-medium">{activity_title(e)}</span>
-                <span class="opacity-60">•</span>
-                <time
-                  id={"activity-time-#{e.id}"}
-                  phx-hook="LocalTime"
-                  data-iso={iso8601(e.occurred_at)}
-                >
-                  {format_dt(e.occurred_at)}
-                </time>
-              </div>
-
-              <div :if={activity_summary(e)} class="mt-2 whitespace-pre-wrap text-sm leading-6">
-                {activity_summary(e)}
-              </div>
-            </li>
-          </ul>
-        </div>
-
         <div class="rounded-2xl border border-base bg-base p-6 shadow-base space-y-4">
           <div class="flex items-start justify-between gap-4">
             <div>
@@ -440,18 +397,23 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
               id={dom_id}
               class="rounded-xl border border-base bg-accent p-4"
             >
-              <div class="text-xs text-foreground-soft">
-                <span class="font-medium text-foreground">{c.author_email || "Team"}</span>
-                <span class="mx-2">•</span>
+              <div class="grid grid-cols-[1fr_auto] items-center gap-x-3 gap-y-1">
+                <div class="min-w-0 flex items-center gap-2 text-xs text-foreground-soft">
+                  <span class="font-medium text-foreground truncate">{c.author_email || "Team"}</span>
+                </div>
+
                 <time
                   id={"issue-comment-time-#{c.id}"}
                   phx-hook="LocalTime"
                   data-iso={iso8601(c.inserted_at)}
+                  class="shrink-0 text-xs font-medium text-foreground-soft"
                 >
                   {format_dt(c.inserted_at)}
                 </time>
               </div>
-              <div class="mt-2 whitespace-pre-wrap text-sm leading-6">{c.body}</div>
+              <div class="mt-2 whitespace-pre-wrap text-sm leading-6">
+                {ActivityFeed.scrub_raw_ids(c.body)}
+              </div>
             </div>
           </div>
         </div>
@@ -517,111 +479,52 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
 
           <ul class="space-y-3">
             <%= for r <- @reports do %>
-              <li class="text-sm">
+              <li class="rounded-xl border border-base bg-accent p-4">
                 <div class="flex items-start justify-between gap-3">
-                  <div class="text-foreground-soft">
-                    <time
-                      id={"issue-report-time-#{r.id}"}
-                      phx-hook="LocalTime"
-                      data-iso={iso8601(r.inserted_at)}
-                    >
-                      {format_dt(r.inserted_at)}
-                    </time>
-                    <span class="mx-2">•</span>
-                    <span>{r.source}</span>
-                  </div>
+                  <.link
+                    id={"issue-report-link-#{r.id}"}
+                    navigate={~p"/app/#{@current_org.id}/reports/#{r.id}"}
+                    class="flex-1 -m-2 rounded-lg p-2 hover:bg-base/60 transition"
+                  >
+                    <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-foreground-soft">
+                      <time
+                        id={"issue-report-time-#{r.id}"}
+                        phx-hook="LocalTime"
+                        data-iso={iso8601(r.inserted_at)}
+                      >
+                        {format_dt(r.inserted_at)}
+                      </time>
+                      <span class="opacity-60">•</span>
+                      <span>{r.source}</span>
+                    </div>
+
+                    <div class="mt-2 whitespace-pre-wrap text-sm leading-6 text-foreground">
+                      {r.body}
+                    </div>
+                  </.link>
+
                   <.link
                     navigate={~p"/app/#{@current_org.id}/reports/#{r.id}"}
-                    class="text-xs font-medium underline underline-offset-2 text-foreground-soft hover:text-foreground transition"
+                    class="shrink-0 text-xs font-medium underline underline-offset-2 text-foreground-soft hover:text-foreground transition"
                   >
                     Reassign
                   </.link>
                 </div>
-                <div class="whitespace-pre-wrap">{r.body}</div>
               </li>
             <% end %>
           </ul>
         </div>
+
+        <ActivityFeed.activity_feed
+          id="issue-activity"
+          events={@activity_events}
+          users_by_id={@activity_users_by_id}
+          current_user={@current_user}
+          org={@current_org}
+        />
       </div>
     </Layouts.app>
     """
-  end
-
-  defp activity_actor_label(current_user, users_by_id, event) do
-    cond do
-      is_nil(event.user_id) ->
-        "System"
-
-      current_user && event.user_id == current_user.id ->
-        "You"
-
-      user = Map.get(users_by_id || %{}, event.user_id) ->
-        to_string(user.email)
-
-      true ->
-        "Team"
-    end
-  end
-
-  defp activity_title(event) do
-    resource = event.resource |> to_string() |> String.split(".") |> List.last()
-    type = event.action_type |> to_string()
-
-    case {resource, type} do
-      {"IssueComment", "create"} -> "Internal comment added"
-      {"IssueUpdate", "create"} -> "SMS update queued"
-      {"Issue", "update"} -> activity_issue_update_title(event)
-      {res, "create"} -> "Created #{res}"
-      {res, "update"} -> "Updated #{res}"
-      {res, "destroy"} -> "Deleted #{res}"
-      {res, other} -> "#{String.capitalize(other)} #{res}"
-    end
-  end
-
-  defp activity_issue_update_title(event) do
-    changed = event.changed_attributes || %{}
-    status_change = Map.get(changed, "status") || Map.get(changed, :status)
-
-    if is_nil(status_change) do
-      "Issue updated"
-    else
-      "Issue status updated"
-    end
-  end
-
-  defp activity_summary(event) do
-    resource = event.resource |> to_string() |> String.split(".") |> List.last()
-    type = event.action_type |> to_string()
-    data = event.data || %{}
-
-    case {resource, type} do
-      {"IssueComment", "create"} ->
-        data["body"] || data[:body]
-
-      {"IssueUpdate", "create"} ->
-        data["message"] || data[:message]
-
-      {"Issue", "update"} ->
-        activity_issue_update_summary(event)
-
-      _ ->
-        nil
-    end
-  end
-
-  defp activity_issue_update_summary(event) do
-    changed = event.changed_attributes || %{}
-    status_change = Map.get(changed, "status") || Map.get(changed, :status)
-
-    case status_change do
-      %{"from" => from, "to" => to} -> "Status: #{from} -> #{to}"
-      %{from: from, to: to} -> "Status: #{from} -> #{to}"
-      %{"old" => old, "new" => new} -> "Status: #{old} -> #{new}"
-      %{old: old, new: new} -> "Status: #{old} -> #{new}"
-      [from, to] -> "Status: #{from} -> #{to}"
-      {from, to} -> "Status: #{from} -> #{to}"
-      _ -> nil
-    end
   end
 
   defp iso8601(%DateTime{} = dt), do: DateTime.to_iso8601(dt)
@@ -646,7 +549,20 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
 
     with {:ok, status} <- parse_status(status_str),
          {:ok, issue} <-
-           Feedback.set_issue_status(issue, %{status: status}, tenant: tenant, actor: user) do
+           Feedback.set_issue_status(issue, %{status: status},
+             tenant: tenant,
+             actor: user,
+             context: %{
+               ash_events_metadata: %{
+                 "changes" => %{
+                   "status" => %{
+                     "from" => to_string(issue.status),
+                     "to" => to_string(status)
+                   }
+                 }
+               }
+             }
+           ) do
       {:noreply, socket |> assign(:issue, issue) |> reload_page()}
     else
       :error ->

@@ -396,6 +396,9 @@ defmodule CloseTheLoopWeb.Layouts do
         <.icon name="hero-squares-2x2" class="size-5" /> Dashboard
       </.navlink>
       <%= if @org_id do %>
+        <.navlink navigate={~p"/app"}>
+          <.icon name="hero-arrows-right-left" class="size-5" /> Switch organization
+        </.navlink>
         <.navlink navigate={~p"/app/#{@org_id}/issues"} active={@inbox_active}>
           <.icon name="hero-inbox" class="size-5" /> Issues
         </.navlink>
