@@ -56,7 +56,10 @@ defmodule CloseTheLoopWeb.IssuesLive.Index do
       </div>
 
       <%!-- Card list (no tables, no horizontal scrolling) --%>
-      <div class="mt-6 rounded-2xl border border-base bg-base shadow-base overflow-hidden">
+      <div
+        id="issues-list"
+        class="mt-6 rounded-2xl border border-base bg-base shadow-base overflow-hidden"
+      >
         <div :if={@issues == []} class="py-12 text-center text-sm text-foreground-soft">
           No issues yet.
         </div>

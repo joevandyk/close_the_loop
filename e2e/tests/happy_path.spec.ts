@@ -69,7 +69,7 @@ test("business can onboard, receive a report, and view it", async ({ page }) => 
   );
 
   // Create a new location and use its reporter link.
-  await page.goto("/app/locations");
+  await page.goto("/app/settings/locations");
   // Ensure LiveView JS is loaded + connected before interacting.
   await page.waitForFunction(() => (window as any).liveSocket?.isConnected?.(), { timeout: 20_000 });
   const locationName = `Locker room ${Date.now()}`;
@@ -80,14 +80,11 @@ test("business can onboard, receive a report, and view it", async ({ page }) => 
   await expect(nameInput).toBeVisible();
   await nameInput.fill(locationName);
   await createLocationForm.getByRole("button", { name: /create location/i }).click();
-  await expect(page.getByRole("row", { name: new RegExp(locationName, "i") })).toBeVisible({
+  await expect(page.getByText(new RegExp(locationName, "i"))).toBeVisible({
     timeout: 30_000,
   });
 
-  const lockerRoomLink = page
-    .getByRole("row", { name: new RegExp(locationName, "i") })
-    .locator('a[href*="/r/"]')
-    .first();
+  const lockerRoomLink = page.locator("tr", { hasText: new RegExp(locationName, "i") }).locator('a[href*="/r/"]');
 
   const reporterLink = await lockerRoomLink.getAttribute("href");
   expect(reporterLink).toBeTruthy();
@@ -102,13 +99,16 @@ test("business can onboard, receive a report, and view it", async ({ page }) => 
 
   const reportBody = "Cold water in the men's showers";
   await page.locator("#manual-body").fill(reportBody);
+  await expect(page.locator("#manual-body")).toHaveValue(reportBody);
   await page.getByRole("button", { name: /add report/i }).click();
+  await page.waitForURL(/\/app\/issues\/.+/, { timeout: 20_000 });
   await expect(page.getByRole("heading", { name: /cold water/i })).toBeVisible({ timeout: 20_000 });
 
   await page.goto(reporterLink!);
   await page.waitForFunction(() => (window as any).liveSocket?.isConnected?.(), { timeout: 20_000 });
 
   await page.locator('textarea[name="report[body]"]').fill(reportBody);
+  await expect(page.locator('textarea[name="report[body]"]')).toHaveValue(reportBody);
   await page.locator('input[name="report[phone]"]').fill("+15555555555");
   await page.getByRole("checkbox", { name: /agree to receive text updates/i }).check();
   await page.getByRole("button", { name: /^submit$/i }).click();
@@ -116,8 +116,14 @@ test("business can onboard, receive a report, and view it", async ({ page }) => 
 
   // Back on the business inbox, verify we can see and open the issue + report.
   await page.goto("/app/issues");
-  await expect(page.getByRole("row", { name: /cold water/i })).toBeVisible();
-  await page.getByRole("row", { name: /cold water/i }).getByRole("link", { name: /view/i }).click();
+  await expect(page.locator("#issues-list")).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByText(/cold water/i).first()).toBeVisible({ timeout: 20_000 });
+
+  // Card layout: click the View button within the issue card.
+  await page
+    .locator('div[id^="issue-"]', { hasText: /cold water/i })
+    .getByRole("link", { name: /view/i })
+    .click();
 
   await expect(page.getByRole("heading", { name: /cold water/i })).toBeVisible();
   await expect(page.getByText(reportBody).first()).toBeVisible();

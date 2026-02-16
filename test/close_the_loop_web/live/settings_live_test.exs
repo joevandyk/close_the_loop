@@ -51,7 +51,7 @@ defmodule CloseTheLoopWeb.SettingsLiveTest do
       |> init_test_session(%{})
       |> AshAuthentication.Plug.Helpers.store_in_session(user)
 
-    {:ok, view, _html} = live(conn, ~p"/app/settings")
+    {:ok, view, _html} = live(conn, ~p"/app/settings/account")
     assert has_element?(view, "#user-profile-form")
 
     view
@@ -89,7 +89,7 @@ defmodule CloseTheLoopWeb.SettingsLiveTest do
       |> init_test_session(%{})
       |> AshAuthentication.Plug.Helpers.store_in_session(user)
 
-    {:ok, view, _html} = live(conn, ~p"/app/settings")
+    {:ok, view, _html} = live(conn, ~p"/app/settings/account")
     assert has_element?(view, "#user-email-form")
 
     view
@@ -134,7 +134,7 @@ defmodule CloseTheLoopWeb.SettingsLiveTest do
       |> init_test_session(%{})
       |> AshAuthentication.Plug.Helpers.store_in_session(user)
 
-    {:ok, view, _html} = live(conn, ~p"/app/settings")
+    {:ok, view, _html} = live(conn, ~p"/app/settings/account")
     assert has_element?(view, "#user-password-form")
 
     view

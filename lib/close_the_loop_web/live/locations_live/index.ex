@@ -142,7 +142,7 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
               </:cell>
               <:cell>
                 <.button
-                  href={~p"/app/locations/#{loc.id}/poster"}
+                  href={~p"/app/settings/locations/#{loc.id}/poster"}
                   target="_blank"
                   rel="noreferrer"
                   variant="ghost"

@@ -20,12 +20,33 @@ defmodule CloseTheLoop.Tenants.Organization do
 
     create :create do
       primary? true
-      accept [:name, :tenant_schema, :ai_business_context, :ai_categorization_instructions]
+
+      accept [
+        :name,
+        :tenant_schema,
+        :ai_business_context,
+        :ai_categorization_instructions,
+        :public_display_name,
+        :brand_primary_color,
+        :brand_primary_foreground_color,
+        :reporter_tagline,
+        :reporter_footer_note
+      ]
     end
 
     update :update do
       primary? true
-      accept [:name, :ai_business_context, :ai_categorization_instructions]
+
+      accept [
+        :name,
+        :ai_business_context,
+        :ai_categorization_instructions,
+        :public_display_name,
+        :brand_primary_color,
+        :brand_primary_foreground_color,
+        :reporter_tagline,
+        :reporter_footer_note
+      ]
     end
   end
 
@@ -41,6 +62,35 @@ defmodule CloseTheLoop.Tenants.Organization do
 
     attribute :name, :string do
       allow_nil? false
+      public? true
+    end
+
+    # Branding fields used for the public reporter intake page.
+    # (No custom logo support yet.)
+    attribute :public_display_name, :string do
+      allow_nil? true
+      public? true
+    end
+
+    # Hex colors like "#111827". Used to override Fluxon's `--primary` CSS var.
+    attribute :brand_primary_color, :string do
+      allow_nil? true
+      public? true
+    end
+
+    # Optional foreground color for primary surfaces/buttons (defaults to white in UI).
+    attribute :brand_primary_foreground_color, :string do
+      allow_nil? true
+      public? true
+    end
+
+    attribute :reporter_tagline, :string do
+      allow_nil? true
+      public? true
+    end
+
+    attribute :reporter_footer_note, :string do
+      allow_nil? true
       public? true
     end
 

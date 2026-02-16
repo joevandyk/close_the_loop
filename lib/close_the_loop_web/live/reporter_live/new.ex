@@ -1,8 +1,11 @@
 defmodule CloseTheLoopWeb.ReporterLive.New do
   use CloseTheLoopWeb, :live_view
 
+  alias CloseTheLoop.Tenants.Organization
   alias CloseTheLoop.Feedback.{Intake, Location}
   alias CloseTheLoop.Messaging.Phone
+
+  require Ash.Query
 
   @impl true
   def mount(%{"tenant" => tenant, "location_id" => location_id}, _session, socket) do
@@ -10,6 +13,7 @@ defmodule CloseTheLoopWeb.ReporterLive.New do
       socket
       |> assign(:tenant, tenant)
       |> assign(:location_id, location_id)
+      |> assign(:org, get_org_by_tenant(tenant))
       |> assign(:body, "")
       |> assign(:name, "")
       |> assign(:email, "")
@@ -30,17 +34,23 @@ defmodule CloseTheLoopWeb.ReporterLive.New do
     end
   end
 
+  defp get_org_by_tenant(tenant) when is_binary(tenant) do
+    query =
+      Organization
+      |> Ash.Query.filter(tenant_schema == ^tenant)
+      |> Ash.Query.limit(1)
+
+    case Ash.read_one(query) do
+      {:ok, %Organization{} = org} -> org
+      _ -> nil
+    end
+  end
+
   @impl true
   def render(assigns) do
     ~H"""
     <div class="space-y-5">
-      <div class="space-y-1">
-        <h1 class="text-2xl font-semibold tracking-tight">Report an issue</h1>
-        <p :if={@location} class="text-sm text-foreground-soft">
-          Location:
-          <span class="font-medium text-foreground">{@location.full_path || @location.name}</span>
-        </p>
-      </div>
+      <h2 class="text-2xl font-semibold tracking-tight">Report an issue</h2>
 
       <div class="rounded-2xl border border-base bg-base p-5 shadow-base">
         <%= if @submitted do %>

@@ -41,76 +41,76 @@ current_view = if is_atom(current_view), do: Atom.to_string(current_view), else:
     </div>
   </.sheet>
 
-  <div class="mx-auto max-w-7xl">
-    <div class="flex">
-      <%!-- Desktop sidebar --%>
-      <aside class="hidden md:sticky md:top-0 md:flex md:h-screen md:w-64 md:flex-col md:border-r md:border-base md:bg-base/90 md:backdrop-blur">
-        <div class="px-6 py-5">
+  <div class="flex min-h-screen min-w-0">
+    <%!-- Desktop sidebar --%>
+    <aside class="hidden md:sticky md:top-0 md:flex md:h-screen md:w-64 md:shrink-0 md:flex-col md:border-r md:border-base md:bg-base/90 md:backdrop-blur">
+      <div class="px-6 py-5">
+        <a href={~p"/"} class="flex items-center gap-2">
+          <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-zinc-900 text-white text-sm font-semibold">
+            CTL
+          </span>
+          <span class="text-sm font-semibold tracking-tight">CloseTheLoop</span>
+        </a>
+      </div>
+
+      <div class="flex-1 overflow-y-auto px-6 pb-6">
+        <.app_nav current_view={current_view} />
+      </div>
+
+      <div class="border-t border-base px-6 py-4">
+        <div class="flex items-center justify-between gap-3">
+          <div class="min-w-0">
+            <p :if={assigns[:current_user]} class="truncate text-sm font-medium text-foreground">
+              {@current_user.email}
+            </p>
+            <p :if={!assigns[:current_user]} class="text-sm text-foreground-soft">Signed out</p>
+          </div>
+
+          <%= if assigns[:current_user] do %>
+            <.button href={~p"/sign-out"} variant="ghost" size="sm">Sign out</.button>
+          <% else %>
+            <.button href={~p"/sign-in"} variant="ghost" size="sm">Sign in</.button>
+          <% end %>
+        </div>
+      </div>
+    </aside>
+
+    <div class="min-w-0 flex-1 flex flex-col">
+      <%!-- Mobile topbar --%>
+      <header class="sticky top-0 z-40 border-b border-base bg-base/90 backdrop-blur md:hidden">
+        <div class="flex items-center gap-3 px-4 py-3">
+          <.button
+            type="button"
+            variant="ghost"
+            size="sm"
+            aria-label="Open navigation"
+            phx-click={Fluxon.open_dialog("app-nav-sheet")}
+          >
+            <.icon name="hero-bars-3" />
+          </.button>
+
           <a href={~p"/"} class="flex items-center gap-2">
-            <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-zinc-900 text-white text-sm font-semibold">
+            <span class="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-zinc-900 text-white text-xs font-semibold">
               CTL
             </span>
             <span class="text-sm font-semibold tracking-tight">CloseTheLoop</span>
           </a>
+
+          <div class="flex-1" />
+
+          <%= if assigns[:current_user] do %>
+            <.button href={~p"/sign-out"} variant="ghost" size="sm">Sign out</.button>
+          <% else %>
+            <.button href={~p"/sign-in"} variant="ghost" size="sm">Sign in</.button>
+          <% end %>
         </div>
+      </header>
 
-        <div class="flex-1 overflow-y-auto px-6 pb-6">
-          <.app_nav current_view={current_view} />
-        </div>
-
-        <div class="border-t border-base px-6 py-4">
-          <div class="flex items-center justify-between gap-3">
-            <div class="min-w-0">
-              <p :if={assigns[:current_user]} class="truncate text-sm font-medium text-foreground">
-                {@current_user.email}
-              </p>
-              <p :if={!assigns[:current_user]} class="text-sm text-foreground-soft">Signed out</p>
-            </div>
-
-            <%= if assigns[:current_user] do %>
-              <.button href={~p"/sign-out"} variant="ghost" size="sm">Sign out</.button>
-            <% else %>
-              <.button href={~p"/sign-in"} variant="ghost" size="sm">Sign in</.button>
-            <% end %>
-          </div>
-        </div>
-      </aside>
-
-      <div class="min-w-0 flex-1">
-        <%!-- Mobile topbar --%>
-        <header class="sticky top-0 z-40 border-b border-base bg-base/90 backdrop-blur md:hidden">
-          <div class="flex items-center gap-3 px-4 py-3">
-            <.button
-              type="button"
-              variant="ghost"
-              size="sm"
-              aria-label="Open navigation"
-              phx-click={Fluxon.open_dialog("app-nav-sheet")}
-            >
-              <.icon name="hero-bars-3" />
-            </.button>
-
-            <a href={~p"/"} class="flex items-center gap-2">
-              <span class="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-zinc-900 text-white text-xs font-semibold">
-                CTL
-              </span>
-              <span class="text-sm font-semibold tracking-tight">CloseTheLoop</span>
-            </a>
-
-            <div class="flex-1" />
-
-            <%= if assigns[:current_user] do %>
-              <.button href={~p"/sign-out"} variant="ghost" size="sm">Sign out</.button>
-            <% else %>
-              <.button href={~p"/sign-in"} variant="ghost" size="sm">Sign in</.button>
-            <% end %>
-          </div>
-        </header>
-
-        <main class="mx-auto max-w-6xl px-6 py-10">
+      <main class="flex-1 px-6 py-10">
+        <div class="mx-auto w-full max-w-6xl">
           {@inner_content}
-        </main>
-      </div>
+        </div>
+      </main>
     </div>
   </div>
 </div>

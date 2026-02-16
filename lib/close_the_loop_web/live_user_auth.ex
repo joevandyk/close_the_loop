@@ -48,7 +48,7 @@ defmodule CloseTheLoopWeb.LiveUserAuth do
       # send them into the app instead of bouncing back to marketing.
       to =
         if socket.assigns.current_user.organization_id do
-          ~p"/app/issues"
+          ~p"/app"
         else
           ~p"/app/onboarding"
         end

@@ -59,6 +59,8 @@ defmodule CloseTheLoopWeb.Router do
 
       live "/app/onboarding", OnboardingLive, :index
 
+      live "/app", DashboardLive.Index, :index
+
       live "/app/issues", IssuesLive.Index, :index
 
       live "/app/issues/:id", IssuesLive.Show, :show
@@ -69,15 +71,19 @@ defmodule CloseTheLoopWeb.Router do
 
       live "/app/reports/:id", ReportsLive.Show, :show
 
-      live "/app/locations", LocationsLive.Index, :index
+      live "/app/settings/locations", LocationsLive.Index, :index
 
       live "/app/settings", SettingsLive.Index, :index
+
+      live "/app/settings/organization", SettingsLive.Organization, :index
+      live "/app/settings/account", SettingsLive.Account, :index
+      live "/app/settings/inbox", SettingsLive.Inbox, :index
 
       live "/app/settings/issue-categories", IssueCategoriesLive.Index, :index
     end
 
     # Printable poster (HTML -> browser "Save as PDF")
-    get "/app/locations/:id/poster", LocationPosterController, :show
+    get "/app/settings/locations/:id/poster", LocationPosterController, :show
   end
 
   scope "/", CloseTheLoopWeb do
@@ -89,7 +95,7 @@ defmodule CloseTheLoopWeb.Router do
     get "/privacy", PageController, :privacy
     get "/terms", PageController, :terms
 
-    live_session :reporter, layout: {CloseTheLoopWeb.Layouts, :auth} do
+    live_session :reporter, layout: {CloseTheLoopWeb.Layouts, :reporter} do
       live "/r/:tenant/:location_id", ReporterLive.New, :new
     end
 
