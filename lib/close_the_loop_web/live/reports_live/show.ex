@@ -196,6 +196,7 @@ defmodule CloseTheLoopWeb.ReportsLive.Show do
               </.button>
             <% end %>
             <.button
+              :if={@report.issue_id}
               navigate={~p"/app/#{@current_org.id}/issues/#{@report.issue_id}"}
               variant="outline"
             >
@@ -276,17 +277,31 @@ defmodule CloseTheLoopWeb.ReportsLive.Show do
         <div class="rounded-2xl border border-base bg-base p-6 shadow-base space-y-4">
           <h2 class="text-sm font-semibold">Assignment</h2>
 
-          <p class="text-sm text-foreground">
-            Currently assigned to
-            <.link
-              navigate={~p"/app/#{@current_org.id}/issues/#{@report.issue_id}"}
-              class="font-medium underline underline-offset-2"
-            >
-              {@report.issue.title}
-            </.link>
-            <span class="mx-2">•</span>
-            <span class="text-foreground-soft">{@report.issue.status}</span>
-          </p>
+          <%= if @report.issue do %>
+            <p class="text-sm text-foreground">
+              Currently assigned to
+              <.link
+                navigate={~p"/app/#{@current_org.id}/issues/#{@report.issue_id}"}
+                class="font-medium underline underline-offset-2"
+              >
+                {@report.issue.title}
+              </.link>
+              <span class="mx-2">•</span>
+              <span class="text-foreground-soft">{@report.issue.status}</span>
+            </p>
+          <% else %>
+            <p class="text-sm text-foreground">
+              Not assigned to an issue yet.
+              <%= if @report.ai_resolution_status == :pending do %>
+                <span class="mx-2">•</span>
+                <span class="text-foreground-soft">AI is processing…</span>
+              <% end %>
+            </p>
+
+            <.alert :if={@report.ai_resolution_status == :failed} color="danger" hide_close>
+              AI couldn't resolve this report. Please assign it to an issue manually.
+            </.alert>
+          <% end %>
 
           <div class="flex items-start justify-between gap-4">
             <p class="text-sm text-foreground-soft max-w-prose">
@@ -300,7 +315,7 @@ defmodule CloseTheLoopWeb.ReportsLive.Show do
               color="primary"
               phx-click={Fluxon.open_dialog("report-move-modal") |> JS.push("open_move_modal")}
             >
-              Move to another issue
+              {if @report.issue_id, do: "Move to another issue", else: "Assign to an issue"}
             </.button>
           </div>
 
@@ -312,7 +327,9 @@ defmodule CloseTheLoopWeb.ReportsLive.Show do
           >
             <div class="p-6 space-y-4">
               <div>
-                <h3 class="text-lg font-semibold">Move report</h3>
+                <h3 class="text-lg font-semibold">
+                  {if @report.issue_id, do: "Move report", else: "Assign report"}
+                </h3>
                 <p class="mt-1 text-sm text-foreground-soft">
                   Reassign to an existing issue, or create a new issue and move it there.
                 </p>
@@ -527,15 +544,18 @@ defmodule CloseTheLoopWeb.ReportsLive.Show do
   @impl true
   def handle_event("move_report", %{"move" => %{"issue_id" => issue_id} = params}, socket) do
     report = socket.assigns.report
-    from_issue = report.issue
+    from_issue_id = report.issue && to_string(report.issue.id)
 
-    context = %{
-      ash_events_metadata: %{
-        "move_type" => "existing",
-        "from_issue_id" => to_string(from_issue.id),
+    metadata =
+      %{
+        "move_type" => if(from_issue_id, do: "existing", else: "assign_existing"),
         "to_issue_id" => to_string(issue_id)
       }
-    }
+      |> then(fn meta ->
+        if from_issue_id, do: Map.put(meta, "from_issue_id", from_issue_id), else: meta
+      end)
+
+    context = %{ash_events_metadata: metadata}
 
     tenant = socket.assigns.current_tenant
     user = socket.assigns.current_user
@@ -582,16 +602,22 @@ defmodule CloseTheLoopWeb.ReportsLive.Show do
     tenant = socket.assigns.current_tenant
     report = socket.assigns.report
     user = socket.assigns.current_user
-    from_issue = report.issue
+    from_issue_id = report.issue && to_string(report.issue.id)
 
     with {:ok, issue} <- AshPhoenix.Form.submit(socket.assigns.new_issue_form, params: params) do
       base_context = %{
         ash_events_metadata: %{
-          "move_type" => "new",
-          "from_issue_id" => to_string(from_issue.id),
+          "move_type" => if(from_issue_id, do: "new", else: "assign_new"),
           "to_issue_id" => to_string(issue.id)
         }
       }
+
+      base_context =
+        if from_issue_id do
+          put_in(base_context, [:ash_events_metadata, "from_issue_id"], from_issue_id)
+        else
+          base_context
+        end
 
       changes =
         ChangeMetadata.diff(

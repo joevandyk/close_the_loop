@@ -84,6 +84,22 @@ defmodule CloseTheLoop.Feedback.Report do
       end
     end
 
+    update :assign_issue do
+      argument :issue_id, :uuid do
+        allow_nil? false
+      end
+
+      # We must keep report.location_id consistent with the issue it belongs to.
+      require_atomic? false
+
+      change set_attribute(:ai_resolution_status, :resolved)
+      change CloseTheLoop.Feedback.Report.Changes.ReassignIssueAndLocation
+    end
+
+    update :set_ai_resolution_failed do
+      change set_attribute(:ai_resolution_status, :failed)
+    end
+
     update :reassign_issue do
       argument :issue_id, :uuid do
         allow_nil? false
@@ -93,6 +109,8 @@ defmodule CloseTheLoop.Feedback.Report do
       # This requires loading the issue, so this action cannot be fully atomic.
       require_atomic? false
 
+      # If a human assigns/moves the report, it's no longer pending AI resolution.
+      change set_attribute(:ai_resolution_status, :resolved)
       change CloseTheLoop.Feedback.Report.Changes.ReassignIssueAndLocation
     end
   end
@@ -146,6 +164,12 @@ defmodule CloseTheLoop.Feedback.Report do
       allow_nil? false
       default false
       public? false
+    end
+
+    attribute :ai_resolution_status, :atom do
+      allow_nil? true
+      constraints one_of: [:pending, :resolved, :failed]
+      public? true
     end
 
     create_timestamp :inserted_at

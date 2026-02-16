@@ -206,9 +206,19 @@ defmodule CloseTheLoopWeb.ReportsLive.Index do
                     </div>
                     <div class="flex items-start gap-2 min-w-0">
                       <.icon name="hero-inbox" class="mt-0.5 size-4 shrink-0" />
-                      <span class="min-w-0 line-clamp-1" title={r.issue.title}>
-                        {r.issue.title}
-                      </span>
+                      <%= if r.issue do %>
+                        <span class="min-w-0 line-clamp-1" title={r.issue.title}>
+                          {r.issue.title}
+                        </span>
+                      <% else %>
+                        <div class="min-w-0">
+                          <%= if r.ai_resolution_status == :failed do %>
+                            <.badge variant="soft" color="danger">Needs assignment</.badge>
+                          <% else %>
+                            <.badge variant="soft" color="info">Processing...</.badge>
+                          <% end %>
+                        </div>
+                      <% end %>
                     </div>
                   </div>
                 </div>

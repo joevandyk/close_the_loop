@@ -5,9 +5,9 @@ defmodule CloseTheLoop.Feedback.ReportIntakeTest do
   require Ash.Query
 
   alias CloseTheLoop.Feedback
-  alias CloseTheLoop.Feedback.{Issue, Location, Report}
+  alias CloseTheLoop.Feedback.{Location, Report}
 
-  test "does not dedupe identical report bodies automatically" do
+  test "creates reports without an issue when issue is omitted" do
     tenant = "public"
 
     {:ok, location} =
@@ -39,13 +39,13 @@ defmodule CloseTheLoop.Feedback.ReportIntakeTest do
         actor: nil
       )
 
-    assert report1.issue_id != report2.issue_id
+    # Issue assignment is done asynchronously (OpenAI-backed). Intake saves the reports
+    # immediately and queues background resolution.
+    assert is_nil(report1.issue_id)
+    assert is_nil(report2.issue_id)
 
-    {:ok, issue1} = Ash.get(Issue, report1.issue_id, load: [:reporter_count], tenant: tenant)
-    {:ok, issue2} = Ash.get(Issue, report2.issue_id, load: [:reporter_count], tenant: tenant)
-
-    assert issue1.reporter_count == 1
-    assert issue2.reporter_count == 1
+    assert report1.ai_resolution_status == :pending
+    assert report2.ai_resolution_status == :pending
   end
 
   test "rejects invalid phone numbers when provided" do

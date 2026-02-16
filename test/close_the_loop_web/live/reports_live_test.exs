@@ -92,7 +92,7 @@ defmodule CloseTheLoopWeb.ReportsLiveTest do
     assert updated_report.location_id == location_b.id
   end
 
-  test "business can create a manual report (auto issue)", %{conn: conn} do
+  test "business can create a manual report (AI assignment pending)", %{conn: conn} do
     tenant = "public"
     email = unique_email("owner")
 
@@ -127,13 +127,16 @@ defmodule CloseTheLoopWeb.ReportsLiveTest do
     |> render_submit()
 
     {path, _flash} = assert_redirect(view)
-    assert path =~ ~r|/app/#{org.id}/issues/|
+    assert path =~ ~r|/app/#{org.id}/reports/|
 
-    issue_id = path |> String.split("/issues/") |> List.last()
-    {:ok, issue} = Ash.get(Issue, issue_id, tenant: tenant)
+    report_id = path |> String.split("/reports/") |> List.last()
+    {:ok, report} = Ash.get(Report, report_id, tenant: tenant)
 
-    assert issue.location_id == location.id
-    assert issue.description == body
+    assert report.location_id == location.id
+    assert report.source == :manual
+    assert report.body == body
+    assert report.ai_resolution_status == :pending
+    assert is_nil(report.issue_id)
 
     {:ok, reports} = Ash.read(Report, tenant: tenant)
     assert Enum.any?(reports, fn r -> r.source == :manual end)

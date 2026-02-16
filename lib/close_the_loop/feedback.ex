@@ -33,7 +33,9 @@ defmodule CloseTheLoop.Feedback do
 
       define :create_report, action: :create
       define :edit_report_details, action: :edit_details
+      define :assign_report_issue, action: :assign_issue
       define :reassign_report_issue, action: :reassign_issue
+      define :set_report_ai_resolution_failed, action: :set_ai_resolution_failed
     end
 
     resource CloseTheLoop.Feedback.IssueUpdate do

@@ -196,7 +196,7 @@ defmodule CloseTheLoopWeb.ReportsLive.New do
               <div class="lg:col-span-2">
                 <.separator text="Assign (optional)" class="my-2" />
                 <p class="text-sm text-foreground-soft">
-                  Leave this blank to create a new issue. We may merge duplicates automatically later.
+                  Leave this blank to let AI attach the report to an existing issue or create a new one.
                 </p>
 
                 <div class="mt-3">
@@ -319,10 +319,17 @@ defmodule CloseTheLoopWeb.ReportsLive.New do
 
     case AshPhoenix.Form.submit(socket.assigns.manual_form, params: params) do
       {:ok, %Report{} = report} ->
+        dest =
+          if report.issue_id do
+            ~p"/app/#{socket.assigns.current_org.id}/issues/#{report.issue_id}"
+          else
+            ~p"/app/#{socket.assigns.current_org.id}/reports/#{report.id}"
+          end
+
         {:noreply,
          socket
          |> put_flash(:info, "Report added.")
-         |> push_navigate(to: ~p"/app/#{socket.assigns.current_org.id}/issues/#{report.issue_id}")}
+         |> push_navigate(to: dest)}
 
       {:error, %Phoenix.HTML.Form{} = form} ->
         {:noreply, socket |> assign(:manual_form, form) |> assign(:error, nil)}
