@@ -45,8 +45,4197 @@ custom classes must fully style the input
 
 
 <!-- usage-rules-start -->
+<!-- fluxon-start -->
+## fluxon usage
+_Fluxon UI Components_
 
+# Fluxon UI Components Usage Rules
+
+This document provides a guide for Large Language Models (LLMs) on how to use Fluxon UI components. It covers component attributes, slots, and provides usage examples for different scenarios.
+
+## Accordion
+
+The Accordion component provides collapsible content sections with headers that toggle panel visibility.
+
+### Components
+- `accordion`: Main container that manages state and accessibility
+- `accordion_item`: Individual collapsible sections
+
+### Attributes
+
+#### accordion
+- `id` (string, optional): Unique identifier for the accordion container
+- `class` (any, optional): Additional CSS classes for the accordion container
+- `multiple` (boolean, default: false): Allow multiple items to be expanded simultaneously
+- `prevent_all_closed` (boolean, default: false): Prevent all items from being closed at once
+- `animation_duration` (integer, default: 300): Duration of expand/collapse animation in milliseconds
+- `rest`: Additional HTML attributes
+
+#### accordion_item
+- `id` (string, optional): Unique identifier for the accordion item
+- `class` (any, optional): Additional CSS classes for the accordion item container
+- `expanded` (boolean, default: false): Initial expanded state of the item
+- `icon` (boolean, default: true): Show/hide the chevron icon
+- `rest`: Additional HTML attributes
+
+### Slots
+
+#### accordion
+- `inner_block` (required): Contains one or more accordion_item components
+
+#### accordion_item
+- `header` (required): Always-visible clickable area that toggles the panel
+  - `class` (optional): Additional CSS classes for the header button
+- `panel` (required): Expandable content area
+  - `class` (optional): Additional CSS classes for the panel content
+
+### Usage Examples
+
+#### Basic Accordion
+```heex
+<.accordion>
+  <.accordion_item>
+    <:header>What is Fluxon?</:header>
+    <:panel>
+      Fluxon is a powerful UI component library for Phoenix LiveView applications.
+    </:panel>
+  </.accordion_item>
+
+  <.accordion_item>
+    <:header>How do I get started?</:header>
+    <:panel>
+      Add Fluxon to your dependencies and follow the installation guide.
+    </:panel>
+  </.accordion_item>
+</.accordion>
+```
+
+#### Multiple Sections and Rich Headers
+```heex
+<.accordion multiple>
+  <.accordion_item>
+    <:header class="flex items-center gap-3">
+      <.icon name="document" class="size-5 text-zinc-400" />
+      <div>
+        <h3 class="font-medium">Documentation</h3>
+        <p class="text-sm text-zinc-500">View the complete documentation</p>
+      </div>
+      <.badge class="ml-auto">New</.badge>
+    </:header>
+    <:panel>Detailed documentation content...</:panel>
+  </.accordion_item>
+</.accordion>
+```
+
+#### Custom Animation and No Icon
+```heex
+<.accordion animation_duration={500}>
+  <.accordion_item icon={false}>
+    <:header>Custom Header Without Chevron</:header>
+    <:panel>No chevron icon is shown for this item</:panel>
+  </.accordion_item>
+</.accordion>
+```
+
+## Alert
+
+The Alert component displays status messages, notifications, and interactive feedback with various visual styles and interactive elements.
+
+### Attributes
+- `id` (string, optional): Unique identifier for the alert element
+- `class` (any, optional): Additional CSS classes for the alert element
+- `title` (string, optional): Main heading text of the alert
+- `subtitle` (string, optional): Secondary text displayed alongside the title
+- `color` (string, default: "default"): Visual style color - "default", "primary", "danger", "success", "info", "warning"
+- `hide_icon` (boolean, default: false): Hide the alert's status icon
+- `hide_close` (boolean, default: false): Hide the alert's close button
+- `on_close` (JS, default: %JS{}): LiveView JS commands to execute when closed
+
+### Slots
+- `inner_block` (optional): Main content displayed in the alert body
+- `icon` (optional): Custom icon to replace the default status icon
+
+### Usage Examples
+
+#### Basic Alert with Colors
+```heex
+<.alert>Simple alert message</.alert>
+
+<.alert color="info" title="Update Available">
+  A new version of the application is ready to install.
+</.alert>
+
+<.alert color="success" title="Order Confirmed">
+  Your order has been successfully processed.
+</.alert>
+
+<.alert color="warning" title="Session Expiring">
+  Your session will expire in 5 minutes.
+</.alert>
+
+<.alert color="danger" title="Connection Lost">
+  Unable to connect to the server.
+</.alert>
+```
+
+#### Alert with Actions
+```heex
+<.alert
+  color="warning"
+  title="Unsaved Changes"
+  on_close={JS.push("dismiss_warning")}>
+  You have unsaved changes that will be lost.
+
+  <div class="mt-4 flex space-x-2">
+    <.button size="xs">Save Changes</.button>
+    <.button size="xs" color="ghost">Discard</.button>
+  </div>
+</.alert>
+```
+
+#### Non-dismissible and Custom Icon
+```heex
+<.alert hide_close>
+  This alert cannot be dismissed
+</.alert>
+
+<.alert>
+  <:icon>
+    <.icon name="hero-bell" class="size-5" />
+  </:icon>
+  Custom notification icon
+</.alert>
+```
+
+## Autocomplete
+
+The Autocomplete component provides a text input that filters a list of options as the user types, with keyboard navigation and accessibility features. It supports both client-side and server-side search capabilities.
+
+### Attributes
+- `id` (any, optional): Unique identifier for the autocomplete component
+- `name` (any): Form name for the autocomplete (required when not using `field`)
+- `field` (Phoenix.HTML.FormField, optional): Form field to bind to
+- `class` (any, optional): Additional CSS classes for the field wrapper element
+- `label` (string, optional): Primary label for the autocomplete
+- `sublabel` (string, optional): Additional context displayed beside the main label
+- `help_text` (string, optional): Help text displayed below the autocomplete
+- `description` (string, optional): Description displayed below the label
+- `placeholder` (string, optional): Text to display when input is empty
+- `autofocus` (boolean, default: false): Whether input should have autofocus
+- `disabled` (boolean, default: false): Disable the autocomplete component
+- `size` (string, default: "md"): Size variant - "xs", "sm", "md", "lg", "xl"
+- `search_threshold` (integer, default: 0): Minimum characters before showing suggestions
+- `no_results_text` (string, default: "No results found for \"%{query}\"."): Text for no results
+- `on_search` (string, optional): LiveView event name for server-side search
+- `debounce` (integer, default: 200): Debounce time in milliseconds for server-side searches
+- `search_mode` (string, default: "contains"): Search mode - "contains", "starts-with", "exact"
+- `open_on_focus` (boolean, default: false): Open listbox when input is focused
+- `value` (any, optional): Current selected value
+- `errors` (list, default: []): List of error messages
+- `options` (list, required): List of options in various formats
+- `clearable` (boolean, default: false): Show clear button to remove selection
+- `rest`: Additional HTML attributes
+
+### Slots
+- `inner_prefix` (optional): Content inside input field before text
+- `outer_prefix` (optional): Content outside and before input field
+- `inner_suffix` (optional): Content inside input field after text
+- `outer_suffix` (optional): Content outside and after input field
+- `option` (optional): Custom option rendering slot
+- `empty_state` (optional): Custom empty state rendering
+- `header` (optional): Custom header content for listbox
+- `footer` (optional): Custom footer content for listbox
+
+### Usage Examples
+
+#### Basic and Form Integration
+```heex
+<.autocomplete
+  name="country"
+  options={[{"United States", "us"}, {"Canada", "ca"}]}
+  placeholder="Search countries..."
+/>
+
+<.form :let={f} for={@changeset} phx-change="validate" phx-submit="save">
+  <.autocomplete
+    field={f[:user_id]}
+    label="Assigned To"
+    options={@users}
+  />
+</.form>
+```
+
+#### Different Option Formats
+```heex
+<!-- List of strings -->
+<.autocomplete
+  name="fruits"
+  options={["Apple", "Banana", "Cherry"]}
+  placeholder="Search fruits..."
+/>
+
+<!-- Grouped options -->
+<.autocomplete
+  name="products"
+  options={[
+    {"Fruits", [{"Apple", "apple"}, {"Banana", "banana"}]},
+    {"Vegetables", [{"Carrot", "carrot"}, {"Broccoli", "broccoli"}]}
+  ]}
+  placeholder="Search products..."
+/>
+```
+
+#### Size Variants and Labels
+```heex
+<.autocomplete name="sm" size="sm" placeholder="Small" options={@options} />
+<.autocomplete name="lg" size="lg" placeholder="Large" options={@options} />
+
+<.autocomplete
+  name="language"
+  label="Programming Language"
+  sublabel="Required"
+  description="Choose the web framework for your project"
+  help_text="Choose from our supported platforms"
+  placeholder="Select your favorite..."
+  options={["Elixir", "Phoenix", "LiveView"]}
+/>
+```
+
+#### Affixes and Search Features
+```heex
+<!-- With icon prefix -->
+<.autocomplete name="user_search" options={@users} placeholder="Search users...">
+  <:inner_prefix>
+    <.icon name="hero-magnifying-glass" class="size-4" />
+  </:inner_prefix>
+</.autocomplete>
+
+<!-- Server-side search -->
+<.autocomplete
+  name="movie"
+  options={@movies}
+  on_search="search_movies"
+  search_threshold={2}
+  clearable
+  placeholder="Type to search movies..."
+/>
+```
+
+#### Custom Option Rendering
+```heex
+<.autocomplete
+  name="users"
+  placeholder="Search team members..."
+  options={[{"John Doe", "john"}, {"Jane Smith", "jane"}]}
+>
+  <:option :let={{label, value}}>
+    <div class="flex items-center gap-3">
+      <div class="size-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white text-sm font-bold">
+        {String.first(label)}
+      </div>
+      <div>
+        <div class="font-medium text-sm">{label}</div>
+        <div class="text-xs text-zinc-500">@{value}</div>
+      </div>
+    </div>
+  </:option>
+</.autocomplete>
+```
+
+## Badge
+
+The Badge component provides versatile visual markers for status indicators, categories, and notification counts with semantic colors, size variants, and visual styles.
+
+### Attributes
+- `class` (any, optional): Additional CSS classes for the badge element
+- `color` (string, default: "primary"): Semantic color - "primary", "info", "success", "warning", "danger"
+- `size` (string, default: "md"): Size variant - "xs", "sm", "md", "lg", "xl"
+- `variant` (string, default: "surface"): Visual style - "solid", "soft", "surface", "outline", "dashed", "ghost"
+- `rest`: Additional HTML attributes
+
+### Slots
+- `inner_block` (required): Content displayed within the badge (text, icons, or both)
+
+### Usage Examples
+
+#### Colors and Variants
+```heex
+<.badge>Default Badge</.badge>
+<.badge color="success">Active</.badge>
+<.badge color="danger" size="lg">Error</.badge>
+<.badge variant="ghost" color="info">Draft</.badge>
+
+<.badge variant="solid" color="success">High Emphasis</.badge>
+<.badge variant="soft" color="info">Medium Emphasis</.badge>
+<.badge variant="outline" color="primary">Outline</.badge>
+```
+
+#### Size Variants
+```heex
+<.badge size="xs">Extra Small</.badge>
+<.badge size="sm">Small</.badge>
+<.badge size="lg">Large</.badge>
+```
+
+#### With Icons and Interactive
+```heex
+<.badge color="success">
+  <.icon name="hero-check-circle" class="icon" /> Verified
+</.badge>
+
+<!-- Toggle selection state -->
+<.badge
+  color={if @selected, do: "primary", else: "info"}
+  variant={if @selected, do: "solid", else: "dashed"}
+  phx-click="toggle_selection"
+  class="cursor-pointer"
+>
+  <.icon :if={@selected} name="hero-check" class="icon" />
+  Category
+</.badge>
+```
+
+## Button
+
+The Button component provides consistent, accessible, and visually appealing interactive elements for actions and navigation. It automatically renders either a `<button>` or `<a>` tag based on provided attributes.
+
+### Components
+- `button`: Interactive button/link element
+- `button_group`: Container to group multiple buttons visually
+
+### Attributes
+
+#### button
+- `color` (string, default: "primary"): Semantic color - "primary", "danger", "warning", "success", "info"
+- `size` (string, default: "md"): Size variant - "xs", "sm", "md", "lg", "xl", "icon-xs", "icon-sm", "icon-md", "icon", "icon-lg", "icon-xl"
+- `variant` (string, default: "outline"): Visual style - "solid", "soft", "surface", "outline", "dashed", "ghost"
+- `disabled` (boolean, default: false): Whether the button is disabled
+- `class` (any, optional): Additional CSS classes for the button
+- `rest`: Additional HTML attributes (supports both button and anchor attributes)
+
+#### button_group
+- `class` (any, optional): Additional CSS classes for the group container
+- `rest`: Additional HTML attributes for the group container
+
+### Slots
+
+#### button
+- `inner_block` (required): Content displayed within the button (text, icons, etc.)
+
+#### button_group
+- `inner_block` (required): Buttons to be grouped together
+
+### Usage Examples
+
+#### Basic Buttons and Variants
+```heex
+<.button>Outline Button (Default)</.button>
+<.button variant="solid" color="primary">Solid Button</.button>
+<.button variant="soft" color="primary">Soft Button</.button>
+<.button variant="ghost">Ghost Button</.button>
+```
+
+#### Colors and Sizes
+```heex
+<.button color="primary" variant="solid">Primary</.button>
+<.button color="danger" variant="soft">Danger</.button>
+<.button color="success" variant="surface">Success</.button>
+
+<.button size="xs">Extra Small</.button>
+<.button size="lg">Large</.button>
+<.button size="xl">Extra Large</.button>
+```
+
+#### Icon Buttons
+```heex
+<.button size="icon-sm">
+  <.icon name="hero-pencil" class="icon" />
+</.button>
+
+<.button size="icon" variant="solid" color="primary">
+  <.icon name="hero-magnifying-glass" class="icon" />
+</.button>
+
+<.button size="lg" variant="solid" color="success">
+  <.icon name="hero-check-circle" class="icon" /> Order Confirmed
+</.button>
+```
+
+#### Automatic Link Rendering
+```heex
+<!-- Renders as <a> tag -->
+<.button navigate={~p"/dashboard"} variant="solid" color="primary">
+  Go to Dashboard
+</.button>
+
+<.button href="https://example.com" target="_blank" variant="soft">
+  External Link
+</.button>
+```
+
+#### Interactive Examples
+```heex
+<!-- Danger Action -->
+<.button variant="solid" color="danger" phx-click="delete_item" phx-value-id={@item.id} phx-confirm="Are you sure?">
+  <.icon name="hero-trash" class="icon" />
+  Delete Item
+</.button>
+
+<!-- Icon-Only with ARIA label -->
+<.button size="icon" variant="ghost" phx-click="show-details" phx-value-id={@user.id} aria-label="View user details">
+  <.icon name="hero-eye" class="icon" />
+</.button>
+```
+
+#### Button Group
+```heex
+<.button_group>
+  <.button>Year</.button>
+  <.button>Month</.button>
+  <.button>Week</.button>
+</.button_group>
+```
+
+## Checkbox
+
+The Checkbox component provides versatile checkbox inputs for capturing single and multiple selections. It offers both standard and card variants with comprehensive form integration and accessibility features.
+
+### Components
+- `checkbox`: Single checkbox input for boolean or single-value selections
+- `checkbox_group`: Container for multiple related checkbox selections
+
+### Attributes
+
+#### checkbox
+- `id` (any, optional): Unique identifier for the checkbox
+- `name` (any): Form name for the checkbox (required when not using `field`)
+- `checked` (boolean, optional): Whether the checkbox is checked
+- `value` (any, optional): Value associated with the checkbox
+- `errors` (list, default: []): List of error messages
+- `label` (string, optional): Primary label for the checkbox
+- `sublabel` (string, optional): Additional context beside the main label
+- `description` (string, optional): Detailed description below the label
+- `class` (any, optional): Additional CSS classes for the checkbox
+- `field` (Phoenix.HTML.FormField, optional): Form field to bind to
+- `variant` (string, optional): Visual variant - `nil` (default), `"card"`
+- `control` (string, optional): Position of checkbox in card variant - "left", "right"
+- `rest`: Additional HTML attributes
+
+#### checkbox_group
+- `id` (any, optional): Unique identifier for the checkbox group
+- `name` (string): Form name for the checkbox group (required when not using `field`)
+- `value` (any, optional): Current value(s) of the checkbox group (list of selected values)
+- `label` (string, optional): Primary label for the checkbox group
+- `sublabel` (string, optional): Additional context beside the main label
+- `description` (string, optional): Detailed description of the checkbox group
+- `errors` (list, default: []): List of error messages
+- `class` (any, optional): Additional CSS classes for the group container
+- `field` (Phoenix.HTML.FormField, optional): Form field to bind to
+- `disabled` (boolean, default: false): Disable all checkboxes in the group
+- `variant` (string, optional): Visual variant - `nil` (default), `"card"`
+- `control` (string, optional): Position of checkbox in card variant - "left", "right"
+- `rest`: Additional HTML attributes
+
+### Slots
+
+#### checkbox
+- `inner_block` (optional): Custom content for the checkbox (replaces standard label structure in card variants)
+
+#### checkbox_group
+- `checkbox` (required): Individual checkboxes within the group
+
+### Usage Examples
+
+#### Basic Checkbox and Form Integration
+```heex
+<.checkbox
+  name="terms"
+  label="I agree to the terms and conditions"
+  value="accepted"
+/>
+
+<.form :let={f} for={@form} phx-change="validate" phx-submit="save">
+  <.checkbox
+    field={f[:marketing_emails]}
+    label="Marketing emails"
+    sublabel="Receive updates about new features and promotions"
+  />
+</.form>
+```
+
+#### Card Variant
+```heex
+<.checkbox
+  control="left"
+  field={f[:notifications]}
+  variant="card"
+  label="Push Notifications"
+  sublabel="Stay informed"
+  description="Get real-time updates for messages and activity"
+  value="enabled"
+/>
+```
+
+#### Checkbox Group
+```heex
+<.checkbox_group
+  name="preferences"
+  label="Notification Preferences"
+  description="Choose when you want to receive notifications"
+>
+  <:checkbox value="email" label="Email notifications" />
+  <:checkbox value="push" label="Push notifications" />
+  <:checkbox value="sms" label="SMS notifications" />
+</.checkbox_group>
+
+<.form :let={f} for={@form} phx-change="validate" phx-submit="save">
+  <.checkbox_group
+    field={f[:notification_preferences]}
+    label="Notification Preferences"
+    description="Choose how you want to be notified"
+  >
+    <:checkbox value="email" label="Email" sublabel="Get notified via email" />
+    <:checkbox value="push" label="Push" sublabel="Receive push notifications" />
+  </.checkbox_group>
+</.form>
+```
+
+#### Custom Card Content
+```heex
+<.checkbox variant="card" name="feature" value="advanced">
+  <div class="flex items-center gap-3">
+    <div class="p-2 rounded bg-blue-100">
+      <.icon name="hero-star" class="size-5 text-blue-600" />
+    </div>
+    <div>
+      <h3 class="font-medium">Advanced Features</h3>
+      <p class="text-sm text-gray-600">Access premium functionality</p>
+    </div>
+  </div>
+</.checkbox>
+```
+
+## DatePicker
+
+The DatePicker component provides calendar-based date selection with support for single dates, multiple dates, date ranges, and time selection. It includes configurable sizing and affix slots for UI customization.
+
+### Components
+- `date_picker`: Single date selection with optional multiple date support
+- `date_time_picker`: Date and time selection
+- `date_range_picker`: Date range selection with start and end dates
+
+### Attributes
+
+#### date_picker
+- `id` (any, optional): Unique identifier for the date picker
+- `name` (any): Form name for the date picker (required when not using `field`)
+- `field` (Phoenix.HTML.FormField, optional): Form field to bind to
+- `value` (any, optional): Current selected value
+- `multiple` (boolean, default: false): Allow selecting multiple dates
+- `label` (string, optional): Primary label for the date picker
+- `sublabel` (string, optional): Additional context beside the main label
+- `description` (string, optional): Detailed description below the label
+- `help_text` (string, optional): Help text displayed below the component
+- `placeholder` (string, optional): Text to display when no date is selected
+- `size` (string, default: "md"): Size variant - "xs", "sm", "md", "lg", "xl"
+- `min` (Date/string, optional): Minimum selectable date
+- `max` (Date/string, optional): Maximum selectable date
+- `disabled` (boolean, default: false): Disable the date picker
+- `errors` (list, default: []): List of error messages
+- `display_format` (string, default: "%b %-d, %Y"): Format for displaying selected dates
+- `week_start` (integer, default: 0): Day of week to start calendar (0=Sunday, 1=Monday, etc.)
+- `rest`: Additional HTML attributes
+
+#### date_time_picker
+- All attributes from `date_picker` plus:
+- `time_format` (string, default: "24"): Time format - "12" (12-hour) or "24" (24-hour)
+
+#### date_range_picker
+- `id` (any, optional): Unique identifier for the date range picker
+- `start_name` (string): Form name for the start date (required when not using fields)
+- `end_name` (string): Form name for the end date (required when not using fields)
+- `start_field` (Phoenix.HTML.FormField, optional): Start date form field to bind to
+- `end_field` (Phoenix.HTML.FormField, optional): End date form field to bind to
+- `start_value` (any, optional): Current start date value
+- `end_value` (any, optional): Current end date value
+- Plus other shared attributes
+
+### Slots (All Components)
+- `inner_prefix` (optional): Content inside the field border, before the date display
+- `outer_prefix` (optional): Content outside and before the field
+- `inner_suffix` (optional): Content inside the field border, after the date display
+- `outer_suffix` (optional): Content outside and after the field
+
+### Usage Examples
+
+#### Basic Date Pickers
+```heex
+<.date_picker
+  name="appointment"
+  label="Appointment Date"
+  placeholder="Select a date"
+/>
+
+<.date_time_picker
+  name="meeting"
+  label="Meeting Time"
+  time_format="12"
+  placeholder="Select date and time"
+/>
+
+<.date_range_picker
+  start_name="check_in"
+  end_name="check_out"
+  label="Stay Period"
+  placeholder="Select date range"
+/>
+```
+
+#### Size Variants and Labels
+```heex
+<.date_picker name="sm" size="sm" label="Small Date" placeholder="Small" />
+<.date_picker name="lg" size="lg" label="Large Date" placeholder="Large" />
+
+<.date_picker
+  name="event_date"
+  label="Event Date"
+  sublabel="Required"
+  description="Choose when your event will take place"
+  help_text="Events can be scheduled up to 6 months in advance"
+  placeholder="Select event date"
+/>
+```
+
+#### Date Constraints and Multiple Selection
+```heex
+<!-- Future dates only -->
+<.date_picker
+  name="appointment"
+  label="Appointment Date"
+  min={Date.utc_today()}
+  max={Date.add(Date.utc_today(), 60)}
+  placeholder="Select your appointment date"
+/>
+
+<.date_picker
+  name="available_dates"
+  label="Available Dates"
+  multiple
+  placeholder="Select multiple dates"
+/>
+```
+
+#### Form Integration with Affixes
+```heex
+<.form :let={f} for={@changeset} phx-change="validate" phx-submit="save">
+  <.date_picker
+    field={f[:appointment_date]}
+    label="Appointment Date"
+    placeholder="Choose date"
+  />
+
+  <.date_range_picker
+    start_field={f[:start_date]}
+    end_field={f[:end_date]}
+    label="Date Range"
+    placeholder="Choose date range"
+  />
+</.form>
+
+<!-- With calendar icon -->
+<.date_picker name="appointment" label="Appointment Date" placeholder="Select date">
+  <:inner_prefix>
+    <.icon name="hero-calendar-days" class="icon" />
+  </:inner_prefix>
+</.date_picker>
+```
+
+## Dropdown
+
+The Dropdown component provides a comprehensive system for creating accessible, interactive menus and selection interfaces with proper keyboard navigation and focus management.
+
+### Components
+- `dropdown`: Main dropdown container
+- `dropdown_link`: Link menu item for navigation
+- `dropdown_button`: Button menu item for actions
+- `dropdown_header`: Section header for organizing menu items
+- `dropdown_separator`: Visual separator between menu sections
+- `dropdown_custom`: Custom content container for rich menu items
+
+### Attributes
+
+#### dropdown
+- `id` (string, optional): Unique identifier for the dropdown component
+- `label` (string, default: "Menu"): Text label for the default toggle button
+- `class` (any, optional): Additional CSS classes for the dropdown container
+- `placement` (string, default: "bottom-start"): Menu position relative to toggle
+- `open_on_hover` (boolean, default: false): Enable hover-based opening
+- `hover_open_delay` (integer, default: 100): Delay before opening on hover (ms)
+- `hover_close_delay` (integer, default: 300): Delay before closing when leaving hover (ms)
+- `rest`: Additional HTML attributes
+
+#### Other dropdown components
+- `class` (any, optional): Additional CSS classes for the element
+- `rest`: Additional HTML attributes
+
+### Slots
+
+#### dropdown
+- `toggle` (optional): Custom toggle element to replace the default button
+- `inner_block` (required): Menu items and content
+
+#### All other dropdown components
+- `inner_block` (required): Content for the menu item/element
+
+### Usage Examples
+
+#### Basic Dropdown
+```heex
+<.dropdown>
+  <.dropdown_link navigate={~p"/profile"}>Profile</.dropdown_link>
+  <.dropdown_link navigate={~p"/settings"}>Settings</.dropdown_link>
+  <.dropdown_separator />
+  <.dropdown_link href={~p"/logout"} method="delete">Sign Out</.dropdown_link>
+</.dropdown>
+```
+
+#### Custom Toggle and Rich Content
+```heex
+<.dropdown>
+  <:toggle>
+    <button class="flex items-center gap-x-2 bg-zinc-200/50 rounded-lg p-2">
+      <img src={~p"/images/human-avatar-01.png"} alt="User" class="size-6 rounded-lg" />
+      <div class="text-sm text-gray-800 font-semibold">John Doe</div>
+      <.icon name="hero-chevron-down" class="size-4" />
+    </button>
+  </:toggle>
+  <.dropdown_button>Profile</.dropdown_button>
+  <.dropdown_button>Settings</.dropdown_button>
+</.dropdown>
+
+<.dropdown class="w-64">
+  <.dropdown_custom class="flex items-center p-2">
+    <img src="https://i.pravatar.cc/150?u=1" alt="Avatar" class="size-9 rounded-full" />
+    <div class="flex flex-col ml-3">
+      <span class="text-sm font-medium">Emma Johnson</span>
+      <span class="text-xs text-zinc-500">emma@acme.com</span>
+    </div>
+  </.dropdown_custom>
+
+  <.dropdown_separator />
+
+  <.dropdown_header>Account</.dropdown_header>
+  <.dropdown_link navigate={~p"/profile"}>Profile</.dropdown_link>
+  <.dropdown_link navigate={~p"/billing"}>Billing</.dropdown_link>
+</.dropdown>
+```
+
+#### Hover Interaction and Button Actions
+```heex
+<.dropdown open_on_hover hover_open_delay={200} hover_close_delay={300}>
+  <.dropdown_link navigate={~p"/profile"}>Profile</.dropdown_link>
+  <.dropdown_link navigate={~p"/settings"}>Settings</.dropdown_link>
+</.dropdown>
+
+<.dropdown>
+  <.dropdown_button phx-click="export_data">Export Data</.dropdown_button>
+  <.dropdown_button phx-click="import_data">Import Data</.dropdown_button>
+  <.dropdown_separator />
+  <.dropdown_button phx-click="delete_all" phx-confirm="Are you sure?">
+    Delete All
+  </.dropdown_button>
+</.dropdown>
+```
+
+## Input
+
+The Input component provides versatile text input fields with support for various types, sizes, form integration, and customizable prefix/suffix content both inside and outside the input field.
+
+### Components
+- `input`: Main text input component
+- `input_group`: Container for visually grouping multiple related inputs
+
+### Attributes
+
+#### input
+- `id` (any, optional): HTML id attribute for the input element
+- `name` (any): Form name for the input (required when not using `field`)
+- `field` (Phoenix.HTML.FormField, optional): Form field to bind to
+- `value` (any, optional): Current input value
+- `type` (string, default: "text"): HTML input type
+- `label` (string, optional): Primary label for the input
+- `sublabel` (string, optional): Additional context beside the main label
+- `description` (string, optional): Detailed description below the label
+- `help_text` (string, optional): Help text displayed below the input
+- `placeholder` (string, optional): Placeholder text
+- `size` (string, default: "md"): Size variant - "xs", "sm", "md", "lg", "xl"
+- `disabled` (boolean, default: false): Disable the input
+- `readonly` (boolean, optional): Make input readonly
+- `errors` (list, default: []): List of error messages
+- `class` (any, optional): Additional CSS classes
+- `rest`: Additional HTML attributes
+
+#### input_group
+- `class` (any, optional): Additional CSS classes for the group container
+- `label` (string, optional): Primary label for the input group
+- `sublabel` (string, optional): Additional context beside the main label
+- `description` (string, optional): Detailed description of the input group
+- `help_text` (string, optional): Help text displayed below the group
+- `rest`: Additional HTML attributes
+
+### Slots
+
+#### input
+- `inner_prefix` (optional): Content inside the input border, before the text
+- `outer_prefix` (optional): Content outside and before the input field
+- `inner_suffix` (optional): Content inside the input border, after the text
+- `outer_suffix` (optional): Content outside and after the input field
+
+#### input_group
+- `inner_block` (required): Input elements and controls to be grouped
+
+### Usage Examples
+
+#### Basic Input and Size Variants
+```heex
+<.input name="username" label="Username" placeholder="Enter username..." />
+<.input name="password" type="password" label="Password" />
+<.input name="email" type="email" label="Email" />
+
+<.input name="input_sm" size="sm" placeholder="Small" />
+<.input name="input_lg" size="lg" placeholder="Large" />
+<.input name="input_xl" size="xl" placeholder="Extra Large" />
+```
+
+#### Complete Labeling and Form Integration
+```heex
+<.input
+  name="full_example"
+  label="Email Address"
+  sublabel="(required)"
+  description="We'll send a confirmation link here."
+  help_text="We never share your email."
+  placeholder="you@example.com"
+/>
+
+<.form :let={f} for={@form}>
+  <.input field={f[:email]} type="email" label="Email" />
+  <.input field={f[:password]} type="password" label="Password" />
+</.form>
+```
+
+#### Input States and Types
+```heex
+<!-- Disabled and readonly -->
+<.input name="disabled_input" value="Cannot change" disabled />
+<.input name="readonly_input" value="Readonly value" readonly />
+
+<!-- Different types -->
+<.input type="date" name="date_input" label="Appointment Date" />
+<.input type="number" name="count" label="Quantity" min="1" max="10" />
+<.input type="search" name="site_search" placeholder="Search site..." />
+```
+
+#### Inner Affixes
+```heex
+<!-- Email with icon -->
+<.input name="email_icon" placeholder="user@example.com">
+  <:inner_prefix>
+    <.icon name="hero-at-symbol" class="icon" />
+  </:inner_prefix>
+</.input>
+
+<!-- Password with visibility toggle -->
+<.input name="password_toggle" type="password" value="secretpassword">
+  <:inner_suffix>
+    <.button variant="ghost" size="icon-sm" title="Show password">
+      <.icon name="hero-eye" class="icon" />
+    </button>
+  </:inner_suffix>
+</.input>
+
+<!-- URL with static prefix -->
+<.input name="url_prefix" placeholder="yourdomain.com">
+  <:inner_prefix class="pointer-events-none text-zinc-500">https://www.</:inner_prefix>
+</.input>
+```
+
+#### Outer Affixes
+```heex
+<!-- With send button -->
+<.input name="invite_user" placeholder="user@example.com">
+  <:inner_prefix>
+    <.icon name="hero-at-symbol" class="icon" />
+  </:inner_prefix>
+  <:outer_suffix>
+    <.button variant="solid" color="primary">
+      <.icon name="hero-paper-airplane" class="icon" /> Invite
+    </button>
+  </:outer_suffix>
+</.input>
+
+<!-- Currency input with prefix and suffix -->
+<.input name="website_url" placeholder="mysite">
+  <:outer_prefix class="px-2 text-zinc-500">https://</:outer_prefix>
+  <:outer_suffix class="px-2 text-zinc-500">.example.com</:outer_suffix>
+</.input>
+```
+
+#### Input Groups
+```heex
+<!-- Name inputs -->
+<.input_group label="Full Name">
+  <.input name="first_name" placeholder="First Name" />
+  <.input name="last_name" placeholder="Last Name" />
+</.input_group>
+
+<!-- Price range with separator -->
+<.input_group label="Price Range">
+  <.input name="min_price" placeholder="Min price">
+    <:inner_prefix>$</:inner_prefix>
+  </.input>
+  <div class="shrink-0 bg-gray-100 border-y border-gray-200 shadow-sm self-stretch flex items-center justify-center px-2 text-gray-500">
+    to
+  </div>
+  <.input name="max_price" placeholder="Max price">
+    <:inner_prefix>$</:inner_prefix>
+  </.input>
+</.input_group>
+```
+
+## Loading
+
+The Loading component provides versatile animated loading indicators for displaying loading states with multiple animation styles and customization options.
+
+### Attributes
+- `class` (any, optional): Additional CSS classes for customizing size and color (default: size-5, text-zinc-600)
+- `duration` (integer, default: 600): Duration of one complete animation cycle in milliseconds
+- `variant` (string, default: "ring"): Animation style - "ring", "ring-bg", "dots-bounce", "dots-fade", "dots-scale"
+- `rest`: Additional HTML attributes
+
+### Usage Examples
+
+#### Animation Variants
+```heex
+<.loading />
+<.loading variant="ring-bg" />
+<.loading variant="dots-bounce" />
+<.loading variant="dots-fade" />
+<.loading variant="dots-scale" />
+```
+
+#### Size and Color Variations
+```heex
+<.loading class="size-4" />
+<.loading class="size-8" />
+<.loading class="size-12" />
+
+<.loading class="text-blue-500" />
+<.loading class="text-green-500" />
+<.loading class="text-red-500" />
+```
+
+#### Button Loading States
+```heex
+<.button disabled>
+  <.loading class="size-4" /> Loading...
+</.button>
+
+<.button variant="solid" color="primary" disabled>
+  <.loading class="size-4 text-white" /> Processing
+</.button>
+```
+
+#### Page and Section Loading
+```heex
+<!-- Full page loading -->
+<div class="flex items-center justify-center min-h-[400px]">
+  <.loading class="size-8" />
+</div>
+
+<!-- Loading overlay -->
+<div class="relative">
+  <div class="absolute inset-0 flex items-center justify-center bg-white/80 rounded">
+    <.loading class="size-6" />
+  </div>
+  <!-- Content being loaded -->
+</div>
+
+<!-- Inline loading -->
+<p>Processing your request <.loading class="size-4 inline" variant="dots-bounce" /></p>
+```
+
+## Modal
+
+The Modal component provides a powerful and accessible modal overlay for displaying focused content with LiveView integration, supporting both client-side and server-side control.
+
+### Attributes
+- `id` (string, required): Unique identifier for the modal component
+- `open` (boolean, default: false): Whether the modal is initially open
+- `on_close` (JS, optional): JavaScript commands to execute when the modal closes
+- `on_open` (JS, optional): JavaScript commands to execute when the modal opens
+- `class` (any, optional): Additional CSS classes for the modal content container
+- `container_class` (any, optional): CSS classes for the outer modal container
+- `close_on_esc` (boolean, default: true): Whether pressing ESC closes the modal
+- `close_on_outside_click` (boolean, default: true): Whether clicking outside closes the modal
+- `prevent_closing` (boolean, default: false): Prevent all client-side closing behaviors
+- `hide_close_button` (boolean, default: false): Hide the default close button
+- `animation` (string, default: "transition duration-300 ease-out"): Animation classes
+- `animation_enter` (string, default: "opacity-100 scale-100"): Enter animation classes
+- `animation_leave` (string, default: "opacity-0 scale-95"): Leave animation classes
+- `backdrop_class` (string, optional): Custom classes for the modal backdrop
+- `placement` (string, default: "center"): Modal positioning on screen
+- `rest`: Additional HTML attributes
+
+### Slots
+- `inner_block` (required): Content displayed within the modal
+
+### Usage Examples
+
+#### Basic Modal
+```heex
+<.button phx-click={Fluxon.open_dialog("basic-modal")}>Open Modal</.button>
+
+<.modal id="basic-modal">
+  <div class="p-6">
+    <h2 class="text-lg font-semibold mb-4">Modal Title</h2>
+    <p>This is the modal content.</p>
+
+    <div class="flex gap-2 mt-6">
+      <.button phx-click={Fluxon.close_dialog("basic-modal")}>Close</.button>
+    </div>
+  </div>
+</.modal>
+```
+
+#### Server-Side Control
+```heex
+<.button phx-click="show_modal">Open Server Modal</.button>
+
+<.modal id="server-modal" open={@show_modal} on_close={JS.push("hide_modal")}>
+  <div class="p-6">
+    <h2 class="text-lg font-semibold">Server Controlled Modal</h2>
+    <p>This modal is controlled by server state.</p>
+    <.button phx-click="hide_modal" class="mt-4">Close</.button>
+  </div>
+</.modal>
+
+<!-- Server-only control -->
+<.modal id="secure-modal" open={@show_secure_modal} prevent_closing>
+  <div class="p-6">
+    <h2 class="text-lg font-semibold text-red-600">Critical Operation</h2>
+    <p>This modal can only be closed through server commands.</p>
+    <.button phx-click="hide_secure_modal" color="danger" class="mt-4">
+      Complete Action
+    </.button>
+  </div>
+</.modal>
+```
+
+#### Custom Styling and Form Modal
+```heex
+<!-- Large modal -->
+<.modal
+  id="large-modal"
+  class="w-full max-w-4xl max-h-[80vh] overflow-auto"
+  container_class="p-4"
+>
+  <div class="p-8">
+    <h2 class="text-2xl font-bold mb-6">Large Modal</h2>
+    <p>This modal has custom sizing and scrolling behavior.</p>
+  </div>
+</.modal>
+
+<!-- Form modal -->
+<.modal id="form-modal" on_close={JS.push("reset_form")}>
+  <div class="p-6">
+    <h2 class="text-lg font-semibold mb-4">Create User</h2>
+
+    <.form :let={f} for={@changeset} phx-change="validate" phx-submit="create_user">
+      <.input field={f[:name]} label="Full Name" />
+      <.input field={f[:email]} type="email" label="Email" />
+
+      <div class="flex gap-2 mt-6">
+        <.button type="submit" disabled={!@changeset.valid?}>
+          Create User
+        </.button>
+        <.button
+          type="button"
+          variant="outline"
+          phx-click={Fluxon.close_dialog("form-modal")}
+        >
+          Cancel
+        </.button>
+      </div>
+    </.form>
+  </div>
+</.modal>
+```
+
+#### Confirmation Modal
+```heex
+<.modal id="confirm-delete" class="w-96">
+  <div class="p-6 text-center">
+    <div class="w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
+      <.icon name="hero-exclamation-triangle" class="size-6 text-red-600" />
+    </div>
+
+    <h2 class="text-lg font-semibold mb-2">Delete Item</h2>
+    <p class="text-gray-600 mb-6">
+      Are you sure you want to delete this item? This action cannot be undone.
+    </p>
+
+    <div class="flex gap-2 justify-center">
+      <.button
+        color="danger"
+        phx-click="confirm_delete"
+        phx-value-id={@delete_item_id}
+      >
+        Delete
+      </.button>
+      <.button
+        variant="outline"
+        phx-click={Fluxon.close_dialog("confirm-delete")}
+      >
+        Cancel
+      </.button>
+    </div>
+  </div>
+</.modal>
+```
+
+## Navlist
+
+The Navlist component provides a comprehensive navigation system for building structured, accessible navigation menus with support for sections, headings, and interactive links.
+
+### Components
+- `navlist`: Main navigation container that provides structure and spacing
+- `navheading`: Optional section headers for organizing navigation groups
+- `navlink`: Interactive navigation items with LiveView integration
+
+### Attributes
+
+#### navlist
+- `heading` (string, optional): Primary heading for the navigation section
+- `class` (any, optional): Additional CSS classes for the navigation container
+- `rest`: Additional HTML attributes for the nav container
+
+#### navheading
+- `class` (any, optional): Additional CSS classes for the heading element
+- `rest`: Additional HTML attributes
+
+#### navlink
+- `class` (any, optional): Additional CSS classes for the navigation link
+- `active` (boolean, default: false): Whether this navigation item is currently active
+- `rest`: Additional HTML attributes (supports navigation attributes like `navigate`, `patch`, `href`, etc.)
+
+### Slots
+
+#### navlist
+- `inner_block` (required): Navigation items and headings
+
+#### navheading
+- `inner_block` (required): Heading content
+
+#### navlink
+- `inner_block` (required): Link content (text, icons, badges, etc.)
+
+### Usage Examples
+
+#### Basic Navigation
+```heex
+<.navlist heading="Main Navigation">
+  <.navlink navigate={~p"/dashboard"} active>
+    <.icon name="hero-home" class="size-5" /> Dashboard
+  </.navlink>
+  <.navlink navigate={~p"/projects"}>
+    <.icon name="hero-folder" class="size-5" /> Projects
+  </.navlink>
+  <.navlink navigate={~p"/settings"}>
+    <.icon name="hero-cog-6-tooth" class="size-5" /> Settings
+  </.navlink>
+</.navlist>
+```
+
+#### Multiple Sections
+```heex
+<.navlist heading="Main">
+  <.navlink navigate={~p"/dashboard"} active>
+    <.icon name="hero-home" class="size-5" /> Dashboard
+  </.navlink>
+  <.navlink navigate={~p"/projects"}>
+    <.icon name="hero-folder" class="size-5" /> Projects
+  </.navlink>
+</.navlist>
+
+<.navlist heading="Settings">
+  <.navlink navigate={~p"/profile"}>
+    <.icon name="hero-user" class="size-5" /> Profile
+  </.navlink>
+  <.navlink navigate={~p"/preferences"}>
+    <.icon name="hero-cog-6-tooth" class="size-5" /> Preferences
+  </.navlink>
+</.navlist>
+```
+
+#### Navigation with Badges
+```heex
+<.navlist heading="Inbox">
+  <.navlink navigate={~p"/inbox/unread"}>
+    <.icon name="hero-envelope" class="size-5" />
+    Unread
+    <.badge variant="solid" color="danger" class="ml-auto">23</.badge>
+  </.navlink>
+
+  <.navlink navigate={~p"/inbox/starred"}>
+    <.icon name="hero-star" class="size-5" />
+    Starred
+    <.badge variant="soft" color="warning" class="ml-auto">5</.badge>
+  </.navlink>
+</.navlist>
+```
+
+#### External Links and Actions
+```heex
+<.navlist heading="Resources">
+  <.navlink href="https://docs.example.com" target="_blank">
+    <.icon name="hero-document-text" class="size-5" />
+    Documentation
+    <.icon name="hero-arrow-top-right-on-square" class="size-4 ml-auto text-gray-400" />
+  </.navlink>
+</.navlist>
+
+<.navlist heading="Actions">
+  <.navlink phx-click="export_data">
+    <.icon name="hero-arrow-down-tray" class="size-5" />
+    Export Data
+  </.navlink>
+
+  <.navlink phx-click="refresh_data">
+    <.icon name="hero-arrow-path" class="size-5" />
+    Refresh
+  </.navlink>
+</.navlist>
+```
+
+## Popover
+
+A powerful and accessible popover component that displays floating content anchored to a trigger element.
+
+### Attributes
+- `id` (string, default: auto-generated): Optional unique identifier for the popover
+- `target` (string, default: nil): CSS selector of an external element to use as positioning reference
+- `class` (any, default: nil): Additional CSS classes for the popover content container
+- `open_on_hover` (boolean, default: false): Opens popover on hover for tooltip-like behavior
+- `open_on_focus` (boolean, default: false): Opens popover when trigger receives focus
+- `placement` (string, default: "top"): Popover position - "top", "top-start", "top-end", "right", "right-start", "right-end", "left", "left-start", "left-end", "bottom", "bottom-start", "bottom-end"
+
+### Slots
+- `inner_block`: The trigger element that will open the popover (optional when using target)
+- `content` (required): The content to display in the popover
+
+### Usage Examples
+
+#### Basic Tooltip
+```heex
+<.popover open_on_hover>
+  <.icon name="hero-information-circle" class="text-zinc-400" />
+
+  <:content>
+    <p class="text-sm">The invoice will be generated at the end of the month.</p>
+  </:content>
+</.popover>
+```
+
+#### Interactive Menu and Form Help
+```heex
+<.popover placement="bottom-end" class="w-64">
+  <.button variant="ghost">
+    <.icon name="hero-cog-6-tooth" /> Settings
+  </.button>
+
+  <:content>
+    <div class="space-y-4">
+      <div class="flex items-center justify-between">
+        <span class="text-sm font-medium">Dark Mode</span>
+        <.switch name="dark_mode" checked />
+      </div>
+      <.button size="sm" class="w-full">
+        Reset Preferences
+      </.button>
+    </div>
+  </:content>
+</.popover>
+
+<.input name="api-key" label="API Key" value="sk_test_..." class="font-mono">
+  <:inner_suffix>
+    <.popover open_on_hover placement="right">
+      <.icon name="hero-question-mark-circle" class="text-zinc-400" />
+
+      <:content>
+        <div class="max-w-xs space-y-2">
+          <p class="text-sm font-medium">About API Keys</p>
+          <p class="text-sm text-zinc-600">
+            Your API key is used to authenticate requests. Keep it secure.
+          </p>
+        </div>
+      </:content>
+    </.popover>
+  </:inner_suffix>
+</.input>
+```
+
+#### Search Suggestions
+```heex
+<.popover open_on_focus placement="bottom-start" class="w-80">
+  <.input type="search" placeholder="Search users..." phx-debounce="300" />
+
+  <:content>
+    <div :if={@loading} class="p-4 flex justify-center">
+      <.loading />
+    </div>
+    <div :for={user <- @users} class="p-2 hover:bg-zinc-50 cursor-pointer">
+      <div class="font-medium">{user.name}</div>
+      <div class="text-sm text-zinc-600">{user.email}</div>
+    </div>
+  </:content>
+</.popover>
+```
+
+## Radio
+
+A versatile radio component for building single-selection interfaces with rich styling options.
+
+### Attributes
+- `id` (any, default: nil): The unique identifier for the radio group
+- `name` (string, required when not using field): The form name for the radio group
+- `value` (any): The current selected value of the radio group
+- `label` (string, default: nil): The primary label for the radio group
+- `sublabel` (string, default: nil): Additional context displayed beside the main label
+- `description` (string, default: nil): Detailed description below the label
+- `errors` (list, default: []): List of error messages
+- `class` (any, default: nil): Additional CSS classes for the radio group container
+- `field` (Phoenix.HTML.FormField): The form field to bind to
+- `disabled` (boolean, default: false): Disables all radio buttons in the group
+- `variant` (string, default: nil): Visual variant - nil (default) or "card"
+- `control` (string): Controls radio position in card variants - "left" or "right"
+- `rest` (global): Additional attributes
+
+### Slots
+- `radio` (required): Defines individual radio buttons with attributes: `value`, `label`, `sublabel`, `description`, `disabled`, `class`, `checked`
+
+### Usage Examples
+
+#### Basic Radio Group
+```heex
+<.radio_group name="system" value="debian" label="Operating System">
+  <:radio value="ubuntu" label="Ubuntu" />
+  <:radio value="debian" label="Debian" />
+  <:radio value="fedora" label="Fedora" />
+</.radio_group>
+```
+
+#### With Context and Form Integration
+```heex
+<.radio_group
+  name="system"
+  label="Operating System"
+  sublabel="Choose your preferred OS"
+  description="Select the operating system that best suits your needs"
+>
+  <:radio
+    value="ubuntu"
+    label="Ubuntu"
+    sublabel="Popular and user-friendly"
+    description="Ubuntu is a Debian-based Linux operating system"
+  />
+  <:radio
+    value="debian"
+    label="Debian"
+    sublabel="Stable and reliable"
+    description="Debian is composed of free and open-source software"
+  />
+</.radio_group>
+
+<.form :let={f} for={@form} phx-change="validate" phx-submit="save">
+  <.radio_group
+    field={f[:subscription]}
+    label="Subscription Plan"
+    description="Choose your preferred subscription plan"
+  >
+    <:radio value="basic" label="Basic Plan" sublabel="$10/month" />
+    <:radio value="pro" label="Pro Plan" sublabel="$20/month" />
+    <:radio value="enterprise" label="Enterprise Plan" sublabel="$50/month" />
+  </.radio_group>
+</.form>
+```
+
+#### Card Variant
+```heex
+<.radio_group
+  name="plan"
+  label="Choose a plan"
+  description="Choose the plan that best suits your needs."
+  variant="card"
+  control="left"
+  class="gap-0"
+>
+  <:radio value="basic" label="Basic" sublabel="Perfect for small projects" class="rounded-none -my-px rounded-t-lg" />
+  <:radio value="pro" label="Professional" checked sublabel="Most popular for growing teams" class="rounded-none -my-px" />
+  <:radio value="business" label="Business" sublabel="Advanced features for larger teams" class="rounded-none -my-px rounded-b-lg" />
+</.radio_group>
+
+<.radio_group name="category" label="Category" variant="card" class="grid grid-cols-3">
+  <:radio value="web-design" class="flex-1 group has-checked:border-blue-500 has-checked:bg-blue-50">
+    <div class="flex flex-col justify-center items-center w-full gap-2">
+      <.icon name="hero-computer-desktop" class="size-6 text-zinc-500 group-has-checked:text-blue-500" />
+      <span class="font-medium text-sm group-has-checked:text-zinc-800">Web Design</span>
+    </div>
+  </:radio>
+  <:radio value="ui-ux" class="flex-1 group has-checked:border-blue-500 has-checked:bg-blue-50">
+    <div class="flex flex-col justify-center items-center w-full gap-2">
+      <.icon name="hero-pencil" class="size-6 text-zinc-500 group-has-checked:text-blue-500" />
+      <span class="font-medium text-sm group-has-checked:text-zinc-800">UI/UX Design</span>
+    </div>
+  </:radio>
+</.radio_group>
+```
+
+## Select
+
+A select component that implements a modern, accessible selection interface with support for single and multiple selections.
+
+### Attributes
+- `id` (any, default: nil): The unique identifier for the select component
+- `name` (any, required when not using field): The form name for the select
+- `field` (Phoenix.HTML.FormField): The form field to bind to
+- `native` (boolean, default: false): Renders a native HTML select element instead of custom select
+- `class` (any, default: nil): Additional CSS classes for the select component
+- `label` (string, default: nil): The primary label for the select
+- `sublabel` (string, default: nil): Additional context beside the main label
+- `help_text` (string, default: nil): Help text displayed below the select
+- `description` (string, default: nil): Description below the label but above select
+- `placeholder` (string, default: nil): Text displayed when no option is selected
+- `searchable` (boolean, default: false): Adds search input to filter options (custom select only)
+- `disabled` (boolean, default: false): Disables the select component
+- `size` (string, default: "md"): Controls select size - "xs", "sm", "md", "lg", "xl"
+- `search_input_placeholder` (string, default: "Search..."): Placeholder for search input
+- `search_no_results_text` (string, default: "No results found for %{query}."): No results text
+- `search_threshold` (integer, default: 0): Minimum characters before filtering
+- `debounce` (integer, default: 300): Debounce time for server searches
+- `on_search` (string, default: nil): LiveView event name for server searches
+- `multiple` (boolean, default: false): Allows selecting multiple options (not with native)
+- `value` (any): Current selected value(s)
+- `errors` (list, default: []): List of error messages
+- `options` (list, required): List of options for the select
+- `max` (integer, default: nil): Maximum selections when multiple
+- `clearable` (boolean, default: false): Shows clear button
+- `rest` (global): Additional attributes
+
+### Slots
+- `option`: Optional slot for custom option rendering
+- `toggle`: Optional slot for custom toggle rendering
+- `header`: Optional slot for custom header content
+- `footer`: Optional slot for custom footer content
+- `inner_prefix`: Content inside select field before value display
+- `outer_prefix`: Content outside and before select field
+- `inner_suffix`: Content inside select field after value display
+- `outer_suffix`: Content outside and after select field
+
+### Usage Examples
+
+#### Basic and Full-featured Select
+```heex
+<.select
+  name="country"
+  options={[{"United States", "US"}, {"Canada", "CA"}]}
+/>
+
+<.select
+  name="payment_method"
+  label="Payment Method"
+  sublabel="Select payment type"
+  description="Choose your preferred payment method"
+  help_text="We securely process all payment information"
+  placeholder="Select payment method"
+  options={[
+    {"Credit Card", "credit_card"},
+    {"PayPal", "paypal"},
+    {"Bank Transfer", "bank_transfer"}
+  ]}
+/>
+```
+
+#### Native, Searchable and Multiple
+```heex
+<.select
+  name="country"
+  native
+  options={[{"United States", "US"}, {"Canada", "CA"}]}
+/>
+
+<.select
+  name="country"
+  searchable
+  search_input_placeholder="Search for a country"
+  search_no_results_text="No countries found for %{query}"
+  options={@countries}
+/>
+
+<.select
+  name="countries"
+  multiple
+  max={3}
+  clearable
+  options={[{"United States", "US"},{"Canada", "CA"},{"Mexico", "MX"}]}
+/>
+```
+
+#### Form Integration and Affixes
+```heex
+<.form :let={f} for={@changeset} phx-change="validate" phx-submit="save">
+  <.select
+    field={f[:country]}
+    label="Country"
+    options={@countries}
+  />
+</.form>
+
+<.select name="category" options={@categories} placeholder="Select category">
+  <:inner_prefix>
+    <.icon name="hero-folder" class="icon" />
+  </:inner_prefix>
+  <:outer_suffix>
+    <.button size="md">Apply</.button>
+  </:outer_suffix>
+</.select>
+```
+
+#### Custom Option Rendering
+```heex
+<.select
+  name="role"
+  placeholder="Select role"
+  options={[{"Admin", "admin"}, {"Editor", "editor"}, {"Viewer", "viewer"}]}
+>
+  <:option :let={{label, value}}>
+    <div class="flex items-center justify-between rounded-lg py-2 px-3">
+      <div>
+        <div class="font-medium text-sm">{label}</div>
+        <div class="text-zinc-500 text-xs">
+          {case value do
+            "admin" -> "Full access to all features"
+            "editor" -> "Can create and modify content"
+            "viewer" -> "Read-only access to content"
+          end}
+        </div>
+      </div>
+      <.icon :if={value == "admin"} name="hero-shield-check" class="size-4 text-blue-500" />
+    </div>
+  </:option>
+</.select>
+```
+
+## Separator
+
+A versatile separator component for creating visual boundaries between content sections.
+
+### Attributes
+- `text` (string, default: nil): Optional text to display in the center of the separator
+- `vertical` (boolean, default: false): Renders a vertical separator instead of horizontal
+- `class` (any, default: nil): Additional CSS classes
+
+### Usage Examples
+
+#### Basic Separators
+```heex
+<div class="py-2">Content above</div>
+<.separator />
+<div class="py-2">Content below</div>
+
+<div class="flex h-8 items-center gap-4">
+  <span>Left</span>
+  <.separator vertical />
+  <span>Right</span>
+</div>
+
+<.separator text="or" />
+<.separator text="Section" class="my-6" />
+```
+
+#### Form and Navigation Usage
+```heex
+<form class="space-y-4">
+  <.input name="email" type="email" placeholder="Email" />
+  <.input name="password" type="password" placeholder="Password" />
+  <.button type="submit" class="w-full">Sign In</.button>
+
+  <.separator text="or" />
+
+  <.button type="button" variant="outline" class="w-full">
+    Sign in with Google
+  </.button>
+</form>
+
+<div class="flex items-center gap-4">
+  <span>Profile</span>
+  <.separator vertical />
+  <span>Settings</span>
+  <.separator vertical />
+  <span>Logout</span>
+</div>
+```
+
+## Sheet
+
+A powerful and accessible sheet component that provides a sliding panel interface for displaying content from screen edges.
+
+### Attributes
+- `id` (string, required): The unique identifier for the sheet component
+- `open` (boolean, default: false): Whether the sheet is initially open
+- `on_close` (JS, default: %JS{}): JavaScript commands to execute when sheet closes
+- `on_open` (JS, default: %JS{}): JavaScript commands to execute when sheet opens
+- `class` (any, default: ""): Additional CSS classes for sheet content container
+- `close_on_esc` (boolean, default: true): Whether to close sheet when Escape is pressed
+- `close_on_outside_click` (boolean, default: true): Whether to close when clicking outside
+- `prevent_closing` (boolean, default: false): Prevents sheet from being closed through standard interactions
+- `hide_close_button` (boolean, default: false): Whether to hide the close button
+- `animation` (string, default: "transition duration-200 ease-in-out"): Base animation classes
+- `animation_enter` (string): Classes applied when sheet enters (auto-set based on placement)
+- `animation_leave` (string): Classes applied when sheet leaves (auto-set based on placement)
+- `backdrop_class` (string, default: ""): Additional CSS classes for backdrop overlay
+- `placement` (string, default: "left"): Edge the sheet slides from - "left", "right", "top", "bottom"
+
+### Slots
+- `inner_block` (required): The content of the sheet
+
+### Usage Examples
+
+#### Basic Client-Side Control
+```heex
+<.button phx-click={Fluxon.open_dialog("filters-sheet")}>Filters</.button>
+
+<.sheet id="filters-sheet">
+  <h3 class="text-lg font-semibold mb-4">Filters</h3>
+
+  <div class="space-y-4">
+    <!-- Filter content -->
+  </div>
+
+  <.button phx-click={Fluxon.close_dialog("filters-sheet")}>Apply</.button>
+</.sheet>
+```
+
+#### Server-Side Control
+```heex
+<.button phx-click="show-sheet">Open Filters</.button>
+
+<.sheet id="filters-sheet" open={@show_filters}>
+  <h3 class="text-lg font-semibold">Server-controlled Sheet</h3>
+</.sheet>
+
+<!-- With state sync -->
+<.sheet
+  id="filters-sheet"
+  open={@show_filters}
+  on_close={JS.push("hide_filters")}
+>
+  <h3 class="text-lg font-semibold">Filters with State Sync</h3>
+</.sheet>
+```
+
+#### Different Placements
+```heex
+<!-- Left drawer for navigation -->
+<.sheet id="nav-sheet" placement="left" class="w-80">
+  <nav class="space-y-2">
+    <.navlink href="/dashboard">Dashboard</.navlink>
+    <.navlink href="/projects">Projects</.navlink>
+  </nav>
+</.sheet>
+
+<!-- Right sheet for details -->
+<.sheet id="details-sheet" placement="right" class="w-96">
+  <h3 class="text-lg font-semibold">Details</h3>
+  <p>Detailed information goes here.</p>
+</.sheet>
+
+<!-- Bottom action sheet -->
+<.sheet id="actions-sheet" placement="bottom" class="h-96">
+  <div class="space-y-3">
+    <.button class="w-full">Share</.button>
+    <.button class="w-full">Copy Link</.button>
+    <.button class="w-full">Delete</.button>
+  </div>
+</.sheet>
+```
+
+#### Form in Sheet
+```heex
+<.sheet id="new-user-sheet" placement="right" class="w-96">
+  <.form for={@form} phx-submit="save_user">
+    <div class="space-y-4">
+      <header class="mb-4">
+        <h2 class="text-lg font-semibold">New User</h2>
+        <p class="text-sm text-zinc-600">Create a new user account.</p>
+      </header>
+
+      <.input field={@form[:name]} label="Name" />
+      <.input field={@form[:email]} type="email" label="Email" />
+
+      <div class="flex justify-end gap-3 mt-6">
+        <.button phx-click={Fluxon.close_dialog("new-user-sheet")}>
+          Cancel
+        </.button>
+        <.button type="submit" phx-disable-with="Creating...">
+          Create User
+        </.button>
+      </div>
+    </div>
+  </.form>
+</.sheet>
+```
+
+## Switch
+
+A toggle switch component for binary choices and settings with immediate effect.
+
+### Attributes
+- `id` (any, default: nil): The unique identifier for the switch
+- `name` (string, required when not using field): The form name for the switch
+- `class` (any, default: nil): Additional CSS classes for the switch wrapper
+- `checked` (boolean): Whether the switch is in the on position
+- `disabled` (boolean, default: false): Disables the switch
+- `value` (any): The value associated with the switch
+- `label` (string, default: nil): The primary label for the switch
+- `sublabel` (string, default: nil): Additional context beside the main label
+- `description` (string, default: nil): Detailed description below the label
+- `size` (string, default: "md"): Controls switch size - "sm", "md", "lg"
+- `color` (string, default: "primary"): Color theme when on - "primary", "danger", "success", "warning", "info"
+- `field` (Phoenix.HTML.FormField): The form field to bind to
+- `rest` (global): Additional attributes
+
+### Usage Examples
+
+#### Basic Switch and Size Variants
+```heex
+<.switch
+  name="notifications"
+  label="Enable Notifications"
+  checked={@settings.notifications}
+  phx-click="toggle_setting"
+  phx-value-setting="notifications"
+/>
+
+<.switch name="small_switch" label="Small Switch" size="sm" checked={@settings.compact_mode} />
+<.switch name="large_switch" label="Large Switch" size="lg" checked={@settings.important_setting} />
+```
+
+#### Labels and Context
+```heex
+<.switch name="simple" label="Enable Feature" checked={@feature_enabled} />
+
+<.switch
+  name="with_sublabel"
+  label="Auto Save"
+  sublabel="Recommended"
+  checked={@settings.auto_save}
+/>
+
+<.switch
+  name="comprehensive"
+  label="Advanced Analytics"
+  sublabel="Beta"
+  description="Share detailed usage patterns to help improve the product experience"
+  checked={@settings.analytics_enabled}
+/>
+```
+
+#### Color Variants and Form Integration
+```heex
+<.switch name="primary" label="Default Setting" color="primary" checked={@settings.default} />
+<.switch name="success" label="Enable Backup" color="success" checked={@settings.backup_enabled} />
+<.switch name="danger" label="Public Profile" color="danger" checked={@settings.public_profile} />
+
+<.form :let={f} for={@changeset} phx-change="validate" phx-submit="save">
+  <.switch
+    field={f[:notifications_enabled]}
+    label="Push Notifications"
+    sublabel="Real-time updates"
+    description="Receive notifications about important account activity"
+  />
+
+  <.switch
+    field={f[:email_marketing]}
+    label="Email Marketing"
+    sublabel="Optional"
+    description="Receive promotional emails about new features"
+  />
+</.form>
+```
+
+#### Disabled States
+```heex
+<.switch
+  name="disabled_off"
+  label="Unavailable Feature"
+  description="This feature is currently unavailable"
+  disabled
+  checked={false}
+/>
+
+<.switch
+  name="disabled_on"
+  label="Premium Feature"
+  sublabel="Upgrade required"
+  description="This feature requires a premium subscription"
+  disabled
+  checked={true}
+/>
+```
+
+## Table
+
+A comprehensive table system for displaying structured data with rich customization options.
+
+### Components
+- `table`: The main container providing structure and responsive behavior
+- `table_head`: Header section with column definitions
+- `table_body`: Content section containing rows of data
+- `table_row`: Individual data rows with cell content
+
+### Attributes
+- All components have `class` (optional) and `rest` attributes for customization
+
+### Slots
+
+#### table
+- `inner_block` (required): Usually contains table_head and table_body components
+
+#### table_head
+- `col` (required): Defines table columns rendered as th elements
+
+#### table_body
+- `inner_block` (required): Usually contains table_row components
+
+#### table_row
+- `cell` (required): Defines table cells with custom content and styling
+
+### Usage Examples
+
+#### Basic Table
+```heex
+<.table>
+  <.table_head>
+    <:col>Name</:col>
+    <:col>Status</:col>
+    <:col>Email</:col>
+  </.table_head>
+
+  <.table_body>
+    <.table_row>
+      <:cell>Alice Smith</:cell>
+      <:cell>New</:cell>
+      <:cell>alice@example.com</:cell>
+    </.table_row>
+    <.table_row>
+      <:cell>Bob Johnson</:cell>
+      <:cell>In Progress</:cell>
+      <:cell>bob@example.com</:cell>
+    </.table_row>
+  </.table_body>
+</.table>
+```
+
+#### Rich Content Table
+```heex
+<.table>
+  <.table_head>
+    <:col>Lead</:col>
+    <:col>Stage</:col>
+    <:col>Contact</:col>
+    <:col></:col>
+  </.table_head>
+  <.table_body>
+    <.table_row>
+      <:cell class="w-full flex items-center gap-2">
+        <img src="https://i.pravatar.cc/150?u=1" class="size-9 rounded-full" />
+        <div class="flex flex-col gap-0.5">
+          <span class="font-semibold">Sarah Johnson</span>
+          <span class="text-zinc-400 text-sm/3">Product Manager</span>
+        </div>
+      </:cell>
+      <:cell>
+        <.badge color="green">Active</.badge>
+      </:cell>
+      <:cell>sarah.j@example.com</:cell>
+      <:cell>
+        <.icon name="hero-ellipsis-horizontal" class="size-5" />
+      </:cell>
+    </.table_row>
+  </.table_body>
+</.table>
+```
+
+#### Sortable Columns and Clickable Rows
+```heex
+<.table>
+  <.table_head>
+    <:col phx-click="sort" phx-value-column="name">
+      <div class="flex items-center gap-1">
+        Lead <.icon name="hero-chevron-up-down" class="size-4 text-zinc-500" />
+      </div>
+    </:col>
+    <:col phx-click="sort" phx-value-column="stage">
+      <div class="flex items-center gap-1">
+        Stage <.icon name="hero-chevron-up-down" class="size-4 text-zinc-500" />
+      </div>
+    </:col>
+  </.table_head>
+  <.table_body>
+    <.table_row>
+      <:cell>John Smith</:cell>
+      <:cell>New Lead</:cell>
+    </.table_row>
+  </.table_body>
+</.table>
+
+<.table>
+  <.table_head>
+    <:col>Customer</:col>
+    <:col>Status</:col>
+    <:col>Last Order</:col>
+  </.table_head>
+
+  <.table_body>
+    <.table_row
+      :for={customer <- @customers}
+      class="cursor-pointer hover:bg-zinc-50"
+      phx-click="show_customer"
+      phx-value-id={customer.id}
+    >
+      <:cell>
+        <div class="flex items-center gap-2">
+          <img src={customer.avatar} class="size-8 rounded-full" />
+          <span class="font-medium">{customer.name}</span>
+        </div>
+      </:cell>
+      <:cell><.badge color="green">Active</.badge></:cell>
+      <:cell>{customer.last_order_date}</:cell>
+    </.table_row>
+  </.table_body>
+</.table>
+```
+
+#### Data Table with Actions
+```heex
+<.table>
+  <.table_head>
+    <:col>User</:col>
+    <:col>Role</:col>
+    <:col>Status</:col>
+    <:col>Actions</:col>
+  </.table_head>
+
+  <.table_body>
+    <.table_row :for={user <- @users}>
+      <:cell>
+        <div class="flex items-center gap-3">
+          <img src={user.avatar} class="size-10 rounded-full" />
+          <div>
+            <div class="font-medium">{user.name}</div>
+            <div class="text-sm text-zinc-500">{user.email}</div>
+          </div>
+        </div>
+      </:cell>
+      <:cell>
+        <span class="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700">
+          {user.role}
+        </span>
+      </:cell>
+      <:cell>
+        <.badge color={if user.active, do: "green", else: "red"}>
+          {if user.active, do: "Active", else: "Inactive"}
+        </.badge>
+      </:cell>
+      <:cell>
+        <div class="flex items-center gap-2">
+          <.button size="sm" variant="ghost" phx-click="edit_user" phx-value-id={user.id}>
+            Edit
+          </.button>
+          <.button size="sm" variant="ghost" color="danger" phx-click="delete_user" phx-value-id={user.id}>
+            Delete
+          </.button>
+        </div>
+      </:cell>
+    </.table_row>
+  </.table_body>
+</.table>
+```
+
+#### Empty State Table
+```heex
+<.table>
+  <.table_head>
+    <:col>Name</:col>
+    <:col>Email</:col>
+    <:col>Status</:col>
+  </.table_head>
+
+  <.table_body>
+    <.table_row :if={Enum.empty?(@users)}>
+      <:cell colspan="3" class="text-center py-12 text-zinc-500">
+        <div class="flex flex-col items-center gap-3">
+          <.icon name="hero-users" class="size-12 text-zinc-300" />
+          <div>
+            <p class="text-sm font-medium">No users found</p>
+            <p class="text-xs">Get started by creating your first user.</p>
+          </div>
+          <.button size="sm" phx-click="new_user">Add User</.button>
+        </div>
+      </:cell>
+    </.table_row>
+
+    <.table_row :for={user <- @users}>
+      <:cell>{user.name}</:cell>
+      <:cell>{user.email}</:cell>
+      <:cell>{user.status}</:cell>
+    </.table_row>
+  </.table_body>
+</.table>
+```
+
+## Tabs
+
+A tabs system for creating accessible, interactive tabbed interfaces with keyboard navigation support.
+
+### Components
+- `tabs`: The main container providing structure and JavaScript functionality
+- `tabs_list`: Navigation container holding the interactive tab buttons
+- `tabs_panel`: Content panels associated with each tab, displayed one at a time
+
+### Attributes
+
+#### tabs
+- `id` (string): A unique identifier for the tabs container
+- `class` (any, default: nil): Additional CSS classes for the tabs container
+- `rest` (global): Additional HTML attributes
+
+#### tabs_list
+- `class` (any, default: nil): Additional CSS classes for the tablist container
+- `active_tab` (string): The name of the tab that should be initially active
+- `variant` (string, default: "default"): The visual style variant - "default", "segmented", "ghost"
+- `size` (string, default: "md"): The size of the tabs container - "xs", "sm", "md"
+
+#### tabs_panel
+- `name` (string, required): The unique identifier for this panel
+- `class` (any, default: nil): Additional CSS classes for the panel element
+- `active` (boolean, default: false): Controls the visibility of the panel
+- `rest` (global): Additional HTML attributes
+
+### Slots
+
+#### tabs
+- `inner_block` (required): Typically contains one tabs_list and one or more tabs_panel components
+
+#### tabs_list
+- `tab` (required): Defines an individual interactive tab button with required name attribute
+- `inner_block` (required): Main content area containing the tab slots
+
+#### tabs_panel
+- `inner_block` (required): The content displayed when corresponding tab is active
+
+### Usage Examples
+
+#### Basic Static Tabs
+```heex
+<.tabs id="my-tabs">
+  <.tabs_list active_tab="settings">
+    <:tab name="profile">Profile</:tab>
+    <:tab name="settings">Settings</:tab>
+    <:tab name="notifications">Notifications</:tab>
+  </.tabs_list>
+
+  <.tabs_panel name="profile">
+    Profile content here...
+  </.tabs_panel>
+
+  <.tabs_panel name="settings" active>
+    Settings content here...
+  </.tabs_panel>
+
+  <.tabs_panel name="notifications">
+    Notifications content here...
+  </.tabs_panel>
+</.tabs>
+```
+
+#### Visual Variants and Sizes
+```heex
+<!-- Default underlined style -->
+<.tabs_list variant="default">
+  <:tab name="tab1">Default Tab</:tab>
+</.tabs_list>
+
+<!-- Segmented button-like style -->
+<.tabs_list variant="segmented">
+  <:tab name="tab1">Segmented Tab</:tab>
+</.tabs_list>
+
+<!-- Ghost style with subtle backgrounds -->
+<.tabs_list variant="ghost">
+  <:tab name="tab1">Ghost Tab</:tab>
+</.tabs_list>
+
+<!-- Size variants -->
+<.tabs_list size="xs">
+  <:tab name="tab1">Extra Small Tab</:tab>
+</.tabs_list>
+
+<.tabs_list size="sm">
+  <:tab name="tab1">Small Tab</:tab>
+</.tabs_list>
+```
+
+#### Rich Tab Content
+```heex
+<.tabs_list>
+  <:tab name="messages">
+    <.icon name="hero-envelope" class="icon" />
+    Messages
+    <.badge class="ml-2">3</.badge>
+  </:tab>
+
+  <:tab name="settings">
+    <.icon name="hero-cog-6-tooth" class="icon" />
+    Settings
+  </:tab>
+</.tabs_list>
+```
+
+#### LiveView Integration
+```heex
+<.tabs id="lv-sync-tabs">
+  <.tabs_list active_tab={@active_tab}>
+    <:tab name="profile" phx-click={JS.push("set_active_tab", value: %{tab: "profile"})}>
+      Profile
+    </:tab>
+    <:tab name="settings" phx-click={JS.push("set_active_tab", value: %{tab: "settings"})}>
+      Settings
+    </:tab>
+  </.tabs_list>
+
+  <.tabs_panel name="profile" active={@active_tab == "profile"}>
+    Profile content...
+  </.tabs_panel>
+  <.tabs_panel name="settings" active={@active_tab == "settings"}>
+    Settings content...
+  </.tabs_panel>
+</.tabs>
+```
+
+#### Complex Form Tabs
+```heex
+<.tabs id="user-form-tabs">
+  <.tabs_list active_tab={@active_tab} variant="segmented">
+    <:tab name="basic" phx-click={JS.push("set_tab", value: %{tab: "basic"})}>
+      <.icon name="hero-user" class="icon" />
+      Basic Info
+    </:tab>
+    <:tab name="contact" phx-click={JS.push("set_tab", value: %{tab: "contact"})}>
+      <.icon name="hero-envelope" class="icon" />
+      Contact
+    </:tab>
+  </.tabs_list>
+
+  <.tabs_panel name="basic" active={@active_tab == "basic"} class="space-y-4">
+    <.input field={@form[:name]} label="Full Name" />
+    <.input field={@form[:username]} label="Username" />
+  </.tabs_panel>
+
+  <.tabs_panel name="contact" active={@active_tab == "contact"} class="space-y-4">
+    <.input field={@form[:email]} type="email" label="Email" />
+    <.input field={@form[:phone]} label="Phone Number" />
+  </.tabs_panel>
+</.tabs>
+```
+
+## Textarea
+
+A versatile textarea component for capturing multi-line text input with form integration and size variants.
+
+### Attributes
+- `id` (string, default: nil): The unique identifier for the textarea
+- `field` (Phoenix.HTML.FormField): The form field to bind to
+- `class` (any, default: nil): Additional CSS classes for the textarea
+- `help_text` (string, default: nil): Optional help text displayed below the textarea
+- `label` (string, default: nil): The primary label for the textarea
+- `sublabel` (string, default: nil): Additional context beside the main label
+- `description` (string, default: nil): Detailed description below the label
+- `value` (string): The current value of the textarea
+- `errors` (list, default: []): List of error messages
+- `name` (string, required when not using field): The form name for the textarea
+- `rows` (integer, default: 3): The number of visible text lines
+- `disabled` (boolean, default: false): Disables the textarea
+- `size` (string, default: "md"): Controls textarea size - "sm", "md", "lg", "xl"
+- `rest` (global): Additional HTML attributes
+
+### Usage Examples
+
+#### Basic Textarea and Size Variants
+```heex
+<.textarea
+  name="description"
+  label="Description"
+  placeholder="Enter description..."
+/>
+
+<.textarea name="description" label="Small" size="sm" placeholder="A compact textarea" />
+<.textarea name="description" label="Large" size="lg" placeholder="Larger textarea" />
+<.textarea name="description" label="Extra Large" size="xl" placeholder="Maximum emphasis" />
+```
+
+#### With Labels and Form Integration
+```heex
+<.textarea
+  name="bio"
+  label="Biography"
+  help_text="Tell us about yourself"
+  rows={5}
+/>
+
+<.form :let={f} for={@form} phx-change="validate" phx-submit="save">
+  <.textarea
+    field={f[:description]}
+    label="Description"
+    help_text="Provide a detailed description of your project"
+  />
+</.form>
+
+<.form :let={f} for={@form} phx-change="validate">
+  <.textarea
+    field={f[:description]}
+    label="Project Description"
+    sublabel="Optional"
+    description="Provide details about your project's goals and scope"
+    help_text="Be specific and concise"
+    rows={6}
+  />
+</.form>
+```
+
+#### Custom Styling and States
+```heex
+<.textarea
+  name="notes"
+  label="Meeting Notes"
+  size="lg"
+  class="font-mono"
+  rows={10}
+/>
+
+<.textarea
+  name="readonly_field"
+  label="Read Only Field"
+  value="This content cannot be edited"
+  disabled
+/>
+
+<.textarea
+  name="content"
+  label="Article Content"
+  rows={15}
+  maxlength={5000}
+  placeholder="Write your article content here..."
+  spellcheck="true"
+/>
+```
+
+#### Rich Form Example
+```heex
+<.form :let={f} for={@form} phx-change="validate" phx-submit="save">
+  <div class="space-y-6">
+    <.textarea
+      field={f[:summary]}
+      label="Summary"
+      sublabel="Required"
+      rows={3}
+      maxlength={500}
+      help_text="Brief overview of the content"
+    />
+
+    <.textarea
+      field={f[:content]}
+      label="Full Content"
+      description="The main body of your article or post"
+      rows={12}
+      help_text="Use markdown formatting if needed"
+    />
+
+    <.textarea
+      field={f[:notes]}
+      label="Internal Notes"
+      sublabel="Optional"
+      size="sm"
+      rows={2}
+      help_text="Private notes for internal use"
+    />
+  </div>
+
+  <.button type="submit">Save Article</.button>
+</.form>
+```
+
+## Tooltip
+
+A lightweight and accessible tooltip component for displaying informative content on hover or focus.
+
+### Attributes
+- `id` (string, optional): Unique identifier for the tooltip
+- `value` (string, optional): Text content for simple tooltips
+- `class` (any, optional): Additional CSS classes for the tooltip container
+- `arrow` (boolean, default: true): Whether to show the pointing arrow indicator
+- `placement` (string, default: "top"): Tooltip position - "bottom", "left", "top", "right"
+- `delay` (integer, default: 0): Delay in milliseconds before showing tooltip
+
+### Slots
+- `inner_block` (required): The trigger element that shows tooltip on hover/focus
+- `content` (optional): Rich content slot for complex tooltip content
+
+### Usage Examples
+
+#### Basic and Rich Content
+```heex
+<.tooltip value="Opens in a new window">
+  <.button>Open</.button>
+</.tooltip>
+
+<.tooltip>
+  <.button>View details</.button>
+
+  <:content>
+    <div class="space-y-2">
+      <img src="/images/preview.png" class="rounded-lg w-full" />
+      <p class="text-sm">Preview of the document layout and structure.</p>
+    </div>
+  </:content>
+</.tooltip>
+```
+
+#### Different Placements and Icon Tooltips
+```heex
+<div class="flex gap-4">
+  <.tooltip value="Top placement" placement="top">
+    <.button>Top</.button>
+  </.tooltip>
+
+  <.tooltip value="Right placement" placement="right">
+    <.button>Right</.button>
+  </.tooltip>
+</div>
+
+<div class="flex gap-2">
+  <.tooltip value="Share">
+    <.button variant="ghost"><.icon name="hero-share" /></.button>
+  </.tooltip>
+
+  <.tooltip value="Add to favorites">
+    <.button variant="ghost"><.icon name="hero-star" /></.button>
+  </.tooltip>
+</div>
+```
+
+#### Form Field Help and Custom Styling
+```heex
+<div class="flex items-center gap-2">
+  <.input type="text" name="api_key" value="">
+    <:inner_suffix>
+      <.tooltip value="Your API key can be found in the developer settings">
+        <.icon name="hero-question-mark-circle" class="text-zinc-400" />
+      </.tooltip>
+    </:inner_suffix>
+  </.input>
+</div>
+
+<.tooltip
+  value="Draft saved"
+  class="bg-green-600 text-white"
+  arrow={false}
+>
+  <.badge>Draft</.badge>
+</.tooltip>
+
+<.tooltip value="Archived items are hidden from the main view" delay={300}>
+  <.icon name="hero-archive" class="text-zinc-400" />
+</.tooltip>
+```
+
+#### User Profile Preview
+```heex
+<.tooltip class="max-w-xs">
+  <.link navigate={"/users/#{@user.id}"}>
+    {@user.name}
+  </.link>
+
+  <:content>
+    <div class="space-y-1">
+      <p class="font-medium">{@user.name}</p>
+      <p class="text-sm text-zinc-300">{@user.title}</p>
+      <p class="text-sm text-zinc-300">{@user.department}</p>
+    </div>
+  </:content>
+</.tooltip>
+```
+
+<!-- fluxon-end -->
+<!-- ash-start -->
+## ash usage
+_A declarative, extensible framework for building Elixir applications._
+
+# Rules for working with Ash
+
+## Understanding Ash
+
+Ash is an opinionated, composable framework for building applications in Elixir. It provides a declarative approach to modeling your domain with resources at the center. Read documentation  *before* attempting to use its features. Do not assume that you have prior knowledge of the framework or its conventions.
+
+## Code Structure & Organization
+
+- Organize code around domains and resources
+- Each resource should be focused and well-named
+- Create domain-specific actions rather than generic CRUD operations
+- Put business logic inside actions rather than in external modules
+- Use resources to model your domain entities
+
+## Code Interfaces
+
+Use code interfaces on domains to define the contract for calling into Ash resources. See the [Code interface guide for more](https://hexdocs.pm/ash/code-interfaces.html).
+
+Define code interfaces on the domain, like this:
+
+```elixir
+resource ResourceName do
+  define :fun_name, action: :action_name
+end
+```
+
+For more complex interfaces with custom transformations:
+
+```elixir
+define :custom_action do
+  action :action_name
+  args [:arg1, :arg2]
+
+  custom_input :arg1, MyType do
+    transform do
+      to :target_field
+      using &MyModule.transform_function/1
+    end
+  end
+end
+```
+
+Prefer using the primary read action for "get" style code interfaces, and using `get_by` when the field you are looking up by is the primary key or has an `identity` on the resource.
+
+```elixir
+resource ResourceName do
+  define :get_thing, action: :read, get_by: [:id]
+end
+```
+
+**Avoid direct Ash calls in web modules** - Don't use `Ash.get!/2` and `Ash.load!/2` directly in LiveViews/Controllers, similar to avoiding `Repo.get/2` outside context modules:
+
+You can also pass additional inputs in to code interfaces before the options:
+
+```elixir
+resource ResourceName do
+  define :create, action: :action_name, args: [:field1]
+end
+```
+
+```elixir
+Domain.create!(field1_value, %{field2: field2_value}, actor: current_user)
+```
+
+You should generally prefer using this map of extra inputs over defining optional arguments.
+
+```elixir
+# BAD - in LiveView/Controller
+group = MyApp.Resource |> Ash.get!(id) |> Ash.load!(rel: [:nested])
+
+# GOOD - use code interface with get_by
+resource DashboardGroup do
+  define :get_dashboard_group_by_id, action: :read, get_by: [:id]
+end
+
+# Then call:
+MyApp.Domain.get_dashboard_group_by_id!(id, load: [rel: [:nested]])
+```
+
+**Code interface options** - Prefer passing options directly to code interface functions rather than building queries manually:
+
+```elixir
+# PREFERRED - Use the query option for filter, sort, limit, etc.
+# the query option is passed to `Ash.Query.build/2`
+posts = MyApp.Blog.list_posts!(
+  query: [
+    filter: [status: :published],
+    sort: [published_at: :desc],
+    limit: 10
+  ],
+  load: [author: :profile, comments: [:author]]
+)
+
+# All query-related options go in the query parameter
+users = MyApp.Accounts.list_users!(
+  query: [filter: [active: true], sort: [created_at: :desc]],
+  load: [:profile]
+)
+
+# AVOID - Verbose manual query building
+query = MyApp.Post |> Ash.Query.filter(...) |> Ash.Query.load(...)
+posts = Ash.read!(query)
+```
+
+Supported options: `load:`, `query:` (which accepts `filter:`, `sort:`, `limit:`, `offset:`, etc.), `page:`, `stream?:`
+
+**Using Scopes in LiveViews** - When using `Ash.Scope`, the scope will typically be assigned to `scope` in LiveViews and used like so:
+
+```elixir
+# In your LiveView
+MyApp.Blog.create_post!("new post", scope: socket.assigns.scope)
+```
+
+Inside action hooks and callbacks, use the provided `context` parameter as your scope instead:
+
+```elixir
+|> Ash.Changeset.before_transaction(fn changeset, context ->
+  MyApp.ExternalService.reserve_inventory(changeset, scope: context)
+  changeset
+end)
+```
+
+### Authorization Functions
+
+For each action defined in a code interface, Ash automatically generates corresponding authorization check functions:
+
+- `can_action_name?(actor, params \\ %{}, opts \\ [])` - Returns `true`/`false` for authorization checks
+- `can_action_name(actor, params \\ %{}, opts \\ [])` - Returns `{:ok, true/false}` or `{:error, reason}`
+
+Example usage:
+```elixir
+# Check if user can create a post
+if MyApp.Blog.can_create_post?(current_user) do
+  # Show create button
+end
+
+# Check if user can update a specific post
+if MyApp.Blog.can_update_post?(current_user, post) do
+  # Show edit button
+end
+
+# Check if user can destroy a specific comment
+if MyApp.Blog.can_destroy_comment?(current_user, comment) do
+  # Show delete button
+end
+```
+
+These functions are particularly useful for conditional rendering of UI elements based on user permissions.
+
+## Actions
+
+- Create specific, well-named actions rather than generic ones
+- Put all business logic inside action definitions
+- Use hooks like `Ash.Changeset.after_action/2`, `Ash.Changeset.before_action/2` to add additional logic
+  inside the same transaction.
+- Use hooks like `Ash.Changeset.after_transaction/2`, `Ash.Changeset.before_transaction/2` to add additional logic
+  outside the transaction.
+- Use action arguments for inputs that need validation
+- Use preparations to modify queries before execution
+- Preparations support `where` clauses for conditional execution
+- Use `only_when_valid?` to skip preparations when the query is invalid
+- Use changes to modify changesets before execution
+- Use validations to validate changesets before execution
+- Prefer domain code interfaces to call actions instead of directly building queries/changesets and calling functions in the `Ash` module
+- A resource could be *only generic actions*. This can be useful when you are using a resource only to model behavior.
+
+## Querying Data
+
+Use `Ash.Query` to build queries for reading data from your resources. The query module provides a declarative way to filter, sort, and load data.
+
+## Ash.Query.filter is a macro
+
+**Important**: You must `require Ash.Query` if you want to use `Ash.Query.filter/2`, as it is a macro.
+
+If you see errors like the following:
+
+```
+Ash.Query.filter(MyResource, id == ^id)
+error: misplaced operator ^id
+
+The pin operator ^ is supported only inside matches or inside custom macros...
+```
+
+```
+iex(3)> Ash.Query.filter(MyResource, something == true)
+error: undefined variable "something"
+└─ iex:3
+```
+
+You are very likely missing a `require Ash.Query`
+
+### Common Query Operations
+
+- **Filter**: `Ash.Query.filter(query, field == value)`
+- **Sort**: `Ash.Query.sort(query, field: :asc)`
+- **Load relationships**: `Ash.Query.load(query, [:author, :comments])`
+- **Limit**: `Ash.Query.limit(query, 10)`
+- **Offset**: `Ash.Query.offset(query, 20)`
+
+## Error Handling
+
+Functions to call actions, like `Ash.create` and code interfaces like `MyApp.Accounts.register_user` all return ok/error tuples. All have `!` variations, like `Ash.create!` and `MyApp.Accounts.register_user!`. Use the `!` variations when you want to "let it crash", like if looking something up that should definitely exist, or calling an action that should always succeed. Always prefer the raising `!` variation over something like `{:ok, user} = MyApp.Accounts.register_user(...)`.
+
+All Ash code returns errors in the form of `{:error, error_class}`. Ash categorizes errors into four main classes:
+
+1. **Forbidden** (`Ash.Error.Forbidden`) - Occurs when a user attempts an action they don't have permission to perform
+2. **Invalid** (`Ash.Error.Invalid`) - Occurs when input data doesn't meet validation requirements
+3. **Framework** (`Ash.Error.Framework`) - Occurs when there's an issue with how Ash is being used
+4. **Unknown** (`Ash.Error.Unknown`) - Occurs for unexpected errors that don't fit the other categories
+
+These error classes help you catch and handle errors at an appropriate level of granularity. An error class will always be the "worst" (highest in the above list) error class from above. Each error class can contain multiple underlying errors, accessible via the `errors` field on the exception.
+
+### Using Validations
+
+Validations ensure that data meets your business requirements before it gets processed by an action. Unlike changes, validations cannot modify the changeset - they can only validate it or add errors.
+
+Validations work on both changesets and queries. Built-in validations that support queries include:
+- `action_is`, `argument_does_not_equal`, `argument_equals`, `argument_in`
+- `compare`, `confirm`, `match`, `negate`, `one_of`, `present`, `string_length`
+- Custom validations that implement the `supports/1` callback
+
+Common validation patterns:
+
+```elixir
+# Built-in validations with custom messages
+validate compare(:age, greater_than_or_equal_to: 18) do
+  message "You must be at least 18 years old"
+end
+validate match(:email, "@")
+validate one_of(:status, [:active, :inactive, :pending])
+
+# Conditional validations with where clauses
+validate present(:phone_number) do
+  where present(:contact_method) and eq(:contact_method, "phone")
+end
+
+# only_when_valid? - skip validation if prior validations failed
+validate expensive_validation() do
+  only_when_valid? true
+end
+
+# Action-specific vs global validations
+actions do
+  create :sign_up do
+    validate present([:email, :password])  # Only for this action
+  end
+  
+  read :search do
+    argument :email, :string
+    validate match(:email, ~r/^[^\s]+@[^\s]+\.[^\s]+$/)  # Validates query arguments
+  end
+end
+
+validations do
+  validate present([:title, :body]), on: [:create, :update]  # Multiple actions
+end
+```
+
+- Create **custom validation modules** for complex validation logic:
+  ```elixir
+  defmodule MyApp.Validations.UniqueUsername do
+    use Ash.Resource.Validation
+
+    @impl true
+    def init(opts), do: {:ok, opts}
+
+    @impl true
+    def validate(changeset, _opts, _context) do
+      # Validation logic here
+      # Return :ok or {:error, message}
+    end
+  end
+
+  # Usage in resource:
+  validate {MyApp.Validations.UniqueUsername, []}
+  ```
+
+- Make validations **atomic** when possible to ensure they work correctly with direct database operations by implementing the `atomic/3` callback in custom validation modules.
+
+### Using Preparations
+
+Preparations modify queries before they're executed. They are used to add filters, sorts, or other query modifications based on the query context.
+
+Common preparation patterns:
+
+```elixir
+# Built-in preparations
+prepare build(sort: [created_at: :desc])
+prepare build(filter: [active: true])
+
+# Conditional preparations with where clauses
+prepare build(filter: [visible: true]) do
+  where argument_equals(:include_hidden, false)
+end
+
+# only_when_valid? - skip preparation if prior validations failed
+prepare expensive_preparation() do
+  only_when_valid? true
+end
+
+# Action-specific vs global preparations
+actions do
+  read :recent do
+    prepare build(sort: [created_at: :desc], limit: 10)
+  end
+end
+
+preparations do
+  prepare build(filter: [deleted: false]), on: [:read, :update]
+end
+```
+
+```elixir
+defmodule MyApp.Validations.IsEven do
+  # transform and validate opts
+
+  use Ash.Resource.Validation
+
+  @impl true
+  def init(opts) do
+    if is_atom(opts[:attribute]) do
+      {:ok, opts}
+    else
+      {:error, "attribute must be an atom!"}
+    end
+  end
+
+  @impl true
+  # This is optional, but useful to have in addition to validation
+  # so you get early feedback for validations that can otherwise
+  # only run in the datalayer
+  def validate(changeset, opts, _context) do
+    value = Ash.Changeset.get_attribute(changeset, opts[:attribute])
+
+    if is_nil(value) || (is_number(value) && rem(value, 2) == 0) do
+      :ok
+    else
+      {:error, field: opts[:attribute], message: "must be an even number"}
+    end
+  end
+
+  @impl true
+  def atomic(changeset, opts, context) do
+    {:atomic,
+      # the list of attributes that are involved in the validation
+      [opts[:attribute]],
+      # the condition that should cause the error
+      # here we refer to the new value or the current value
+      expr(rem(^atomic_ref(opts[:attribute]), 2) != 0),
+      # the error expression
+      expr(
+        error(^InvalidAttribute, %{
+          field: ^opts[:attribute],
+          # the value that caused the error
+          value: ^atomic_ref(opts[:attribute]),
+          # the message to display
+          message: ^(context.message || "%{field} must be an even number"),
+          vars: %{field: ^opts[:attribute]}
+        })
+      )
+    }
+  end
+end
+```
+
+- **Avoid redundant validations** - Don't add validations that duplicate attribute constraints:
+  ```elixir
+  # WRONG - redundant validation
+  attribute :name, :string do
+    allow_nil? false
+    constraints min_length: 1
+  end
+
+  validate present(:name) do  # Redundant! allow_nil? false already handles this
+    message "Name is required"
+  end
+
+  validate attribute_does_not_equal(:name, "") do  # Redundant! min_length: 1 already handles this
+    message "Name cannot be empty"
+  end
+
+  # CORRECT - let attribute constraints handle basic validation
+  attribute :name, :string do
+    allow_nil? false
+    constraints min_length: 1
+  end
+  ```
+
+### Using Changes
+
+Changes allow you to modify the changeset before it gets processed by an action. Unlike validations, changes can manipulate attribute values, add attributes, or perform other data transformations.
+
+Common change patterns:
+
+```elixir
+# Built-in changes with conditions
+change set_attribute(:status, "pending")
+change relate_actor(:creator) do
+  where present(:actor)
+end
+change atomic_update(:counter, expr(^counter + 1))
+
+# Action-specific vs global changes
+actions do
+  create :sign_up do
+    change set_attribute(:joined_at, expr(now()))  # Only for this action
+  end
+end
+
+changes do
+  change set_attribute(:updated_at, expr(now())), on: :update  # Multiple actions
+  change manage_relationship(:items, type: :append), on: [:create, :update]
+end
+```
+
+- Create **custom change modules** for reusable transformation logic:
+  ```elixir
+  defmodule MyApp.Changes.SlugifyTitle do
+    use Ash.Resource.Change
+
+    def change(changeset, _opts, _context) do
+      title = Ash.Changeset.get_attribute(changeset, :title)
+
+      if title do
+        slug = title |> String.downcase() |> String.replace(~r/[^a-z0-9]+/, "-")
+        Ash.Changeset.change_attribute(changeset, :slug, slug)
+      else
+        changeset
+      end
+    end
+  end
+
+  # Usage in resource:
+  change {MyApp.Changes.SlugifyTitle, []}
+  ```
+
+- Create a **change module with lifecycle hooks** to handle complex multi-step operations:
+
+```elixir
+defmodule MyApp.Changes.ProcessOrder do
+  use Ash.Resource.Change
+
+  def change(changeset, _opts, context) do
+    changeset
+    |> Ash.Changeset.before_transaction(fn changeset ->
+      # Runs before the transaction starts
+      # Use for external API calls, logging, etc.
+      MyApp.ExternalService.reserve_inventory(changeset, scope: context)
+      changeset
+    end)
+    |> Ash.Changeset.before_action(fn changeset ->
+      # Runs inside the transaction before the main action
+      # Use for related database changes in the same transaction
+      Ash.Changeset.change_attribute(changeset, :processed_at, DateTime.utc_now())
+    end)
+    |> Ash.Changeset.after_action(fn changeset, result ->
+      # Runs inside the transaction after the main action, only on success
+      # Use for related database changes that depend on the result
+      MyApp.Inventory.update_stock_levels(result, scope: context)
+      {changeset, result}
+    end)
+    |> Ash.Changeset.after_transaction(fn changeset,
+      {:ok, result} ->
+        # Runs after the transaction completes (success or failure)
+        # Use for notifications, external systems, etc.
+        MyApp.Mailer.send_order_confirmation(result, scope: context)
+        {changeset, result}
+
+      {:error, error} ->
+        # Runs after the transaction completes (success or failure)
+        # Use for notifications, external systems, etc.
+        MyApp.Mailer.send_order_issue_notice(result, scope: context)
+        {:error, error}
+    end)
+  end
+end
+
+# Usage in resource:
+change {MyApp.Changes.ProcessOrder, []}
+```
+
+### Atomic Changes
+
+Atomic changes execute directly in the database as part of the update query, without requiring the record to be loaded first. This provides better performance and correct behavior under concurrent updates.
+
+**Why atomic matters:**
+- Avoids race conditions (e.g., incrementing a counter)
+- Better performance (no round-trip to load the record)
+- Required for bulk operations to work efficiently
+
+**Built-in atomic changes:**
+```elixir
+# Increment a counter atomically
+change atomic_update(:view_count, expr(view_count + 1))
+
+# Set a value using an expression
+change set_attribute(:updated_at, expr(now()))
+```
+
+**Making custom changes atomic:**
+Implement the `atomic/3` callback to support atomic execution:
+
+```elixir
+defmodule MyApp.Changes.IncrementVersion do
+  use Ash.Resource.Change
+
+  @impl true
+  def change(changeset, _opts, _context) do
+    # Fallback for non-atomic execution
+    current = Ash.Changeset.get_attribute(changeset, :version) || 0
+    Ash.Changeset.change_attribute(changeset, :version, current + 1)
+  end
+
+  @impl true
+  def atomic(_changeset, _opts, _context) do
+    # Atomic implementation - runs in the database
+    {:atomic, %{version: expr(coalesce(version, 0) + 1)}}
+  end
+end
+```
+
+### Using `require_atomic? false`
+
+By default, update and destroy actions require all changes and validations to support atomic execution. If they don't, the action will raise an error.
+
+**IMPORTANT:** When you see `require_atomic? false` on an action, carefully consider whether it is truly necessary. This option should be used sparingly.
+
+**When `require_atomic? false` is needed:**
+- The action has `before_action` or `around_action` hooks that need to read or modify the record
+- A change reads the current record state (e.g., `Ash.Changeset.get_data/2`) and cannot be rewritten atomically
+- Complex validations that cannot be expressed as database expressions
+
+**When `require_atomic? false` is NOT needed:**
+- Simple attribute transformations (these can usually be made atomic)
+- Setting timestamps or default values (use `expr(now())` instead)
+- Incrementing counters (use `atomic_update/2`)
+- After-action hooks (these don't prevent atomic execution)
+- After-transaction hooks (these don't prevent atomic execution)
+
+```elixir
+actions do
+  update :update do
+    # AVOID unless truly necessary
+    require_atomic? false
+  end
+
+  update :increment_views do
+    # GOOD - fully atomic, no need to disable
+    change atomic_update(:view_count, expr(view_count + 1))
+  end
+end
+```
+
+If you find yourself adding `require_atomic? false`, first check if your changes and validations can be rewritten with `atomic/3` callbacks. Only disable atomic requirements when the action genuinely needs to read or manipulate the record in hooks.
+
+## Custom Modules vs. Anonymous Functions
+
+Prefer to put code in its own module and refer to that in changes, preparations, validations etc.
+
+For example, prefer this:
+
+```elixir
+defmodule MyApp.MyDomain.MyResource.Changes.SlugifyName do
+  use Ash.Resource.Change
+
+  def change(changeset, _, _) do
+    Ash.Changeset.before_action(changeset, fn changeset, _ ->
+      slug = MyApp.Slug.get()
+      Ash.Changeset.force_change_attribute(changeset, :slug, slug)
+    end)
+  end
+end
+
+change MyApp.MyDomain.MyResource.Changes.SlugifyName
+```
+
+### Action Types
+
+- **Read**: For retrieving records
+- **Create**: For creating records
+- **Update**: For changing records
+- **Destroy**: For removing records
+- **Generic**: For custom operations that don't fit the other types
+
+## Relationships
+
+Relationships describe connections between resources and are a core component of Ash. Define relationships in the `relationships` block of a resource.
+
+### Best Practices for Relationships
+
+- Be descriptive with relationship names (e.g., use `:authored_posts` instead of just `:posts`)
+- Configure foreign key constraints in your data layer if they have them (see `references` in AshPostgres)
+- Always choose the appropriate relationship type based on your domain model
+
+#### Relationship Types
+
+- For Polymorphic relationships, you can model them using `Ash.Type.Union`; see the “Polymorphic Relationships” guide for more information.
+
+```elixir
+relationships do
+  # belongs_to - adds foreign key to source resource
+  belongs_to :owner, MyApp.User do
+    allow_nil? false
+    attribute_type :integer  # defaults to :uuid
+  end
+
+  # has_one - foreign key on destination resource
+  has_one :profile, MyApp.Profile
+
+  # has_many - foreign key on destination resource, returns list
+  has_many :posts, MyApp.Post do
+    filter expr(published == true)
+    sort published_at: :desc
+  end
+
+  # many_to_many - requires join resource
+  many_to_many :tags, MyApp.Tag do
+    through MyApp.PostTag
+    source_attribute_on_join_resource :post_id
+    destination_attribute_on_join_resource :tag_id
+  end
+end
+```
+
+The join resource must be defined separately:
+
+```elixir
+defmodule MyApp.PostTag do
+  use Ash.Resource,
+    data_layer: AshPostgres.DataLayer
+
+  attributes do
+    uuid_primary_key :id
+    # Add additional attributes if you need metadata on the relationship
+    attribute :added_at, :utc_datetime_usec do
+      default &DateTime.utc_now/0
+    end
+  end
+
+  relationships do
+    belongs_to :post, MyApp.Post, primary_key?: true, allow_nil?: false
+    belongs_to :tag, MyApp.Tag, primary_key?: true, allow_nil?: false
+  end
+
+  actions do
+    defaults [:read, :destroy, create: :*, update: :*]
+  end
+end
+```
+
+### Loading Relationships
+
+```elixir
+# Using code interface options (preferred)
+post = MyDomain.get_post!(id, load: [:author, comments: [:author]])
+
+# Complex loading with filters
+posts = MyDomain.list_posts!(
+  query: [load: [comments: [filter: [is_approved: true], limit: 5]]]
+)
+
+# Manual query building (for complex cases)
+MyApp.Post
+|> Ash.Query.load(comments: MyApp.Comment |> Ash.Query.filter(is_approved == true))
+|> Ash.read!()
+
+# Loading on existing records
+Ash.load!(post, :author)
+```
+
+Prefer to use the `strict?` option when loading to only load necessary fields on related data.
+
+```elixir
+MyApp.Post
+|> Ash.Query.load([comments: [:title]], strict?: true)
+```
+
+### Managing Relationships
+
+There are two primary ways to manage relationships in Ash:
+
+#### 1. Using `change manage_relationship/2-3` in Actions
+Use this when input comes from action arguments:
+
+```elixir
+actions do
+  update :update do
+    # Define argument for the related data
+    argument :comments, {:array, :map} do
+      allow_nil? false
+    end
+
+    argument :new_tags, {:array, :map}
+
+    # Link argument to relationship management
+    change manage_relationship(:comments, type: :append)
+
+    # For different argument and relationship names
+    change manage_relationship(:new_tags, :tags, type: :append)
+  end
+end
+```
+
+#### 2. Using `Ash.Changeset.manage_relationship/3-4` in Custom Changes
+Use this when building values programmatically:
+
+```elixir
+defmodule MyApp.Changes.AssignTeamMembers do
+  use Ash.Resource.Change
+
+  def change(changeset, _opts, context) do
+    members = determine_team_members(changeset, context.actor)
+
+    Ash.Changeset.manage_relationship(
+      changeset,
+      :members,
+      members,
+      type: :append_and_remove
+    )
+  end
+end
+```
+
+#### Quick Reference - Management Types
+- `:append` - Add new related records, ignore existing
+- `:append_and_remove` - Add new related records, remove missing
+- `:remove` - Remove specified related records
+- `:direct_control` - Full CRUD control (create/update/destroy)
+- `:create` - Only create new records
+
+#### Quick Reference - Common Options
+- `on_lookup: :relate` - Look up and relate existing records
+- `on_no_match: :create` - Create if no match found
+- `on_match: :update` - Update existing matches
+- `on_missing: :destroy` - Delete records not in input
+- `value_is_key: :name` - Use field as key for simple values
+
+For comprehensive documentation, see the [Managing Relationships](https://hexdocs.pm/ash/relationships.html#managing-relationships) section.
+
+#### Examples
+
+Creating a post with tags:
+```elixir
+MyDomain.create_post!(%{
+  title: "New Post",
+  body: "Content here...",
+  tags: [%{name: "elixir"}, %{name: "ash"}]  # Creates new tags
+})
+
+# Updating a post to replace its tags
+MyDomain.update_post!(post, %{
+  tags: [tag1.id, tag2.id]  # Replaces tags with existing ones by ID
+})
+```
+
+## Generating Code
+
+Use `mix ash.gen.*` tasks as a basis for code generation when possible. Check the task docs with `mix help <task>`.
+Be sure to use `--yes` to bypass confirmation prompts. Use `--yes --dry-run` to preview the changes.
+
+## Data Layers
+
+Data layers determine how resources are stored and retrieved. Examples of data layers:
+
+- **Postgres**: For storing resources in PostgreSQL (via `AshPostgres`)
+- **ETS**: For in-memory storage (`Ash.DataLayer.Ets`)
+- **Mnesia**: For distributed storage (`Ash.DataLayer.Mnesia`)
+- **Embedded**: For resources embedded in other resources (`data_layer: :embedded`) (typically JSON under the hood)
+- **Ash.DataLayer.Simple**: For resources that aren't persisted at all. Leave off the data layer, as this is the default.
+
+Specify a data layer when defining a resource:
+
+```elixir
+defmodule MyApp.Post do
+  use Ash.Resource,
+    domain: MyApp.Blog,
+    data_layer: AshPostgres.DataLayer
+
+  postgres do
+    table "posts"
+    repo MyApp.Repo
+  end
+
+  # ... attributes, relationships, etc.
+end
+```
+
+For embedded resources:
+
+```elixir
+defmodule MyApp.Address do
+  use Ash.Resource,
+    data_layer: :embedded
+
+  attributes do
+    attribute :street, :string
+    attribute :city, :string
+    attribute :state, :string
+    attribute :zip, :string
+  end
+end
+```
+
+Each data layer has its own configuration options and capabilities. Refer to the rules & documentation of the specific data layer package for more details.
+
+## Migrations and Schema Changes
+
+After creating or modifying Ash code, run `mix ash.codegen <short_name_describing_changes>` to ensure any required additional changes are made (like migrations are generated). The name of the migration should be lower_snake_case. In a longer running dev session it's usually better to use `mix ash.codegen --dev` as you go and at the end run the final codegen with a sensible name describing all the changes made in the session.
+
+## Authorization
+
+- When performing administrative actions, you can bypass authorization with `authorize?: false`
+- To run actions as a particular user, look that user up and pass it as the `actor` option
+- Always set the actor on the query/changeset/input, not when calling the action
+- Use policies to define authorization rules
+
+```elixir
+# Good
+Post
+|> Ash.Query.for_read(:read, %{}, actor: current_user)
+|> Ash.read!()
+
+# BAD, DO NOT DO THIS
+Post
+|> Ash.Query.for_read(:read, %{})
+|> Ash.read!(actor: current_user)
+```
+
+### Policies
+
+To use policies, add the `Ash.Policy.Authorizer` to your resource:
+
+```elixir
+defmodule MyApp.Post do
+  use Ash.Resource,
+    domain: MyApp.Blog,
+    authorizers: [Ash.Policy.Authorizer]
+
+  # Rest of resource definition...
+end
+```
+
+### Policy Basics
+
+Policies determine what actions on a resource are permitted for a given actor. Define policies in the `policies` block:
+
+```elixir
+policies do
+  # A simple policy that applies to all read actions
+  policy action_type(:read) do
+    # Authorize if record is public
+    authorize_if expr(public == true)
+
+    # Authorize if actor is the owner
+    authorize_if relates_to_actor_via(:owner)
+  end
+
+  # A policy for create actions
+  policy action_type(:create) do
+    # Only allow active users to create records
+    forbid_unless actor_attribute_equals(:active, true)
+
+    # Ensure the record being created relates to the actor
+    authorize_if relating_to_actor(:owner)
+  end
+end
+```
+
+### Policy Evaluation Flow
+
+Policies evaluate from top to bottom with the following logic:
+
+1. All policies that apply to an action must pass for the action to be allowed
+2. Within each policy, checks evaluate from top to bottom
+3. The first check that produces a decision determines the policy result
+4. If no check produces a decision, the policy defaults to forbidden
+
+### IMPORTANT: Policy Check Logic
+
+**the first check that yields a result determines the policy outcome**
+
+```elixir
+# WRONG - This is OR logic, not AND logic!
+policy action_type(:update) do
+  authorize_if actor_attribute_equals(:admin?, true)    # If this passes, policy passes
+  authorize_if relates_to_actor_via(:owner)           # Only checked if first fails
+end
+```
+
+To require BOTH conditions in that example, you would use `forbid_unless` for the first condition:
+
+```elixir
+# CORRECT - This requires BOTH conditions
+policy action_type(:update) do
+  forbid_unless actor_attribute_equals(:admin?, true)  # Must be admin
+  authorize_if relates_to_actor_via(:owner)           # AND must be owner
+end
+```
+
+Alternative patterns for AND logic:
+- Use multiple separate policies (each must pass independently)
+- Use a single complex expression with `expr(condition1 and condition2)`
+- Use `forbid_unless` for required conditions, then `authorize_if` for the final check
+
+### Bypass Policies
+
+Use bypass policies to allow certain actors to bypass other policy restrictions. This should be used almost exclusively for admin bypasses.
+
+```elixir
+policies do
+  # Bypass policy for admins - if this passes, other policies don't need to pass
+  bypass actor_attribute_equals(:admin, true) do
+    authorize_if always()
+  end
+
+  # Regular policies follow...
+  policy action_type(:read) do
+    # ...
+  end
+end
+```
+
+### Field Policies
+
+Field policies control access to specific fields (attributes, calculations, aggregates):
+
+```elixir
+field_policies do
+  # Only supervisors can see the salary field
+  field_policy :salary do
+    authorize_if actor_attribute_equals(:role, :supervisor)
+  end
+
+  # Allow access to all other fields
+  field_policy :* do
+    authorize_if always()
+  end
+end
+```
+
+### Policy Checks
+
+There are two main types of checks used in policies:
+
+1. **Simple checks** - Return true/false answers (e.g., "is the actor an admin?")
+2. **Filter checks** - Return filters to apply to data (e.g., "only show records owned by the actor")
+
+You can use built-in checks or create custom ones:
+
+```elixir
+# Built-in checks
+authorize_if actor_attribute_equals(:role, :admin)
+authorize_if relates_to_actor_via(:owner)
+authorize_if expr(public == true)
+
+# Custom check module
+authorize_if MyApp.Checks.ActorHasPermission
+```
+
+#### Custom Policy Checks
+
+Create custom checks by implementing `Ash.Policy.SimpleCheck` or `Ash.Policy.FilterCheck`:
+
+```elixir
+# Simple check - returns true/false
+defmodule MyApp.Checks.ActorHasRole do
+  use Ash.Policy.SimpleCheck
+
+  def match?(%{role: actor_role}, _context, opts) do
+    actor_role == (opts[:role] || :admin)
+  end
+  def match?(_, _, _), do: false
+end
+
+# Filter check - returns query filter
+defmodule MyApp.Checks.VisibleToUserLevel do
+  use Ash.Policy.FilterCheck
+
+  def filter(actor, _authorizer, _opts) do
+    expr(visibility_level <= ^actor.user_level)
+  end
+end
+
+# Usage
+policy action_type(:read) do
+  authorize_if {MyApp.Checks.ActorHasRole, role: :manager}
+  authorize_if MyApp.Checks.VisibleToUserLevel
+end
+```
+
+## Calculations
+
+Calculations allow you to define derived values based on a resource's attributes or related data. Define calculations in the `calculations` block of a resource:
+
+```elixir
+calculations do
+  # Simple expression calculation
+  calculate :full_name, :string, expr(first_name <> " " <> last_name)
+
+  # Expression with conditions
+  calculate :status_label, :string, expr(
+    cond do
+      status == :active -> "Active"
+      status == :pending -> "Pending Review"
+      true -> "Inactive"
+    end
+  )
+
+  # Using module calculations for more complex logic
+  calculate :risk_score, :integer, {MyApp.Calculations.RiskScore, min: 0, max: 100}
+end
+```
+
+### Expression Calculations
+
+Expression calculations use Ash expressions and can be pushed down to the data layer when possible:
+
+```elixir
+calculations do
+  # Simple string concatenation
+  calculate :full_name, :string, expr(first_name <> " " <> last_name)
+
+  # Math operations
+  calculate :total_with_tax, :decimal, expr(amount * (1 + tax_rate))
+
+  # Date manipulation
+  calculate :days_since_created, :integer, expr(
+    date_diff(^now(), inserted_at, :day)
+  )
+end
+```
+
+### Expressions
+
+In order to use expressions outside of resources, changes, preparations etc. you will need to use `Ash.Expr`.
+
+It provides both `expr/1` and template helpers like `actor/1` and `arg/1`.
+
+For example:
+
+```elixir
+import Ash.Expr
+
+Author
+|> Ash.Query.aggregate(:count_of_my_favorited_posts, :count, [:posts], query: [
+  filter: expr(favorited_by(user_id: ^actor(:id)))
+])
+```
+
+See the expressions guide for more information on what is available in expresisons and
+how to use them.
+
+### Module Calculations
+
+For complex calculations, create a module that implements `Ash.Resource.Calculation`:
+
+```elixir
+defmodule MyApp.Calculations.FullName do
+  use Ash.Resource.Calculation
+
+  # Validate and transform options
+  @impl true
+  def init(opts) do
+    {:ok, Map.put_new(opts, :separator, " ")}
+  end
+
+  # Specify what data needs to be loaded
+  @impl true
+  def load(_query, _opts, _context) do
+    [:first_name, :last_name]
+  end
+
+  # Implement the calculation logic
+  @impl true
+  def calculate(records, opts, _context) do
+    Enum.map(records, fn record ->
+      [record.first_name, record.last_name]
+      |> Enum.reject(&is_nil/1)
+      |> Enum.join(opts.separator)
+    end)
+  end
+end
+
+# Usage in a resource
+calculations do
+  calculate :full_name, :string, {MyApp.Calculations.FullName, separator: ", "}
+end
+```
+
+### Calculations with Arguments
+
+You can define calculations that accept arguments:
+
+```elixir
+calculations do
+  calculate :full_name, :string, expr(first_name <> ^arg(:separator) <> last_name) do
+    argument :separator, :string do
+      allow_nil? false
+      default " "
+      constraints [allow_empty?: true, trim?: false]
+    end
+  end
+end
+```
+
+### Using Calculations
+
+```elixir
+# Using code interface options (preferred)
+users = MyDomain.list_users!(load: [full_name: [separator: ", "]])
+
+# Filtering and sorting
+users = MyDomain.list_users!(
+  query: [
+    filter: [full_name: [separator: " ", value: "John Doe"]],
+    sort: [full_name: {[separator: " "], :asc}]
+  ]
+)
+
+# Manual query building (for complex cases)
+User |> Ash.Query.load(full_name: [separator: ", "]) |> Ash.read!()
+
+# Loading on existing records
+Ash.load!(users, :full_name)
+```
+
+### Code Interface for Calculations
+
+Define calculation functions on your domain for standalone use:
+
+```elixir
+# In your domain
+resource User do
+  define_calculation :full_name, args: [:first_name, :last_name, {:optional, :separator}]
+end
+
+# Then call it directly
+MyDomain.full_name("John", "Doe", ", ")  # Returns "John, Doe"
+```
+
+## Aggregates
+
+Aggregates allow you to retrieve summary information over groups of related data, like counts, sums, or averages. Define aggregates in the `aggregates` block of a resource.
+
+Aggregates can work over relationships or directly over unrelated resources:
+
+```elixir
+aggregates do
+  # Related aggregates - use relationship path
+  count :published_post_count, :posts do
+    filter expr(published == true)
+  end
+
+  sum :total_sales, :orders, :amount
+
+  exists :is_admin, :roles do
+    filter expr(name == "admin")
+  end
+
+  # Unrelated aggregates - use resource module directly
+  count :matching_profiles_count, Profile do
+    filter expr(name == parent(name))
+  end
+  
+  sum :total_report_score, Report, :score do
+    filter expr(author_name == parent(name))
+  end
+  
+  exists :has_reports, Report do
+    filter expr(author_name == parent(name))
+  end
+end
+```
+
+For unrelated aggregates, use `parent/1` to reference fields from the source resource.
+
+### Aggregate Types
+
+- **count**: Counts related items meeting criteria
+- **sum**: Sums a field across related items
+- **exists**: Returns boolean indicating if matching related items exist (also supports unrelated resources)
+- **first**: Gets the first related value matching criteria
+- **list**: Lists the related values for a specific field
+- **max**: Gets the maximum value of a field
+- **min**: Gets the minimum value of a field
+- **avg**: Gets the average value of a field
+
+### Using Aggregates
+
+```elixir
+# Using code interface options (preferred)
+users = MyDomain.list_users!(
+  load: [:published_post_count, :total_sales],
+  query: [
+    filter: [published_post_count: [greater_than: 5]],
+    sort: [published_post_count: :desc]
+  ]
+)
+
+# Manual query building (for complex cases)
+User |> Ash.Query.filter(published_post_count > 5) |> Ash.read!()
+
+# Loading on existing records
+Ash.load!(users, :published_post_count)
+```
+
+### Join Filters
+
+For complex aggregates involving multiple relationships, use join filters:
+
+```elixir
+aggregates do
+  sum :redeemed_deal_amount, [:redeems, :deal], :amount do
+    # Filter on the aggregate as a whole
+    filter expr(redeems.redeemed == true)
+
+    # Apply filters to specific relationship steps
+    join_filter :redeems, expr(redeemed == true)
+    join_filter [:redeems, :deal], expr(active == parent(require_active))
+  end
+end
+```
+
+### Inline Aggregates
+
+Use aggregates inline within expressions:
+
+```elixir
+# Related inline aggregates
+calculate :grade_percentage, :decimal, expr(
+  count(answers, query: [filter: expr(correct == true)]) * 100 /
+  count(answers)
+)
+
+# Unrelated inline aggregates
+calculate :profile_count, :integer, expr(
+  count(Profile, filter: expr(name == parent(name)))
+)
+
+calculate :stats, :map, expr(%{
+  profiles: count(Profile, filter: expr(active == true)),
+  reports: count(Report, filter: expr(author_name == parent(name))),
+  has_active_profile: exists(Profile, active == true and name == parent(name))
+})
+```
+
+## Exists Expressions
+
+Use `exists/2` to check for the existence of records, either through relationships or unrelated resources:
+
+### Related Exists
+
+```elixir
+# Check if user has any admin roles
+Ash.Query.filter(User, exists(roles, name == "admin"))
+
+# Check if post has comments with high scores
+Ash.Query.filter(Post, exists(comments, score > 50))
+```
+
+### Unrelated Exists
+
+```elixir
+# Check if any profile exists with the same name
+Ash.Query.filter(User, exists(Profile, name == parent(name)))
+
+# Check if user has any reports
+Ash.Query.filter(User, exists(Report, author_name == parent(name)))
+
+# Complex existence checks
+Ash.Query.filter(User, 
+  active == true and 
+  exists(Profile, active == true and name == parent(name))
+)
+```
+
+Unrelated exists expressions automatically apply authorization using the target resource's primary read action. Use `parent/1` to reference fields from the source resource.
+
+## Testing
+
+When testing resources:
+- Test your domain actions through the code interface
+- Use test utilities in `Ash.Test`
+- Test authorization policies work as expected using `Ash.can?`
+- Use `authorize?: false` in tests where authorization is not the focus
+- Write generators using `Ash.Generator`
+- Prefer to use raising versions of functions whenever possible, as opposed to pattern matching
+
+### Preventing Deadlocks in Concurrent Tests
+
+When running tests concurrently, using fixed values for identity attributes can cause deadlock errors. Multiple tests attempting to create records with the same unique values will conflict.
+
+#### Use Globally Unique Values
+
+Always use globally unique values for identity attributes in tests:
+
+```elixir
+# BAD - Can cause deadlocks in concurrent tests
+%{email: "test@example.com", username: "testuser"}
+
+# GOOD - Use globally unique values
+%{
+  email: "test-#{System.unique_integer([:positive])}@example.com",
+  username: "user_#{System.unique_integer([:positive])}",
+  slug: "post-#{System.unique_integer([:positive])}"
+}
+```
+
+#### Creating Reusable Test Generators
+
+For better organization, create a generator module:
+
+```elixir
+defmodule MyApp.TestGenerators do
+  use Ash.Generator
+
+  def user(opts \\ []) do
+    changeset_generator(
+      User,
+      :create,
+      defaults: [
+        email: "user-#{System.unique_integer([:positive])}@example.com",
+        username: "user_#{System.unique_integer([:positive])}"
+      ],
+      overrides: opts
+    )
+  end
+end
+
+# In your tests
+test "concurrent user creation" do
+  users = MyApp.TestGenerators.generate_many(user(), 10)
+  # Each user has unique identity attributes
+end
+```
+
+This applies to ANY field used in identity constraints, not just primary keys. Using globally unique values prevents frustrating intermittent test failures in CI environments.
+
+<!-- ash-end -->
+<!-- ash_authentication-start -->
+## ash_authentication usage
+_Authentication extension for the Ash Framework._
+
+# AshAuthentication Usage Rules
+
+## Core Concepts
+- **Strategies**: password, OAuth2, magic_link, api_key authentication methods
+- **Tokens**: JWT for stateless authentication
+- **UserIdentity**: links users to OAuth2 providers
+- **Add-ons**: confirmation, logout-everywhere functionality
+- **Actions**: auto-generated by strategies (register, sign_in, etc.), can be overridden on the resource
+
+## Key Principles
+- Always use secrets management - never hardcode credentials
+- Enable tokens for magic_link, confirmation, OAuth2
+- UserIdentity resource optional for OAuth2 (required for multiple providers per user)
+- API keys require strict policy controls and expiration management
+- Use prefixes for API keys to enable secret scanning compliance
+- Check existing strategies: `AshAuthentication.Info.strategies/1`
+
+## Strategy Selection
+
+**Password** - Email/password authentication
+- Requires: `:email`, `:hashed_password` attributes, unique identity
+
+**Magic Link** - Passwordless email authentication
+- Requires: `:email` attribute, sender implementation, tokens enabled
+
+**API Key** - Token-based authentication for APIs
+- Requires: API key resource, relationship to user, sign-in action
+
+**OAuth2** - Social/enterprise login (GitHub, Google, Auth0, Apple, OIDC, Slack)
+- Requires: custom actions, secrets
+- Optional: UserIdentity resource (for multiple providers per user)
+
+## Password Strategy
+
+```elixir
+authentication do
+  strategies do
+    password :password do
+      identity_field :email
+      hashed_password_field :hashed_password
+      resettable do
+        sender MyApp.PasswordResetSender
+      end
+    end
+  end
+end
+
+# Required attributes:
+attributes do
+  attribute :email, :ci_string, allow_nil?: false, public?: true
+  attribute :hashed_password, :string, allow_nil?: false, sensitive?: true
+end
+
+identities do
+  identity :unique_email, [:email]
+end
+```
+
+## Magic Link Strategy
+
+```elixir
+authentication do
+  strategies do
+    magic_link do
+      identity_field :email
+      sender MyApp.MagicLinkSender
+    end
+  end
+end
+
+# Sender implementation required:
+defmodule MyApp.MagicLinkSender do
+  use AshAuthentication.Sender
+
+  def send(user_or_email, token, _opts) do
+    MyApp.Emails.deliver_magic_link(user_or_email, token)
+  end
+end
+```
+
+## API Key Strategy
+
+```elixir
+# 1. Create API key resource
+defmodule MyApp.Accounts.ApiKey do
+  use Ash.Resource,
+    data_layer: AshPostgres.DataLayer,
+    authorizers: [Ash.Policy.Authorizer]
+
+  actions do
+    defaults [:read, :destroy]
+
+    create :create do
+      primary? true
+      accept [:user_id, :expires_at]
+      change {AshAuthentication.Strategy.ApiKey.GenerateApiKey, prefix: :myapp, hash: :api_key_hash}
+    end
+  end
+
+  attributes do
+    uuid_primary_key :id
+    attribute :api_key_hash, :binary, allow_nil?: false, sensitive?: true
+    attribute :expires_at, :utc_datetime_usec, allow_nil?: false
+  end
+
+  relationships do
+    belongs_to :user, MyApp.Accounts.User, allow_nil?: false
+  end
+
+  calculations do
+    calculate :valid, :boolean, expr(expires_at > now())
+  end
+
+  identities do
+    identity :unique_api_key, [:api_key_hash]
+  end
+
+  policies do
+    bypass AshAuthentication.Checks.AshAuthenticationInteraction do
+      authorize_if always()
+    end
+  end
+end
+
+# 2. Add strategy to user resource
+authentication do
+  strategies do
+    api_key do
+      api_key_relationship :valid_api_keys
+      api_key_hash_attribute :api_key_hash
+    end
+  end
+end
+
+# 3. Add relationship to user
+relationships do
+  has_many :valid_api_keys, MyApp.Accounts.ApiKey do
+    filter expr(valid)
+  end
+end
+
+# 4. Add sign-in action to user
+actions do
+  read :sign_in_with_api_key do
+    argument :api_key, :string, allow_nil?: false
+    prepare AshAuthentication.Strategy.ApiKey.SignInPreparation
+  end
+end
+```
+
+**Security considerations:**
+- API keys are hashed for storage security
+- Use policies to restrict API key access to specific actions
+- Check `user.__metadata__[:using_api_key?]` to detect API key authentication
+- Access the API key via `user.__metadata__[:api_key]` for permission checks
+
+## OAuth2 Strategies
+
+**Supported providers:** github, google, auth0, apple, oidc, slack
+
+**Required for all OAuth2:**
+- Custom `register_with_[provider]` action
+- Secrets management
+- Tokens enabled
+
+**Optional for all OAuth2:**
+- UserIdentity resource (for multiple providers per user)
+
+### OAuth2 Configuration Pattern
+```elixir
+# Strategy configuration
+authentication do
+  strategies do
+    github do  # or google, auth0, apple, oidc, slack
+      client_id MyApp.Secrets
+      client_secret MyApp.Secrets
+      redirect_uri MyApp.Secrets
+      # auth0 also needs: base_url
+      # apple also needs: team_id, private_key_id, private_key_path
+      # oidc also needs: openid_configuration_uri
+      identity_resource MyApp.Accounts.UserIdentity
+    end
+  end
+end
+
+# Required action (replace 'github' with provider name)
+actions do
+  create :register_with_github do
+    argument :user_info, :map, allow_nil?: false
+    argument :oauth_tokens, :map, allow_nil?: false
+    upsert? true
+    upsert_identity :unique_email
+
+    change AshAuthentication.GenerateTokenChange
+    
+    # If UserIdentity resource is being used
+    change AshAuthentication.Strategy.OAuth2.IdentityChange
+
+    change fn changeset, _ctx ->
+      user_info = Ash.Changeset.get_argument(changeset, :user_info)
+      Ash.Changeset.change_attributes(changeset, Map.take(user_info, ["email"]))
+    end
+  end
+end
+```
+
+## Add-ons
+
+### Confirmation
+```elixir
+authentication do
+  tokens do
+    enabled? true
+    token_resource MyApp.Accounts.Token
+  end
+
+  add_ons do
+    confirmation :confirm do
+      monitor_fields [:email]
+      sender MyApp.ConfirmationSender
+    end
+  end
+end
+```
+
+### Log Out Everywhere
+```elixir
+authentication do
+  tokens do
+    store_all_tokens? true
+  end
+
+  add_ons do
+    log_out_everywhere do
+      apply_on_password_change? true
+    end
+  end
+end
+```
+
+## Working with Authentication
+
+### Strategy Protocol
+```elixir
+# Get and use strategies
+strategy = AshAuthentication.Info.strategy!(MyApp.User, :password)
+{:ok, user} = AshAuthentication.Strategy.action(strategy, :sign_in, params)
+
+# List strategies
+strategies = AshAuthentication.Info.strategies(MyApp.User)
+```
+
+### Token Operations
+```elixir
+# User/subject conversion
+subject = AshAuthentication.user_to_subject(user)
+{:ok, user} = AshAuthentication.subject_to_user(subject, MyApp.User)
+
+# Token management
+AshAuthentication.TokenResource.revoke(MyApp.Token, token)
+```
+
+### Policies
+```elixir
+policies do
+  bypass AshAuthentication.Checks.AshAuthenticationInteraction do
+    authorize_if always()
+  end
+end
+```
+
+## Common Implementation Patterns
+
+### Pattern: Multiple Authentication Methods
+When users need multiple ways to authenticate:
+
+```elixir
+authentication do
+  tokens do
+    enabled? true
+    token_resource MyApp.Accounts.Token
+  end
+
+  strategies do
+    password :password do
+      identity_field :email
+      hashed_password_field :hashed_password
+    end
+
+    github do
+      client_id MyApp.Secrets
+      client_secret MyApp.Secrets
+      redirect_uri MyApp.Secrets
+      identity_resource MyApp.Accounts.UserIdentity
+    end
+
+    magic_link do
+      identity_field :email
+      sender MyApp.MagicLinkSender
+    end
+  end
+end
+```
+
+### Pattern: OAuth2 with User Registration
+When new users can register via OAuth2:
+
+```elixir
+actions do
+  create :register_with_github do
+    argument :user_info, :map, allow_nil?: false
+    argument :oauth_tokens, :map, allow_nil?: false
+    upsert? true
+    upsert_identity :email
+
+    change AshAuthentication.GenerateTokenChange
+    change fn changeset, _ctx ->
+      user_info = Ash.Changeset.get_argument(changeset, :user_info)
+
+      changeset
+      |> Ash.Changeset.change_attribute(:email, user_info["email"])
+      |> Ash.Changeset.change_attribute(:name, user_info["name"])
+    end
+  end
+end
+```
+
+### Pattern: Custom Token Configuration
+When you need specific token behavior:
+
+```elixir
+authentication do
+  tokens do
+    enabled? true
+    token_resource MyApp.Accounts.Token
+    signing_secret MyApp.Secrets
+    token_lifetime {24, :hours}
+    store_all_tokens? true  # For logout-everywhere functionality
+    require_token_presence_for_authentication? false
+  end
+end
+```
+
+## Customizing Authentication Actions
+
+When customizing generated authentication actions (register, sign_in, etc.):
+
+**Key Security Rules:**
+- Always mark credentials with `sensitive?: true` (passwords, API keys, tokens)
+- Use `public?: false` for internal fields and highly sensitive PII
+- Use `public?: true` for identity fields and UI display data
+- Include required authentication changes (`GenerateTokenChange`, `HashPasswordChange`, etc.)
+
+**Argument Handling:**
+- All arguments must be used in `accept` or `change set_attribute()`
+- Use `allow_nil?: false` for required arguments
+- OAuth2 data must be extracted in changes, not accepted directly
+
+**Example Custom Registration:**
+```elixir
+create :register_with_password do
+  argument :password, :string, allow_nil?: false, sensitive?: true
+  argument :first_name, :string, allow_nil?: false
+  
+  accept [:email, :first_name]
+  
+  change AshAuthentication.GenerateTokenChange
+  change AshAuthentication.Strategy.Password.HashPasswordChange
+end
+```
+
+For more guidance, see the "Customizing Authentication Actions" section in the getting started guide.
+<!-- ash_authentication-end -->
+<!-- ash_postgres-start -->
+## ash_postgres usage
+_The PostgreSQL data layer for Ash Framework_
+
+# Rules for working with AshPostgres
+
+## Understanding AshPostgres
+
+AshPostgres is the PostgreSQL data layer for Ash Framework. It's the most fully-featured Ash data layer and should be your default choice unless you have specific requirements for another data layer. Any PostgreSQL version higher than 13 is fully supported.
+
+Remember that using AshPostgres provides a full-featured PostgreSQL data layer for your Ash application, giving you both the structure and declarative approach of Ash along with the power and flexibility of PostgreSQL.
+
+<!-- ash_postgres-end -->
+<!-- phoenix:ecto-start -->
+## phoenix:ecto usage
+## Ecto Guidelines
+
+- **Always** preload Ecto associations in queries when they'll be accessed in templates, ie a message that needs to reference the `message.user.email`
+- Remember `import Ecto.Query` and other supporting modules when you write `seeds.exs`
+- `Ecto.Schema` fields always use the `:string` type, even for `:text`, columns, ie: `field :name, :string`
+- `Ecto.Changeset.validate_number/2` **DOES NOT SUPPORT the `:allow_nil` option**. By default, Ecto validations only run if a change for the given field exists and the change value is not nil, so such as option is never needed
+- You **must** use `Ecto.Changeset.get_field(changeset, :field)` to access changeset fields
+- Fields which are set programatically, such as `user_id`, must not be listed in `cast` calls or similar for security purposes. Instead they must be explicitly set when creating the struct
+- **Always** invoke `mix ecto.gen.migration migration_name_using_underscores` when generating migration files, so the correct timestamp and conventions are applied
+
+<!-- phoenix:ecto-end -->
 <!-- phoenix:elixir-start -->
+## phoenix:elixir usage
 ## Elixir guidelines
 
 - Elixir lists **do not support index based access via the access syntax**
@@ -101,28 +4290,11 @@ custom classes must fully style the input
       assert_receive {:DOWN, ^ref, :process, ^pid, :normal}
 
    - Instead of sleeping to synchronize before the next call, **always** use `_ = :sys.get_state/1` to ensure the process has handled prior messages
+
+
 <!-- phoenix:elixir-end -->
-
-<!-- phoenix:phoenix-start -->
-## Phoenix guidelines
-
-- Remember Phoenix router `scope` blocks include an optional alias which is prefixed for all routes within the scope. **Always** be mindful of this when creating routes within a scope to avoid duplicate module prefixes.
-
-- You **never** need to create your own `alias` for route definitions! The `scope` provides the alias, ie:
-
-      scope "/admin", AppWeb.Admin do
-        pipe_through :browser
-
-        live "/users", UserLive, :index
-      end
-
-  the UserLive route would point to the `AppWeb.Admin.UserLive` module
-
-- `Phoenix.View` no longer is needed or included with Phoenix, don't use it
-<!-- phoenix:phoenix-end -->
-
-
 <!-- phoenix:html-start -->
+## phoenix:html usage
 ## Phoenix HTML guidelines
 
 - Phoenix templates **always** use `~H` or .html.heex files (known as HEEx), **never** use `~E`
@@ -199,9 +4371,10 @@ custom classes must fully style the input
         {if @invalid_block_construct do}
         {end}
       </div>
-<!-- phoenix:html-end -->
 
+<!-- phoenix:html-end -->
 <!-- phoenix:liveview-start -->
+## phoenix:liveview usage
 ## Phoenix LiveView guidelines
 
 - **Never** use the deprecated `live_redirect` and `live_patch` functions, instead **always** use the `<.link navigate={href}>` and  `<.link patch={href}>` in templates, and `push_navigate` and `push_patch` functions LiveViews
@@ -371,3 +4544,667 @@ Where the server handled it via:
       document = LazyHTML.from_fragment(html)
       matches = LazyHTML.filter(document, "your-complex-selector")
       IO.inspect(matches, label: "Matches")
+
+### Form handling
+
+#### Creating a form from params
+
+If you want to create a form based on `handle_event` params:
+
+    def handle_event("submitted", params, socket) do
+      {:noreply, assign(socket, form: to_form(params))}
+    end
+
+When you pass a map to `to_form/1`, it assumes said map contains the form params, which are expected to have string keys.
+
+You can also specify a name to nest the params:
+
+    def handle_event("submitted", %{"user" => user_params}, socket) do
+      {:noreply, assign(socket, form: to_form(user_params, as: :user))}
+    end
+
+#### Creating a form from changesets
+
+When using changesets, the underlying data, form params, and errors are retrieved from it. The `:as` option is automatically computed too. E.g. if you have a user schema:
+
+    defmodule MyApp.Users.User do
+      use Ecto.Schema
+      ...
+    end
+
+And then you create a changeset that you pass to `to_form`:
+
+    %MyApp.Users.User{}
+    |> Ecto.Changeset.change()
+    |> to_form()
+
+Once the form is submitted, the params will be available under `%{"user" => user_params}`.
+
+In the template, the form form assign can be passed to the `<.form>` function component:
+
+    <.form for={@form} id="todo-form" phx-change="validate" phx-submit="save">
+      <.input field={@form[:field]} type="text" />
+    </.form>
+
+Always give the form an explicit, unique DOM ID, like `id="todo-form"`.
+
+#### Avoiding form errors
+
+**Always** use a form assigned via `to_form/2` in the LiveView, and the `<.input>` component in the template. In the template **always access forms this**:
+
+    <%!-- ALWAYS do this (valid) --%>
+    <.form for={@form} id="my-form">
+      <.input field={@form[:field]} type="text" />
+    </.form>
+
+And **never** do this:
+
+    <%!-- NEVER do this (invalid) --%>
+    <.form for={@changeset} id="my-form">
+      <.input field={@changeset[:field]} type="text" />
+    </.form>
+
+- You are FORBIDDEN from accessing the changeset in the template as it will cause errors
+- **Never** use `<.form let={f} ...>` in the template, instead **always use `<.form for={@form} ...>`**, then drive all form references from the form assign as in `@form[:field]`. The UI should **always** be driven by a `to_form/2` assigned in the LiveView module that is derived from a changeset
+
+<!-- phoenix:liveview-end -->
+<!-- phoenix:phoenix-start -->
+## phoenix:phoenix usage
+## Phoenix guidelines
+
+- Remember Phoenix router `scope` blocks include an optional alias which is prefixed for all routes within the scope. **Always** be mindful of this when creating routes within a scope to avoid duplicate module prefixes.
+
+- You **never** need to create your own `alias` for route definitions! The `scope` provides the alias, ie:
+
+      scope "/admin", AppWeb.Admin do
+        pipe_through :browser
+
+        live "/users", UserLive, :index
+      end
+
+  the UserLive route would point to the `AppWeb.Admin.UserLive` module
+
+- `Phoenix.View` no longer is needed or included with Phoenix, don't use it
+
+<!-- phoenix:phoenix-end -->
+<!-- ash_phoenix-start -->
+## ash_phoenix usage
+_Utilities for integrating Ash and Phoenix_
+
+# Rules for working with AshPhoenix
+
+## Understanding AshPhoenix
+
+AshPhoenix is a package for integrating Ash Framework with Phoenix Framework. It provides tools for integrating with Phoenix forms (`AshPhoenix.Form`), Phoenix LiveViews (`AshPhoenix.LiveView`), and more. AshPhoenix makes it seamless to use Phoenix's powerful UI capabilities with Ash's data management features.
+
+## Form Integration
+
+AshPhoenix provides `AshPhoenix.Form`, a powerful module for creating and handling forms backed by Ash resources.
+
+### Creating Forms
+
+```elixir
+# For creating a new resource
+form = AshPhoenix.Form.for_create(MyApp.Blog.Post, :create) |> to_form()
+
+# For updating an existing resource
+post = MyApp.Blog.get_post!(post_id)
+form = AshPhoenix.Form.for_update(post, :update) |> to_form()
+
+# Form with initial value
+form = AshPhoenix.Form.for_create(MyApp.Blog.Post, :create,
+  params: %{title: "Draft Title"}
+) |> to_form()
+```
+
+### Code Interfaces
+
+Using the `AshPhoenix` extension in domains gets you special functions in a resource's
+code interface called `form_to_*`. Use this whenever possible.
+
+First, add the `AshPhoenix` extension to our domains and resources, like so:
+
+```elixir
+use Ash.Domain,
+  extensions: [AshPhoenix]
+```
+
+which will cause another function to be generated for each definition, beginning with `form_to_`.
+
+For example, if you had the following,
+```elixir
+# in MyApp.Accounts
+resources do
+  resource MyApp.Accounts.User do
+    define :register_with_password, args: [:email, :password]
+  end
+end
+```
+
+you could then make a form with:
+
+```elixir
+MyApp.Accounts.form_to_register_with_password(...opts)
+```
+
+By default, the `args` option in `define` is ignored when building forms. If you want to have positional arguments, configure that in the `forms` section which is added by the `AshPhoenix` section. For example:
+
+```elixir
+forms do
+  form :register_with_password, args: [:email]
+end
+```
+
+Which could then be used as:
+
+```elixir
+MyApp.Accounts.register_with_password(email, ...)
+```
+
+These positional arguments are *very important* for certain cases, because there may be values you do not want the form to be able to set. For example, when updating a user's settings, maybe the action takes a `user_id`, but the form is on a page for a specific user's id and so this should therefore not be editable in the form. Use positional arguments for this.
+
+### Handling Form Submission
+
+In your LiveView:
+
+```elixir
+def handle_event("validate", %{"form" => params}, socket) do
+  form = AshPhoenix.Form.validate(socket.assigns.form, params)
+  {:noreply, assign(socket, :form, form)}
+end
+
+def handle_event("submit", %{"form" => params}, socket) do
+  case AshPhoenix.Form.submit(socket.assigns.form, params: params) do
+    {:ok, post} ->
+      socket =
+        socket
+        |> put_flash(:info, "Post created successfully")
+        |> push_navigate(to: ~p"/posts/#{post.id}")
+      {:noreply, socket}
+
+    {:error, form} ->
+      {:noreply, assign(socket, :form, form)}
+  end
+end
+```
+
+## Nested Forms
+
+AshPhoenix supports forms with nested relationships, such as creating or updating related resources in a single form.
+
+### Automatically Inferred Nested Forms
+
+If your action has `manage_relationship`, AshPhoenix automatically infers nested forms:
+
+```elixir
+# In your resource:
+create :create do
+  accept [:name]
+  argument :locations, {:array, :map}
+  change manage_relationship(:locations, type: :create)
+end
+
+# In your template:
+<.simple_form for={@form} phx-change="validate" phx-submit="submit">
+  <.input field={@form[:name]} />
+
+  <.inputs_for :let={location} field={@form[:locations]}>
+    <.input field={location[:name]} />
+  </.inputs_for>
+</.simple_form>
+```
+
+### Adding and Removing Nested Forms
+
+To add a nested form with a button:
+
+```heex
+<.button type="button" phx-click="add-form" phx-value-path={@form.name <> "[locations]"}>
+  <.icon name="hero-plus" />
+</.button>
+```
+
+In your LiveView:
+
+```elixir
+def handle_event("add-form", %{"path" => path}, socket) do
+  form = AshPhoenix.Form.add_form(socket.assigns.form, path)
+  {:noreply, assign(socket, :form, form)}
+end
+```
+
+To remove a nested form:
+
+```heex
+<.button type="button" phx-click="remove-form" phx-value-path={location.name}>
+  <.icon name="hero-x-mark" />
+</.button>
+```
+
+```elixir
+def handle_event("remove-form", %{"path" => path}, socket) do
+  form = AshPhoenix.Form.remove_form(socket.assigns.form, path)
+  {:noreply, assign(socket, :form, form)}
+end
+```
+
+## Union Forms
+
+AshPhoenix supports forms for union types, allowing different inputs based on the selected type.
+
+```heex
+<.inputs_for :let={fc} field={@form[:content]}>
+  <.input
+    field={fc[:_union_type]}
+    phx-change="type-changed"
+    type="select"
+    options={[Normal: "normal", Special: "special"]}
+  />
+
+  <%= case fc.params["_union_type"] do %>
+    <% "normal" -> %>
+      <.input type="text" field={fc[:body]} />
+    <% "special" -> %>
+      <.input type="text" field={fc[:text]} />
+  <% end %>
+</.inputs_for>
+```
+
+In your LiveView:
+
+```elixir
+def handle_event("type-changed", %{"_target" => path} = params, socket) do
+  new_type = get_in(params, path)
+  path = :lists.droplast(path)
+
+  form =
+    socket.assigns.form
+    |> AshPhoenix.Form.remove_form(path)
+    |> AshPhoenix.Form.add_form(path, params: %{"_union_type" => new_type})
+
+  {:noreply, assign(socket, :form, form)}
+end
+```
+
+## Error Handling
+
+AshPhoenix provides helpful error handling mechanisms:
+
+```elixir
+# In your LiveView
+def handle_event("submit", %{"form" => params}, socket) do
+  case AshPhoenix.Form.submit(socket.assigns.form, params: params) do
+    {:ok, post} ->
+      # Success path
+      {:noreply, success_path(socket, post)}
+
+    {:error, form} ->
+      # Show validation errors
+      {:noreply, assign(socket, form: form)}
+  end
+end
+```
+
+## Debugging Form Submission
+
+Errors on forms are only shown when they implement the `AshPhoenix.FormData.Error` protocol and have a `field` or `fields` set. 
+Most Phoenix applications are set up to show errors for `<.input`s. This can some times lead to errors happening in the 
+action that are not displayed because they don't implement the protocol, have field/fields, or for a field that is not shown
+in the form.
+
+To debug these situations, you can use `AshPhoenix.Form.raw_errors(form, for_path: :all)` on a failed form submission to see what
+is going wrong, and potentially add custom error handling, or resolve whatever error is occurring. If the action has errors
+that can go wrong that aren't tied to fields, you will need to detect those error scenarios and display that with some other UI,
+like a flash message or a notice at the top/bottom of the form, etc.
+
+If you want to see what errors the form will see (that implement the protocl and have fields) use 
+`AshPhoenix.Form.errors(form, for_path: :all)`.
+
+## Best Practices
+
+1. **Let the Resource guide the UI**: Your Ash resource configuration determines a lot about how forms and inputs will work. Well-defined resources with appropriate validations and changes make AshPhoenix more effective.
+
+2. **Leverage code interfaces**: Define code interfaces on your domains for a clean and consistent API to call your resource actions.
+
+3. **Update resources before editing**: When building forms for updating resources, load the resource with all required relationships using `Ash.load!/2` before creating the form.
+
+<!-- ash_phoenix-end -->
+<!-- usage_rules-start -->
+## usage_rules usage
+_A config-driven dev tool for Elixir projects to manage AGENTS.md files and agent skills from dependencies_
+
+## Using Usage Rules
+
+Many packages have usage rules, which you should *thoroughly* consult before taking any
+action. These usage rules contain guidelines and rules *directly from the package authors*.
+They are your best source of knowledge for making decisions.
+
+## Modules & functions in the current app and dependencies
+
+When looking for docs for modules & functions that are dependencies of the current project,
+or for Elixir itself, use `mix usage_rules.docs`
+
+```
+# Search a whole module
+mix usage_rules.docs Enum
+
+# Search a specific function
+mix usage_rules.docs Enum.zip
+
+# Search a specific function & arity
+mix usage_rules.docs Enum.zip/1
+```
+
+
+## Searching Documentation
+
+You should also consult the documentation of any tools you are using, early and often. The best 
+way to accomplish this is to use the `usage_rules.search_docs` mix task. Once you have
+found what you are looking for, use the links in the search results to get more detail. For example:
+
+```
+# Search docs for all packages in the current application, including Elixir
+mix usage_rules.search_docs Enum.zip
+
+# Search docs for specific packages
+mix usage_rules.search_docs Req.get -p req
+
+# Search docs for multi-word queries
+mix usage_rules.search_docs "making requests" -p req
+
+# Search only in titles (useful for finding specific functions/modules)
+mix usage_rules.search_docs "Enum.zip" --query-by title
+```
+
+
+<!-- usage_rules-end -->
+<!-- usage_rules:elixir-start -->
+## usage_rules:elixir usage
+# Elixir Core Usage Rules
+
+## Pattern Matching
+- Use pattern matching over conditional logic when possible
+- Prefer to match on function heads instead of using `if`/`else` or `case` in function bodies
+- `%{}` matches ANY map, not just empty maps. Use `map_size(map) == 0` guard to check for truly empty maps
+
+## Error Handling
+- Use `{:ok, result}` and `{:error, reason}` tuples for operations that can fail
+- Avoid raising exceptions for control flow
+- Use `with` for chaining operations that return `{:ok, _}` or `{:error, _}`
+
+## Common Mistakes to Avoid
+- Elixir has no `return` statement, nor early returns. The last expression in a block is always returned.
+- Don't use `Enum` functions on large collections when `Stream` is more appropriate
+- Avoid nested `case` statements - refactor to a single `case`, `with` or separate functions
+- Don't use `String.to_atom/1` on user input (memory leak risk)
+- Lists and enumerables cannot be indexed with brackets. Use pattern matching or `Enum` functions
+- Prefer `Enum` functions like `Enum.reduce` over recursion
+- When recursion is necessary, prefer to use pattern matching in function heads for base case detection
+- Using the process dictionary is typically a sign of unidiomatic code
+- Only use macros if explicitly requested
+- There are many useful standard library functions, prefer to use them where possible
+
+## Function Design
+- Use guard clauses: `when is_binary(name) and byte_size(name) > 0`
+- Prefer multiple function clauses over complex conditional logic
+- Name functions descriptively: `calculate_total_price/2` not `calc/2`
+- Predicate function names should not start with `is` and should end in a question mark.
+- Names like `is_thing` should be reserved for guards
+
+## Data Structures
+- Use structs over maps when the shape is known: `defstruct [:name, :age]`
+- Prefer keyword lists for options: `[timeout: 5000, retries: 3]`
+- Use maps for dynamic key-value data
+- Prefer to prepend to lists `[new | list]` not `list ++ [new]`
+
+## Mix Tasks
+
+- Use `mix help` to list available mix tasks
+- Use `mix help task_name` to get docs for an individual task
+- Read the docs and options fully before using tasks
+
+## Testing
+- Run tests in a specific file with `mix test test/my_test.exs` and a specific test with the line number `mix test path/to/test.exs:123`
+- Limit the number of failed tests with `mix test --max-failures n`
+- Use `@tag` to tag specific tests, and `mix test --only tag` to run only those tests
+- Use `assert_raise` for testing expected exceptions: `assert_raise ArgumentError, fn -> invalid_function() end`
+- Use `mix help test` to for full documentation on running tests
+
+## Debugging
+
+- Use `dbg/1` to print values while debugging. This will display the formatted value and other relevant information in the console.
+
+<!-- usage_rules:elixir-end -->
+<!-- usage_rules:otp-start -->
+## usage_rules:otp usage
+# OTP Usage Rules
+
+## GenServer Best Practices
+- Keep state simple and serializable
+- Handle all expected messages explicitly
+- Use `handle_continue/2` for post-init work
+- Implement proper cleanup in `terminate/2` when necessary
+
+## Process Communication
+- Use `GenServer.call/3` for synchronous requests expecting replies
+- Use `GenServer.cast/2` for fire-and-forget messages.
+- When in doubt, use `call` over `cast`, to ensure back-pressure
+- Set appropriate timeouts for `call/3` operations
+
+## Fault Tolerance
+- Set up processes such that they can handle crashing and being restarted by supervisors
+- Use `:max_restarts` and `:max_seconds` to prevent restart loops
+
+## Task and Async
+- Use `Task.Supervisor` for better fault tolerance
+- Handle task failures with `Task.yield/2` or `Task.shutdown/2`
+- Set appropriate task timeouts
+- Use `Task.async_stream/3` for concurrent enumeration with back-pressure
+
+<!-- usage_rules:otp-end -->
+<!-- ash_oban-start -->
+## ash_oban usage
+_The extension for integrating Ash resources with Oban._
+
+# Rules for working with AshOban
+
+## Understanding AshOban
+
+AshOban is a package that integrates the Ash Framework with Oban, a robust job processing system for Elixir. It enables you to define triggers that can execute background jobs based on specific conditions in your Ash resources, as well as schedule periodic actions. AshOban is particularly useful for handling asynchronous tasks, background processing, and scheduled operations in your Ash application.
+
+## Setting Up AshOban
+
+To use AshOban with an Ash resource, add AshOban to the extensions list:
+
+```elixir
+use Ash.Resource,
+  extensions: [AshOban]
+```
+
+## Defining Triggers
+
+Triggers are the primary way to define background jobs in AshOban. They can be configured to run when certain conditions are met on your resources. They work
+by running a scheduler job on the given cron job.
+
+### Basic Trigger
+
+```elixir
+oban do
+  triggers do
+    trigger :process do
+      action :process
+      scheduler_cron "*/5 * * * *"
+      where expr(processed != true)
+      worker_read_action :read
+      worker_module_name MyApp.Workers.Process
+      scheduler_module_name MyApp.Schedulers.Process
+    end
+  end
+end
+```
+
+### Trigger Configuration Options
+
+- `action` - The action to be triggered (required)
+- `where` - The filter expression to determine if something should be triggered
+- `worker_read_action` - The read action to use when fetching individual records
+- `read_action` - The read action to use when querying records (must support keyset pagination)
+- `worker_module_name` - The module name for the generated worker (important for job stability)
+- `scheduler_module_name` - The module name for the generated scheduler
+- `max_attempts` - How many times to attempt the job (default: 1)
+- `queue` - The queue to place the worker job in (defaults to trigger name)
+- `trigger_once?` - Ensures that jobs that complete quickly aren't rescheduled (default: false)
+
+## Scheduled Actions
+
+Scheduled actions allow you to run periodic tasks according to a cron schedule:
+
+```elixir
+oban do
+  scheduled_actions do
+    schedule :daily_report, "0 8 * * *" do
+      action :generate_report
+      worker_module_name MyApp.Workers.DailyReport
+    end
+  end
+end
+```
+
+### Scheduled Action Configuration Options
+
+- `cron` - The schedule in crontab notation
+- `action` - The generic or create action to call when the schedule is triggered
+- `action_input` - Inputs to supply to the action when it is called
+- `worker_module_name` - The module name for the generated worker
+- `queue` - The queue to place the job in
+- `max_attempts` - How many times to attempt the job (default: 1)
+
+## Triggering Jobs Programmatically
+
+You can trigger jobs programmatically using `run_oban_trigger` in your actions:
+
+```elixir
+update :process_item do
+  accept [:item_id]
+  change set_attribute(:processing, true)
+  change run_oban_trigger(:process_data)
+end
+```
+
+Or directly using the AshOban API:
+
+```elixir
+# Run a trigger for a specific record
+AshOban.run_trigger(record, :process_data)
+
+# Run a trigger for multiple records
+AshOban.run_triggers(records, :process_data)
+
+# Schedule a trigger or scheduled action
+AshOban.schedule(MyApp.Resource, :process_data, actor: current_user)
+```
+
+## Working with Actors
+
+AshOban can persist the actor that triggered a job, making it available when the job runs:
+
+### Setting up Actor Persistence
+
+```elixir
+# Define an actor persister module
+defmodule MyApp.ObanActorPersister do
+  @behaviour AshOban.PersistActor
+
+  @impl true
+  def store(actor) do
+    # Convert actor to a format that can be stored in JSON
+    Jason.encode!(actor)
+  end
+
+  @impl true
+  def lookup(actor_json) do
+    # Convert the stored JSON back to an actor
+    case Jason.decode(actor_json) do
+      {:ok, data} -> {:ok, MyApp.Accounts.get_user!(data["id"])}
+      error -> error
+    end
+  end
+end
+
+# Configure it
+config :ash_oban, :actor_persister, MyApp.ObanActorPersister
+```
+
+### Using Actor in Triggers
+
+```elixir
+# Specify actor_persister for a specific trigger
+trigger :process do
+  action :process
+  actor_persister MyApp.ObanActorPersister
+end
+
+# Pass the actor when triggering a job
+AshOban.run_trigger(record, :process, actor: current_user)
+```
+
+## Multi-tenancy Support
+
+AshOban supports multi-tenancy in your Ash application:
+
+```elixir
+oban do
+  # Global tenant configuration
+  list_tenants [1, 2, 3]  # or a function that returns tenants
+
+  triggers do
+    trigger :process do
+      # Override tenants for a specific trigger
+      list_tenants fn -> [2] end
+      action :process
+    end
+  end
+end
+```
+
+## Debugging and Error Handling
+
+AshOban provides options for debugging and handling errors:
+
+```elixir
+trigger :process do
+  action :process
+  # Enable detailed debug logging for this trigger
+  debug? true
+
+  # Configure error handling
+  log_errors? true
+  log_final_error? true
+
+  # Define an action to call after the last attempt has failed
+  on_error :mark_failed
+end
+```
+
+You can also enable global debug logging:
+
+```elixir
+config :ash_oban, :debug_all_triggers?, true
+```
+
+## Best Practices
+
+1. **Always define module names** - Use explicit `worker_module_name` and `scheduler_module_name` to prevent issues when refactoring.
+
+2. **Use meaningful trigger names** - Choose clear, descriptive names for your triggers that reflect their purpose.
+
+3. **Handle errors gracefully** - Use the `on_error` option to define how to handle records that fail processing repeatedly.
+
+4. **Use appropriate queues** - Organize your jobs into different queues based on priority and resource requirements.
+
+5. **Optimize read actions** - Ensure that read actions used in triggers support keyset pagination for efficient processing.
+
+6. **Design for idempotency** - Jobs should be designed to be safely retried without causing data inconsistencies.
+
+<!-- ash_oban-end -->
+<!-- usage-rules-end -->

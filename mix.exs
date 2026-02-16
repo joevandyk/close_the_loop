@@ -12,7 +12,15 @@ defmodule CloseTheLoop.MixProject do
       deps: deps(),
       compilers: [:phoenix_live_view] ++ Mix.compilers(),
       listeners: [Phoenix.CodeReloader],
-      consolidate_protocols: Mix.env() != :dev
+      consolidate_protocols: Mix.env() != :dev,
+      usage_rules: usage_rules()
+    ]
+  end
+
+  defp usage_rules do
+    [
+      file: "AGENTS.md",
+      usage_rules: :all
     ]
   end
 
@@ -65,6 +73,7 @@ defmodule CloseTheLoop.MixProject do
       {:phoenix_live_view, "~> 1.1.0"},
       {:fluxon, path: "vendor/fluxon"},
       {:lazy_html, ">= 0.1.0", only: :test},
+      {:usage_rules, "~> 1.1", only: :dev},
       {:phoenix_live_dashboard, "~> 0.8.3"},
       {:esbuild, "~> 0.10", runtime: Mix.env() == :dev},
       {:tailwind, "~> 0.3", runtime: Mix.env() == :dev},

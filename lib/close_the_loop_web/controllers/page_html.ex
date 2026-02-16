@@ -19,7 +19,7 @@ defmodule CloseTheLoopWeb.PageHTML do
     primary_href =
       cond do
         !signed_in? -> ~p"/register"
-        org_id -> ~p"/app/issues"
+        org_id -> ~p"/app"
         true -> ~p"/app/onboarding"
       end
 
