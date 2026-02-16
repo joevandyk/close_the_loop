@@ -136,7 +136,7 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
           </div>
         </.modal>
 
-        <.alert color="info" title="Tips">
+        <.alert color="default" title="Tips" hide_close>
           <ul class="text-sm space-y-1">
             <li>Print the QR code and post it where customers will see it.</li>
             <li>Use one location per physical site or area (e.g. locker room).</li>
