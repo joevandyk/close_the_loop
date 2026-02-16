@@ -366,14 +366,10 @@ defmodule CloseTheLoopWeb.Layouts do
     reports_active = String.contains?(assigns.current_view, ".ReportsLive.")
     locations_active = String.contains?(assigns.current_view, ".LocationsLive.")
 
-    org_settings_active = String.contains?(assigns.current_view, ".SettingsLive.Organization")
-    account_settings_active = String.contains?(assigns.current_view, ".SettingsLive.Account")
-
-    inbox_settings_active =
-      String.contains?(assigns.current_view, ".SettingsLive.Inbox") or
+    settings_active =
+      String.contains?(assigns.current_view, ".SettingsLive.") or
         String.contains?(assigns.current_view, ".IssueCategoriesLive.")
 
-    help_settings_active = String.contains?(assigns.current_view, ".SettingsLive.Help")
     onboarding_active = String.contains?(assigns.current_view, ".OnboardingLive.")
 
     organizations_active =
@@ -387,10 +383,7 @@ defmodule CloseTheLoopWeb.Layouts do
       |> assign(:inbox_active, inbox_active)
       |> assign(:reports_active, reports_active)
       |> assign(:locations_active, locations_active)
-      |> assign(:org_settings_active, org_settings_active)
-      |> assign(:account_settings_active, account_settings_active)
-      |> assign(:inbox_settings_active, inbox_settings_active)
-      |> assign(:help_settings_active, help_settings_active)
+      |> assign(:settings_active, settings_active)
       |> assign(:onboarding_active, onboarding_active)
       |> assign(:organizations_active, organizations_active)
 
@@ -416,22 +409,13 @@ defmodule CloseTheLoopWeb.Layouts do
       <% end %>
     </.navlist>
 
-    <.navlist heading="Admin">
+    <.navlist heading="Settings">
       <%= if @org_id do %>
-        <.navlink navigate={~p"/app/#{@org_id}/settings/organization"} active={@org_settings_active}>
-          <.icon name="hero-building-office-2" class="size-5" /> Organization
-        </.navlink>
-        <.navlink navigate={~p"/app/#{@org_id}/settings/account"} active={@account_settings_active}>
-          <.icon name="hero-user-circle" class="size-5" /> Account
-        </.navlink>
-        <.navlink navigate={~p"/app/#{@org_id}/settings/inbox"} active={@inbox_settings_active}>
-          <.icon name="hero-adjustments-horizontal" class="size-5" /> Issues configuration
+        <.navlink navigate={~p"/app/#{@org_id}/settings"} active={@settings_active}>
+          <.icon name="hero-cog-6-tooth" class="size-5" /> Settings
         </.navlink>
         <.navlink navigate={~p"/app/#{@org_id}/settings/locations"} active={@locations_active}>
           <.icon name="hero-map-pin" class="size-5" /> Locations
-        </.navlink>
-        <.navlink navigate={~p"/app/#{@org_id}/settings/help"} active={@help_settings_active}>
-          <.icon name="hero-question-mark-circle" class="size-5" /> Help
         </.navlink>
       <% end %>
       <.navlink href={~p"/app/oban"}>
@@ -489,40 +473,4 @@ defmodule CloseTheLoopWeb.Layouts do
     """
   end
 
-  @doc """
-  Provides dark vs light theme toggle based on themes defined in app.css.
-
-  See <head> in root.html.heex which applies the theme before page load.
-  """
-  def theme_toggle(assigns) do
-    ~H"""
-    <div class="relative flex flex-row items-center rounded-full border border-base bg-accent p-0.5">
-      <div class="absolute h-[calc(100%-0.25rem)] w-1/3 rounded-full border border-base bg-base shadow-base left-0 [[data-theme=light]_&]:left-1/3 [[data-theme=dark]_&]:left-2/3 transition-[left]" />
-
-      <button
-        class="relative flex p-2 cursor-pointer w-1/3"
-        phx-click={JS.dispatch("phx:set-theme")}
-        data-phx-theme="system"
-      >
-        <.icon name="hero-computer-desktop-micro" class="size-4 opacity-75 hover:opacity-100" />
-      </button>
-
-      <button
-        class="relative flex p-2 cursor-pointer w-1/3"
-        phx-click={JS.dispatch("phx:set-theme")}
-        data-phx-theme="light"
-      >
-        <.icon name="hero-sun-micro" class="size-4 opacity-75 hover:opacity-100" />
-      </button>
-
-      <button
-        class="relative flex p-2 cursor-pointer w-1/3"
-        phx-click={JS.dispatch("phx:set-theme")}
-        data-phx-theme="dark"
-      >
-        <.icon name="hero-moon-micro" class="size-4 opacity-75 hover:opacity-100" />
-      </button>
-    </div>
-    """
-  end
 end

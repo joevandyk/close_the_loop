@@ -81,6 +81,7 @@ defmodule CloseTheLoopWeb.Router do
 
       live "/app/:org_id/settings/help", SettingsLive.Help, :index
       live "/app/:org_id/settings/organization", SettingsLive.Organization, :index
+      live "/app/:org_id/settings/team", SettingsLive.Team, :index
       live "/app/:org_id/settings/account", SettingsLive.Account, :index
       live "/app/:org_id/settings/inbox", SettingsLive.Inbox, :index
 
@@ -99,6 +100,9 @@ defmodule CloseTheLoopWeb.Router do
     get "/pricing", PageController, :pricing
     get "/privacy", PageController, :privacy
     get "/terms", PageController, :terms
+
+    get "/invites/:token", OrganizationInvitationController, :show
+    post "/invites/:token/accept", OrganizationInvitationController, :accept
 
     live_session :reporter, layout: false do
       live "/r/:tenant/:location_id", ReporterLive.New, :new

@@ -44,6 +44,25 @@ defmodule CloseTheLoopWeb.SettingsLive.Index do
           </.link>
 
           <.link
+            :if={@current_role == :owner}
+            navigate={~p"/app/#{@current_org.id}/settings/team"}
+            class={[
+              "block rounded-2xl border border-base bg-base p-6 shadow-base",
+              "transition hover:bg-accent hover:shadow-lg hover:-translate-y-[1px]"
+            ]}
+          >
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <h2 class="text-sm font-semibold">Team</h2>
+                <p class="mt-2 text-sm text-foreground-soft">
+                  Invite members and manage access.
+                </p>
+              </div>
+              <.icon name="hero-users" class="size-5 text-foreground-soft" />
+            </div>
+          </.link>
+
+          <.link
             navigate={~p"/app/#{@current_org.id}/settings/account"}
             class={[
               "block rounded-2xl border border-base bg-base p-6 shadow-base",

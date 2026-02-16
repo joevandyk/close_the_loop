@@ -28,5 +28,14 @@ defmodule CloseTheLoop.Accounts do
       define :update_user_organization, action: :update
       define :destroy_user_organization, action: :destroy
     end
+
+    resource CloseTheLoop.Accounts.OrganizationInvitation do
+      define :get_organization_invitation_by_token, action: :by_token, args: [:token]
+      define :list_pending_organization_invitations, action: :pending_for_org
+
+      define :invite_user_to_organization, action: :invite
+      define :accept_organization_invitation, action: :accept
+      define :revoke_organization_invitation, action: :revoke
+    end
   end
 end

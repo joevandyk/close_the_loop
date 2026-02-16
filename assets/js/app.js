@@ -28,36 +28,6 @@ import topbar from "../vendor/topbar"
 
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 
-// Theme control (no inline <script> in templates).
-// We keep a 3-state toggle: system (default), light, dark.
-const initThemeControl = (() => {
-  function setTheme(theme) {
-    if (!theme || theme === "system") {
-      localStorage.removeItem("phx:theme")
-      document.documentElement.setAttribute("data-theme", "system")
-    } else {
-      localStorage.setItem("phx:theme", theme)
-      document.documentElement.setAttribute("data-theme", theme)
-    }
-  }
-
-  function start() {
-    setTheme(localStorage.getItem("phx:theme") || "system")
-
-    window.addEventListener("storage", (e) => {
-      if (e.key === "phx:theme") setTheme(e.newValue || "system")
-    })
-
-    window.addEventListener("phx:set-theme", (e) => {
-      setTheme(e.target?.dataset?.phxTheme)
-    })
-  }
-
-  return { start }
-})()
-
-initThemeControl.start()
-
 // Auto-dismiss flash toasts on both LiveView and controller-rendered pages.
 // We still "click" first so LiveView flashes get cleared server-side.
 const armAutoDismissFlashes = (() => {
