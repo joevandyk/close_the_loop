@@ -81,8 +81,11 @@ defmodule CloseTheLoop.AI do
         prompt = """
         You are deduplicating facility issues.
 
-        Given a NEW issue and a list of EXISTING open issues at the same location, decide if the new issue
+        Given a NEW issue and a list of EXISTING open issues in the same organization, decide if the new issue
         is reporting the same underlying problem as one of the existing issues.
+
+        Issues may refer to different locations. Use any provided location context as a hint, but do not require
+        the locations to match if it is clearly the same underlying problem.
 
         Return ONLY:
         - the matching issue id (a UUID) if it is clearly the same issue, OR
@@ -131,12 +134,21 @@ defmodule CloseTheLoop.AI do
     candidates
     |> Enum.map(fn c ->
       id = Map.get(c, :id) || Map.get(c, "id")
+      location = Map.get(c, :location) || Map.get(c, "location")
       title = Map.get(c, :title) || Map.get(c, "title")
       description = Map.get(c, :description) || Map.get(c, "description")
 
+      location_line =
+        if is_binary(location) and String.trim(location) != "" do
+          # Include trailing indentation so the following "title" line stays aligned.
+          "location: #{String.trim(location)}\n        "
+        else
+          ""
+        end
+
       """
       - id: #{id}
-        title: #{title}
+        #{location_line}title: #{title}
         description: #{description}
       """
     end)

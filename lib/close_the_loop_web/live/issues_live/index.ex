@@ -268,7 +268,7 @@ defmodule CloseTheLoopWeb.IssuesLive.Index do
                     </span>
                   </div>
 
-                  <p class="mt-2 text-sm font-medium text-foreground break-words">
+                  <p class="mt-2 text-sm font-medium text-foreground line-clamp-2">
                     {issue.title}
                   </p>
 

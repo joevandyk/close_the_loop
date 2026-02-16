@@ -1,7 +1,7 @@
 defmodule CloseTheLoopWeb.TwilioWebhookController do
   use CloseTheLoopWeb, :controller
 
-  alias CloseTheLoop.Feedback.Intake
+  alias CloseTheLoop.Feedback, as: FeedbackDomain
 
   @doc """
   Inbound SMS webhook (Twilio).
@@ -19,12 +19,17 @@ defmodule CloseTheLoopWeb.TwilioWebhookController do
          true <-
            (is_binary(location_id) and location_id != "") || {:error, "Missing location_id"},
          {:ok, _} <-
-           Intake.submit_report(tenant, location_id, %{
-             body: body,
-             source: :sms,
-             reporter_phone: from,
-             consent: true
-           }) do
+           FeedbackDomain.create_report(
+             %{
+               location_id: location_id,
+               body: body,
+               source: :sms,
+               reporter_phone: from,
+               consent: true
+             },
+             tenant: tenant,
+             actor: nil
+           ) do
       twiml_ok(conn)
     else
       _ ->

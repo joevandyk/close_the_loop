@@ -60,7 +60,7 @@ defmodule CloseTheLoopWeb.ActivityFeed do
                       {actor_label(@current_user, @users_by_id, e)}
                     </span>
                     <span class="opacity-60">•</span>
-                    <span class="font-medium truncate">{event_title(e)}</span>
+                    <span class="min-w-0 font-medium line-clamp-2">{event_title(e)}</span>
                   </div>
 
                   <time
@@ -80,7 +80,7 @@ defmodule CloseTheLoopWeb.ActivityFeed do
                     {actor_label(@current_user, @users_by_id, e)}
                   </span>
                   <span class="opacity-60">•</span>
-                  <span class="font-medium truncate">{event_title(e)}</span>
+                  <span class="min-w-0 font-medium line-clamp-2">{event_title(e)}</span>
                 </div>
 
                 <time

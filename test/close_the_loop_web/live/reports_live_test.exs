@@ -110,7 +110,7 @@ defmodule CloseTheLoopWeb.ReportsLiveTest do
 
     {:ok, view, _html} = live(conn, ~p"/app/#{org.id}/reports/new?location_id=#{location.id}")
 
-    body = "Front desk: cold water in showers"
+    body = "Front desk: cold water in showers #{System.unique_integer([:positive])}"
 
     view
     |> form("#manual-report-form",
@@ -126,11 +126,14 @@ defmodule CloseTheLoopWeb.ReportsLiveTest do
     )
     |> render_submit()
 
-    {:ok, issues} = Ash.read(Issue, tenant: tenant)
-    issue = Enum.find(issues, fn i -> i.description == body end)
-    assert issue
+    {path, _flash} = assert_redirect(view)
+    assert path =~ ~r|/app/#{org.id}/issues/|
 
-    assert_redirect(view, ~p"/app/#{org.id}/issues/#{issue.id}")
+    issue_id = path |> String.split("/issues/") |> List.last()
+    {:ok, issue} = Ash.get(Issue, issue_id, tenant: tenant)
+
+    assert issue.location_id == location.id
+    assert issue.description == body
 
     {:ok, reports} = Ash.read(Report, tenant: tenant)
     assert Enum.any?(reports, fn r -> r.source == :manual end)

@@ -59,7 +59,7 @@ defmodule CloseTheLoop.Feedback.Dashboard do
     Feedback.list_reports(
       tenant: tenant,
       query: [sort: [updated_at: :desc, inserted_at: :desc], limit: 8],
-      load: [issue: [:title], location: [:name, :full_path]]
+      load: [location: [:name, :full_path]]
     )
   end
 

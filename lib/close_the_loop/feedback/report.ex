@@ -159,7 +159,10 @@ defmodule CloseTheLoop.Feedback.Report do
     end
 
     belongs_to :issue, CloseTheLoop.Feedback.Issue do
-      allow_nil? false
+      # We always set this during the action (see ResolveIssueAndLocation),
+      # but AshPhoenix form validation happens before submit, so we must not
+      # require it at validate-time.
+      allow_nil? true
       public? true
     end
   end

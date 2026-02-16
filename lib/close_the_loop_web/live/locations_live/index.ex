@@ -162,7 +162,7 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
           >
             <div class="min-w-0">
               <div
-                class="text-sm font-semibold text-foreground truncate"
+                class="text-sm font-semibold text-foreground line-clamp-2"
                 title={loc.full_path || loc.name}
               >
                 {loc.full_path || loc.name}

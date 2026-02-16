@@ -540,7 +540,7 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
                     </.badge>
                   </div>
 
-                  <div class="mt-1 text-sm leading-6 text-foreground">
+                  <div class="mt-1 text-sm leading-6 text-foreground line-clamp-2">
                     {report_preview(r.body)}
                   </div>
                 </div>
@@ -859,20 +859,13 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
   end
 
   defp report_preview(body) do
-    body = body |> to_string() |> String.trim()
-
-    condensed =
-      body
-      |> String.split("\n")
-      |> Enum.map(&String.trim/1)
-      |> Enum.reject(&(&1 == ""))
-      |> Enum.join(" ")
-
-    if String.length(condensed) > 240 do
-      String.slice(condensed, 0, 240) <> "…"
-    else
-      condensed
-    end
+    body
+    |> to_string()
+    |> String.trim()
+    |> String.split("\n")
+    |> Enum.map(&String.trim/1)
+    |> Enum.reject(&(&1 == ""))
+    |> Enum.join(" ")
   end
 
   defp can_edit_issue?(:owner), do: true

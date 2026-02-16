@@ -73,12 +73,11 @@ defmodule CloseTheLoopWeb.ReportsLive.Index do
 
   defp list_reports(_tenant, _q), do: {:ok, []}
 
-  defp report_excerpt(body) do
+  defp normalize_whitespace(body) do
     body
     |> to_string()
     |> String.replace(~r/\s+/, " ")
     |> String.trim()
-    |> String.slice(0, 120)
   end
 
   defp format_dt(%DateTime{} = dt), do: Calendar.strftime(dt, "%b %d, %Y %I:%M %p")
@@ -182,8 +181,8 @@ defmodule CloseTheLoopWeb.ReportsLive.Index do
                     <.icon name="hero-arrow-right" class="ml-auto size-4 text-foreground-soft" />
                   </div>
 
-                  <p class="mt-2 text-sm font-medium text-foreground break-words">
-                    {report_excerpt(r.body)}
+                  <p class="mt-2 text-sm font-medium text-foreground line-clamp-2">
+                    {normalize_whitespace(r.body)}
                   </p>
 
                   <div class="mt-3 grid gap-1 text-xs text-foreground-soft">
@@ -195,7 +194,7 @@ defmodule CloseTheLoopWeb.ReportsLive.Index do
                     </div>
                     <div class="flex items-start gap-2 min-w-0">
                       <.icon name="hero-inbox" class="mt-0.5 size-4 shrink-0" />
-                      <span class="truncate" title={r.issue.title}>
+                      <span class="min-w-0 line-clamp-1" title={r.issue.title}>
                         {r.issue.title}
                       </span>
                     </div>

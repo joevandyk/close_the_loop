@@ -75,7 +75,7 @@ defmodule CloseTheLoopWeb.DashboardLive.Index do
           <.stat_card
             title="Open issues"
             value={@stats.issues_total}
-            hint="Excludes duplicates"
+            hint="Active"
             navigate={~p"/app/#{@current_org.id}/issues"}
           />
           <.stat_card
@@ -120,16 +120,26 @@ defmodule CloseTheLoopWeb.DashboardLive.Index do
             >
               <div class="flex items-start gap-3">
                 <div class="min-w-0 flex-1">
-                  <div class="text-sm font-medium text-foreground">
+                  <div class="text-sm font-medium text-foreground line-clamp-2">
                     {i.title}
                   </div>
                   <div class="mt-1 flex items-center gap-2 text-xs text-foreground-soft min-w-0">
                     <.icon name="hero-map-pin" class="size-4 shrink-0" />
-                    <span class="truncate">{i.location.full_path || i.location.name}</span>
-                    <span class="ml-auto inline-flex items-center gap-1 whitespace-nowrap">
+                    <span class="min-w-0 line-clamp-2">
+                      {i.location.full_path || i.location.name}
+                    </span>
+                    <span class="inline-flex items-center gap-1 whitespace-nowrap shrink-0">
                       <.icon name="hero-users" class="size-4" />
                       {i.reporter_count}
                     </span>
+                    <time
+                      id={"dash-issue-time-#{i.id}"}
+                      phx-hook="LocalTime"
+                      data-iso={iso8601(i.inserted_at)}
+                      class="ml-auto shrink-0 whitespace-nowrap"
+                    >
+                      {format_dt(i.inserted_at)}
+                    </time>
                   </div>
                 </div>
 
@@ -143,7 +153,7 @@ defmodule CloseTheLoopWeb.DashboardLive.Index do
               :for={r <- @recent_reports}
               id={"dash-report-#{r.id}"}
               navigate={~p"/app/#{@current_org.id}/reports/#{r.id}"}
-              aria-label={"View report: #{r.body |> to_string() |> String.slice(0, 70)}"}
+              aria-label={"View report: #{r.body |> to_string() |> String.slice(0, 80)}"}
               class={[
                 "block py-3 -mx-2 px-2 rounded-xl",
                 "transition hover:bg-accent/60 hover:shadow-sm",
@@ -152,21 +162,19 @@ defmodule CloseTheLoopWeb.DashboardLive.Index do
             >
               <div class="flex items-start gap-3">
                 <div class="min-w-0 flex-1">
-                  <div class="text-sm font-medium text-foreground">
-                    {r.body |> to_string() |> String.slice(0, 70)}
+                  <div class="text-sm font-medium text-foreground line-clamp-2">
+                    {r.body |> to_string()}
                   </div>
                   <div class="mt-1 flex items-center gap-2 text-xs text-foreground-soft min-w-0">
                     <.icon name="hero-map-pin" class="size-4 shrink-0" />
-                    <span class="truncate">{r.location.full_path || r.location.name}</span>
-                  </div>
-                  <div class="mt-1 flex items-center gap-2 text-xs text-foreground-soft min-w-0">
-                    <.icon name="hero-inbox" class="size-4 shrink-0" />
-                    <span class="truncate">{r.issue.title}</span>
+                    <span class="min-w-0 line-clamp-2">
+                      {r.location.full_path || r.location.name}
+                    </span>
                     <time
                       id={"dash-report-time-#{r.id}"}
                       phx-hook="LocalTime"
                       data-iso={iso8601(r.inserted_at)}
-                      class="ml-auto whitespace-nowrap"
+                      class="ml-auto shrink-0 whitespace-nowrap"
                     >
                       {format_dt(r.inserted_at)}
                     </time>
@@ -205,10 +213,10 @@ defmodule CloseTheLoopWeb.DashboardLive.Index do
                       {format_dt(c.inserted_at)}
                     </time>
                   </div>
-                  <div class="mt-1 text-sm text-foreground break-words">
+                  <div class="mt-1 text-sm text-foreground line-clamp-2">
                     {c.body}
                   </div>
-                  <div class="mt-1 text-xs text-foreground-soft truncate">
+                  <div class="mt-1 text-xs text-foreground-soft line-clamp-1">
                     On: <span class="font-medium text-foreground">{c.issue.title}</span>
                   </div>
                 </div>
@@ -243,10 +251,10 @@ defmodule CloseTheLoopWeb.DashboardLive.Index do
                       {format_dt(u.inserted_at)}
                     </time>
                   </div>
-                  <div class="mt-1 text-sm text-foreground break-words">
+                  <div class="mt-1 text-sm text-foreground line-clamp-2">
                     {u.message}
                   </div>
-                  <div class="mt-1 text-xs text-foreground-soft truncate">
+                  <div class="mt-1 text-xs text-foreground-soft line-clamp-1">
                     For: <span class="font-medium text-foreground">{u.issue.title}</span>
                   </div>
                 </div>

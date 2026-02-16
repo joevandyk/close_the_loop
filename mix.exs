@@ -115,7 +115,14 @@ defmodule CloseTheLoop.MixProject do
         "esbuild close_the_loop --minify",
         "phx.digest"
       ],
-      precommit: ["compile --warnings-as-errors", "deps.unlock --unused", "format", "test"]
+      precommit: [
+        "compile --warnings-as-errors",
+        # Catch Ash pending codegen (same error shown by CheckCodegenStatus plug).
+        "ash.codegen --check",
+        "deps.unlock --unused",
+        "format",
+        "test"
+      ]
     ]
   end
 end

@@ -116,7 +116,7 @@ defmodule CloseTheLoopWeb.ReportsLive.New do
       exclude_fields_if_empty: [:issue_id],
       post_process_errors: fn _form, _path, {field, message, vars} ->
         # In this flow, issue selection is optional; the submission path will
-        # auto-group or create an issue when it's omitted.
+        # create a new issue when it's omitted.
         if field in [:issue, :issue_id] do
           nil
         else
@@ -196,7 +196,7 @@ defmodule CloseTheLoopWeb.ReportsLive.New do
               <div class="lg:col-span-2">
                 <.separator text="Assign (optional)" class="my-2" />
                 <p class="text-sm text-foreground-soft">
-                  Leave this blank to auto-group into an existing open issue (or create a new one).
+                  Leave this blank to create a new issue. We may merge duplicates automatically later.
                 </p>
 
                 <div class="mt-3">
@@ -221,7 +221,7 @@ defmodule CloseTheLoopWeb.ReportsLive.New do
                     :if={@selected_location_id != nil and @issue_options == []}
                     class="mt-1 text-xs text-foreground-soft"
                   >
-                    No existing issues found for this location yet (auto-assign will create or group as needed).
+                    No existing issues found for this location yet.
                   </div>
                 </div>
               </div>

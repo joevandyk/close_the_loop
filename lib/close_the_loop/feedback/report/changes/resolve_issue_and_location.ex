@@ -3,12 +3,8 @@ defmodule CloseTheLoop.Feedback.Report.Changes.ResolveIssueAndLocation do
 
   use Ash.Resource.Change
 
-  import Ash.Expr
-
   alias CloseTheLoop.Feedback.Issue
   alias CloseTheLoop.Workers.{CategorizeIssueWorker, DedupeIssueWorker}
-
-  require Ash.Query
 
   @impl true
   def change(changeset, _opts, context) do
@@ -34,7 +30,21 @@ defmodule CloseTheLoop.Feedback.Report.Changes.ResolveIssueAndLocation do
         changeset
 
       true ->
-        resolve_or_create_issue(changeset, tenant, location_id, normalized_body)
+        # Manual dedupe (exact body matching) causes surprising behavior when reporters
+        # scan a QR code at one location to report an issue about another location.
+        # Always create a new issue unless the caller explicitly picked an existing issue.
+        #
+        # Important: AshPhoenix forms call validate before submit. Changes run during
+        # validation, so we must not create records directly in `change/3` or we'd
+        # create duplicate issues. Instead, create the issue only right before the
+        # action runs.
+        Ash.Changeset.before_action(changeset, fn changeset ->
+          tenant = changeset.tenant
+          location_id = Ash.Changeset.get_attribute(changeset, :location_id)
+          normalized_body = Ash.Changeset.get_attribute(changeset, :normalized_body)
+
+          create_new_issue(changeset, tenant, location_id, normalized_body)
+        end)
     end
   end
 
@@ -54,38 +64,6 @@ defmodule CloseTheLoop.Feedback.Report.Changes.ResolveIssueAndLocation do
 
       _ ->
         Ash.Changeset.add_error(changeset, field: :issue_id, message: "Issue not found")
-    end
-  end
-
-  defp resolve_or_create_issue(changeset, tenant, location_id, normalized_body)
-       when is_binary(tenant) and not is_nil(location_id) do
-    query =
-      Issue
-      |> Ash.Query.filter(
-        expr(
-          location_id == ^location_id and status != :fixed and
-            normalized_description == ^normalized_body and is_nil(duplicate_of_issue_id)
-        )
-      )
-      |> Ash.Query.sort(inserted_at: :desc)
-      |> Ash.Query.limit(1)
-
-    case Ash.read_one(query, tenant: tenant) do
-      {:ok, %Issue{} = issue} ->
-        changeset
-        |> Ash.Changeset.force_change_attribute(:issue_id, issue.id)
-        |> Ash.Changeset.force_change_attribute(:location_id, issue.location_id)
-
-      {:ok, nil} ->
-        create_new_issue(changeset, tenant, location_id, normalized_body)
-
-      {:error, err} ->
-        message = error_message(err)
-
-        Ash.Changeset.add_error(changeset,
-          field: :issue_id,
-          message: "Failed to resolve issue: #{message}"
-        )
     end
   end
 
