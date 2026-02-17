@@ -7,7 +7,9 @@ const port = process.env.E2E_PORT ?? "41731";
 // filesystem path than the main checkout, so `doppler run` may not discover a
 // previously-configured project/config. Make this explicit (but overrideable).
 const dopplerProject = process.env.DOPPLER_PROJECT ?? "close-the-loop";
-const dopplerConfig = process.env.DOPPLER_CONFIG ?? "local";
+// In this repo, the main checkout typically uses the `local_close_the_loop`
+// config; worktrees should match unless explicitly overridden.
+const dopplerConfig = process.env.DOPPLER_CONFIG ?? "local_close_the_loop";
 
 // E2E runs the app in dev mode but against the test DB for isolation.
 // Override with E2E_DATABASE_URL if your test Postgres is not on localhost.
