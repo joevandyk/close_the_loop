@@ -357,9 +357,9 @@ defmodule CloseTheLoopWeb.IssuesLiveTest do
       |> AshAuthentication.Plug.Helpers.store_in_session(user)
 
     {:ok, view, _html} = live(conn, ~p"/app/#{org.id}/issues/#{issue.id}")
-    assert has_element?(view, "#issue-edit-details-toggle")
+    assert has_element?(view, "#issue-open-edit-details")
 
-    view |> element("#issue-edit-details-toggle") |> render_click()
+    view |> element("#issue-open-edit-details") |> render_click()
     assert has_element?(view, "#issue-edit-details-form")
 
     view
@@ -406,7 +406,7 @@ defmodule CloseTheLoopWeb.IssuesLiveTest do
       |> AshAuthentication.Plug.Helpers.store_in_session(user)
 
     {:ok, view, _html} = live(conn, ~p"/app/#{org.id}/issues/#{issue.id}")
-    refute has_element?(view, "#issue-edit-details-toggle")
+    refute has_element?(view, "#issue-open-edit-details")
   end
 
   test "issues inbox supports status filter via query params", %{conn: conn} do
