@@ -75,7 +75,7 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
             color="primary"
             phx-click="open_new_location_modal"
           >
-            <.icon name="hero-plus" class="size-4" /> Add location
+            <.icon name="hero-plus" class="icon" /> Add location
           </.button>
         </div>
 
@@ -162,7 +162,7 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
             :for={loc <- @locations}
             data-location-card
             id={"location-item-#{loc.id}"}
-            class="rounded-2xl border border-base bg-base p-5 shadow-base grid grid-cols-[1fr_auto] items-center gap-4"
+            class="rounded-2xl border border-base bg-base p-5 shadow-base grid grid-cols-1 gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
           >
             <div class="min-w-0">
               <div
@@ -172,7 +172,7 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
                 {loc.full_path || loc.name}
               </div>
             </div>
-            <div class="flex items-center justify-end gap-2 flex-nowrap">
+            <div class="flex flex-wrap items-center justify-start gap-2 sm:flex-nowrap sm:justify-end">
               <.button
                 href={loc.reporter_link}
                 target="_blank"
@@ -180,7 +180,7 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
                 variant="outline"
                 size="sm"
               >
-                <.icon name="hero-arrow-top-right-on-square" class="size-4" /> Report an issue
+                <.icon name="hero-arrow-top-right-on-square" class="icon" /> Report an issue
               </.button>
               <.button
                 href={~p"/app/#{@current_org.id}/settings/locations/#{loc.id}/poster"}
@@ -189,7 +189,7 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
                 variant="outline"
                 size="sm"
               >
-                <.icon name="hero-printer" class="size-4" /> Poster (PDF)
+                <.icon name="hero-printer" class="icon" /> Poster (PDF)
               </.button>
               <.button
                 id={"locations-open-edit-#{loc.id}"}
@@ -200,7 +200,7 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
                 phx-click="edit"
                 phx-value-id={loc.id}
               >
-                <.icon name="hero-pencil-square" class="size-4" /> Edit
+                <.icon name="hero-pencil-square" class="icon" /> Edit
               </.button>
             </div>
           </div>
