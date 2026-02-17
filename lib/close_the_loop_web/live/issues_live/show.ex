@@ -381,7 +381,7 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
 
         <div class="rounded-2xl border border-base bg-base p-6 shadow-base space-y-4">
           <div>
-            <h2 class="text-sm font-semibold">SMS updates</h2>
+            <h2 class="text-sm font-semibold">SMS Messages to Reporters</h2>
             <div
               :if={@issue.updates == []}
               id="issue-sms-empty-state"
@@ -393,56 +393,8 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
                 </div>
                 <div class="min-w-0 flex-1">
                   <p class="text-sm font-semibold text-foreground">No SMS sent yet</p>
-                  <p class="mt-1 text-sm text-foreground-soft">
-                    Use "Send SMS" in Actions to queue an update for opted-in reporters.
-                  </p>
                 </div>
               </div>
-            </div>
-
-            <div class="mt-3 rounded-xl border border-base bg-accent p-4">
-              <div class="flex flex-wrap items-center justify-between gap-2">
-                <p class="text-xs font-medium text-foreground-soft">Recipients (opted in)</p>
-                <.badge size="xs" variant="surface" color="info">
-                  {length(@sms_recipients)} phone number(s)
-                </.badge>
-              </div>
-
-              <div :if={@sms_recipients == []} class="mt-2 text-sm text-foreground-soft">
-                No opted-in reporters with a phone number.
-              </div>
-
-              <.navlist
-                :if={@sms_recipients != []}
-                class="mt-2 space-y-0 rounded-lg border border-base bg-base p-0"
-              >
-                <.navlink
-                  :for={rec <- @sms_recipients}
-                  navigate={~p"/app/#{@current_org.id}/reports/#{rec.report_id}"}
-                  class="ml-0 rounded-none px-3 py-2 hover:bg-accent/40 transition"
-                >
-                  <div class="min-w-0 flex-1">
-                    <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-foreground-soft">
-                      <span class="inline-flex items-center gap-1.5">
-                        <.icon name="hero-user-circle" class="size-3.5" />
-                        <span class="font-medium text-foreground">{rec.name}</span>
-                      </span>
-
-                      <span :if={present?(rec.email)} class="inline-flex items-center gap-1.5">
-                        <.icon name="hero-envelope" class="size-3.5" />
-                        <span class="truncate">{rec.email}</span>
-                      </span>
-
-                      <span class="inline-flex items-center gap-1.5">
-                        <.icon name="hero-device-phone-mobile" class="size-3.5" />
-                        <span class="truncate">{rec.phone}</span>
-                      </span>
-                    </div>
-                  </div>
-
-                  <.icon name="hero-chevron-right" class="ml-auto size-4 text-foreground-soft" />
-                </.navlink>
-              </.navlist>
             </div>
           </div>
 
@@ -536,22 +488,27 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
           </.modal>
 
           <%= if @issue.updates != [] do %>
-            <.separator text="Updates" class="my-4" />
-            <ul class="space-y-3">
-              <%= for upd <- @issue.updates do %>
-                <li class="text-sm">
-                  <time
-                    id={"issue-update-time-#{upd.id}"}
-                    phx-hook="LocalTime"
-                    data-iso={iso8601(upd.inserted_at)}
-                    class="text-foreground-soft"
-                  >
-                    {format_dt(upd.inserted_at)}
-                  </time>
-                  <div class="whitespace-pre-wrap">{upd.message}</div>
-                </li>
+            <div class="space-y-3">
+              <%= for upd <- Enum.reverse(@issue.updates) do %>
+                <div class="space-y-1">
+                  <div class="text-center">
+                    <time
+                      id={"issue-update-time-#{upd.id}"}
+                      phx-hook="LocalTime"
+                      data-iso={iso8601(upd.inserted_at)}
+                      class="text-[11px] text-foreground-soft"
+                    >
+                      {format_dt(upd.inserted_at)}
+                    </time>
+                  </div>
+                  <div class="flex justify-end">
+                    <div class="max-w-[80%] rounded-2xl rounded-br-md bg-emerald-500 px-3.5 py-2.5 text-sm leading-relaxed text-white shadow-sm">
+                      <span class="whitespace-pre-wrap break-words">{upd.message}</span>
+                    </div>
+                  </div>
+                </div>
               <% end %>
-            </ul>
+            </div>
           <% end %>
         </div>
 
