@@ -399,16 +399,14 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
                 <div class="min-w-0 flex-1">
                   <p class="text-sm font-semibold text-foreground">No SMS sent yet</p>
                   <p class="mt-1 text-sm text-foreground-soft">
-                    Reports do not send SMS automatically. Use "Send SMS" in Actions to queue an update for reporters
-                    who opted in.
+                    Reports do not send SMS automatically.
                   </p>
                 </div>
               </div>
             </div>
 
             <p :if={@sms_deliveries?} class="mt-1 text-sm text-foreground-soft">
-              Reports do not send SMS automatically. Use "Send SMS" in Actions to queue another update for reporters who
-              opted in.
+              Reports do not send SMS automatically.
             </p>
           </div>
 
