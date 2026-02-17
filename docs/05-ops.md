@@ -73,6 +73,34 @@ See [Deploy Runbook](runbooks/deploy.md).
 - Readiness endpoint: `GET /ready`
 - Version endpoint: `GET /version`
 
+## Docker Compose (self-updating service)
+
+For a single-host setup (outside Coolify), this repo includes a `docker-compose.yml`
+that runs Postgres + a self-updating app container.
+
+The app container:
+
+- Checks `main` for updates every minute (`UPDATE_INTERVAL_SECONDS=60`)
+- On update: pulls code, runs migrations, restarts the server
+- If migrations fail: optionally performs a full DB reset (drop/create/migrate)
+
+> ⚠️ **DB reset wipes data.** This is controlled by `AUTO_RESET_ON_MIGRATION_FAILURE=true`.
+
+### Usage
+
+```bash
+# Provide env vars (do not commit secrets)
+cp .env.example .env
+
+# At minimum, set:
+#   PORT=3000
+#   DATABASE_URL=postgresql://postgres:postgres@db:5432/close_the_loop_local
+#
+# If running with MIX_ENV=prod, also set required secrets (see .env.example).
+
+docker compose up -d --build
+```
+
 ## Runbooks
 
 - [Deploy](runbooks/deploy.md)

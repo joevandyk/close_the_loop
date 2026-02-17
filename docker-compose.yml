@@ -1,0 +1,67 @@
+services:
+  close_the_loop:
+    build:
+      context: .
+      dockerfile: docker/service/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # ── Self-updating repo settings ─────────────────────────────────────
+      # If the repo is private, set GIT_REPO_URL to an authenticated URL
+      # (or mount SSH keys and use an ssh:// URL).
+      GIT_REPO_URL: ${GIT_REPO_URL:-https://github.com/joevandyk/close_the_loop.git}
+      GIT_BRANCH: ${GIT_BRANCH:-main}
+      UPDATE_INTERVAL_SECONDS: ${UPDATE_INTERVAL_SECONDS:-60}
+
+      # If migrations fail (e.g. bad state), drop+recreate and re-migrate.
+      # WARNING: this wipes DB data.
+      AUTO_RESET_ON_MIGRATION_FAILURE: ${AUTO_RESET_ON_MIGRATION_FAILURE:-true}
+      SEED_ON_RESET: ${SEED_ON_RESET:-true}
+
+      # ── App runtime ─────────────────────────────────────────────────────
+      MIX_ENV: ${MIX_ENV:-dev}
+      PORT: ${PORT:-3000}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@db:5432/close_the_loop_local}
+
+      # If you run with MIX_ENV=prod, you must provide required secrets, e.g.
+      #   SECRET_KEY_BASE=...
+      #   TOKEN_SIGNING_SECRET=...
+      #   OPENAI_API_KEY=...
+      #   PHX_HOST=...
+      #
+      # (See .env.example for the full schema.)
+    ports:
+      # Custom port: set PORT in your shell / .env file (e.g. PORT=4000).
+      - "${PORT:-3000}:${PORT:-3000}"
+    volumes:
+      # Persist repo + build artifacts across restarts (so updates are fast).
+      - close_the_loop_data:/srv/data
+      # Cache Hex/Rebar downloads
+      - close_the_loop_mix:/home/app/.mix
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS \"http://localhost:${PORT:-3000}/health\" >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: close_the_loop_local
+    volumes:
+      - close_the_loop_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  close_the_loop_data:
+  close_the_loop_mix:
+  close_the_loop_pgdata:

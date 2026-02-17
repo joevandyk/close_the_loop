@@ -27,6 +27,19 @@ defmodule CloseTheLoopWeb.Router do
     plug :accepts, ["xml", "html"]
   end
 
+  pipeline :platform do
+    # Lightweight JSON endpoints for health/version checks (no auth required).
+    plug :accepts, ["json"]
+  end
+
+  scope "/", CloseTheLoopWeb do
+    pipe_through :platform
+
+    get "/health", HealthController, :health
+    get "/ready", HealthController, :ready
+    get "/version", HealthController, :version
+  end
+
   scope "/webhooks/twilio", CloseTheLoopWeb do
     pipe_through :webhook
 
