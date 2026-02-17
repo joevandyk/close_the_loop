@@ -73,8 +73,11 @@
 ### Setup
 
 1. Create an OpenAI API key
-2. Add `OPENAI_API_KEY` to Doppler (dev/preview/prod)
+2. Add `OPENAI_API_KEY` to Doppler (local/dev/preview/prod)
 3. Optionally add `OPENAI_MODEL` if you want to pin a snapshot model
+
+Note: `make e2e` requires `OPENAI_API_KEY` to be present so the async report->issue
+resolution job can run end-to-end.
 
 
 ## Sentry (Error Reporting)

@@ -26,7 +26,7 @@ export default defineConfig({
   webServer: process.env.E2E_WEB_SERVER
     ? undefined
     : {
-        command: `bash -lc "cd .. && doppler run --preserve-env -p '${dopplerProject}' -c '${dopplerConfig}' -- env PORT=${port} MIX_ENV=dev MIX_BUILD_PATH=_build_e2e DATABASE_URL='${e2eDatabaseUrl}' bash -lc 'mix ecto.drop --force || true; mix ecto.create && mix ash_postgres.migrate && mix run priv/repo/seeds.exs && mix run priv/repo/e2e_seeds.exs && mix phx.server'"`,
+        command: `bash -lc "cd .. && doppler run --preserve-env -p '${dopplerProject}' -c '${dopplerConfig}' -- env PORT=${port} MIX_ENV=dev MIX_BUILD_PATH=_build_e2e DATABASE_URL='${e2eDatabaseUrl}' ./scripts/e2e_webserver.sh"`,
         url: `http://localhost:${port}`,
         reuseExistingServer: false,
         timeout: 180_000,
