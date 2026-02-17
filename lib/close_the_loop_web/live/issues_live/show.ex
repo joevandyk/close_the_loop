@@ -46,9 +46,8 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
          |> assign(:update_modal_open?, false)
          |> assign(:update_form, update_form(tenant, issue, user))
          |> assign(:can_edit_issue?, can_edit_issue?(socket.assigns.current_role))
-         |> assign(:editing_details?, false)
-         |> assign(:details_form, details_form(tenant, issue, user))
-         |> assign(:details_error, nil)}
+         |> assign(:details_modal_open?, false)
+         |> assign(:details_form, details_form(tenant, issue, user))}
       end
     else
       _ ->
@@ -210,12 +209,12 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
             </.button>
 
             <.button
-              :if={@can_edit_issue? and not @editing_details?}
-              id="issue-edit-details-toggle"
+              :if={@can_edit_issue?}
+              id="issue-open-edit-details"
               type="button"
               size="sm"
               variant="outline"
-              phx-click="issue_details_toggle"
+              phx-click="open_issue_details_modal"
               class="w-full sm:w-auto"
             >
               <.icon name="hero-pencil-square" class="size-4" /> Edit details
@@ -236,7 +235,7 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
               id="issue-open-add-report"
               size="sm"
               variant="outline"
-              href={~p"/r/#{@tenant}/#{@issue.location_id}"}
+              href={~p"/r/#{@tenant}/#{@issue.location_id}/manual"}
               class="w-full sm:w-auto"
             >
               <.icon name="hero-plus" class="size-4" /> Add report
@@ -248,23 +247,23 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
           id="issue-add-update-modal"
           open={@add_update_modal_open?}
           on_close={JS.push("close_add_update_modal")}
-          class="w-full max-w-lg"
+          class="w-full max-w-lg p-0 overflow-hidden"
         >
-          <div class="p-6 space-y-4">
-            <div>
+          <.form
+            for={@add_update_form}
+            id="issue-add-update-form"
+            phx-change="validate"
+            phx-submit="submit_update"
+            class="flex max-h-[calc(100dvh-2rem)] flex-col"
+          >
+            <div class="border-b border-base px-4 py-4 pr-12 sm:px-6 sm:py-5">
               <h3 class="text-lg font-semibold">Add update</h3>
               <p class="mt-1 text-sm text-foreground-soft">
                 Optionally update status and/or add an internal note.
               </p>
             </div>
 
-            <.form
-              for={@add_update_form}
-              id="issue-add-update-form"
-              phx-change="validate"
-              phx-submit="submit_update"
-              class="space-y-4"
-            >
+            <div class="flex-1 min-h-0 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5 space-y-4">
               <input
                 type="hidden"
                 name={@add_update_form[:status].name}
@@ -273,17 +272,18 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
               />
 
               <div class="space-y-2">
-                <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center justify-between gap-3">
                   <h4 class="text-sm font-semibold">Status</h4>
                   <span class="text-xs text-foreground-soft">Optional</span>
                 </div>
 
-                <.button_group>
+                <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
                   <.button
                     :for={{label, value} <- status_options()}
                     type="button"
                     size="sm"
                     color="primary"
+                    class="w-full justify-center px-2.5 sm:px-3.5"
                     variant={
                       if(@add_update_form.params["status"] == to_string(value),
                         do: "solid",
@@ -295,7 +295,7 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
                   >
                     {label}
                   </.button>
-                </.button_group>
+                </div>
               </div>
 
               <div class="space-y-2">
@@ -312,60 +312,73 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
                 />
                 <p class="text-xs text-foreground-soft">Visible only to your team.</p>
               </div>
+            </div>
 
-              <div class="flex items-center justify-end gap-2 pt-2">
-                <.button type="button" variant="outline" phx-click="close_add_update_modal">
+            <div class="border-t border-base bg-overlay/95 px-4 py-3 sm:px-6 sm:py-4">
+              <div class="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end">
+                <.button
+                  type="button"
+                  variant="outline"
+                  phx-click="close_add_update_modal"
+                  class="w-full sm:w-auto"
+                >
                   Cancel
                 </.button>
-                <.button type="submit" variant="solid" color="primary" phx-disable-with="Saving...">
+                <.button
+                  type="submit"
+                  variant="solid"
+                  color="primary"
+                  phx-disable-with="Saving..."
+                  class="w-full sm:w-auto"
+                >
                   Save update
                 </.button>
               </div>
-            </.form>
-          </div>
+            </div>
+          </.form>
         </.modal>
 
         <div id="issue-details-card" class="rounded-2xl border border-base bg-base p-6 shadow-base">
           <h2 class="text-sm font-semibold">Details</h2>
 
-          <%= if @editing_details? do %>
+          <%= if present?(@issue.description) do %>
+            <p class="mt-4 whitespace-pre-wrap text-sm leading-6">{@issue.description}</p>
+          <% else %>
+            <p class="mt-4 text-sm text-foreground-soft">No description yet.</p>
+          <% end %>
+        </div>
+
+        <.form_modal
+          id="issue-edit-details-modal"
+          open={@details_modal_open?}
+          on_close={JS.push("close_issue_details_modal")}
+          class="sm:max-w-xl"
+        >
+          <div class="p-6 space-y-4">
+            <div>
+              <h3 class="text-lg font-semibold">Edit details</h3>
+              <p class="mt-1 text-sm text-foreground-soft">
+                Update the issue title and description for your team.
+              </p>
+            </div>
+
             <.form
               for={@details_form}
               id="issue-edit-details-form"
               phx-change="validate"
               phx-submit="issue_details_save"
-              class="mt-4 space-y-4"
+              class="space-y-4"
             >
-              <.input
-                id="issue-edit-title"
-                field={@details_form[:title]}
-                type="text"
-                label="Title"
-                required
-              />
+              <.input field={@details_form[:title]} type="text" label="Title" required />
 
-              <div>
-                <label for="issue-edit-description" class="text-xs font-medium text-foreground-soft">
-                  Description
-                </label>
-                <.textarea
-                  id="issue-edit-description"
-                  field={@details_form[:description]}
-                  rows={6}
-                  required
-                />
-              </div>
+              <.textarea field={@details_form[:description]} label="Description" rows={6} required />
 
-              <%= if @details_error do %>
-                <.alert color="danger" hide_close>{@details_error}</.alert>
-              <% end %>
-
-              <div class="flex items-center justify-end gap-2">
+              <div class="flex items-center justify-end gap-2 pt-2">
                 <.button
                   id="issue-edit-details-cancel"
                   type="button"
                   variant="outline"
-                  phx-click="issue_details_cancel"
+                  phx-click="close_issue_details_modal"
                 >
                   Cancel
                 </.button>
@@ -374,10 +387,8 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
                 </.button>
               </div>
             </.form>
-          <% else %>
-            <p class="mt-4 whitespace-pre-wrap text-sm leading-6">{@issue.description}</p>
-          <% end %>
-        </div>
+          </div>
+        </.form_modal>
 
         <div class="rounded-2xl border border-base bg-base p-6 shadow-base space-y-4">
           <div>
@@ -402,23 +413,23 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
             id="issue-send-sms-modal"
             open={@update_modal_open?}
             on_close={JS.push("close_update_modal")}
-            class="w-full max-w-lg"
+            class="w-full max-w-lg p-0 overflow-hidden"
           >
-            <div class="p-6 space-y-4">
-              <div>
+            <.form
+              for={@update_form}
+              id="issue-send-sms-form"
+              phx-change="validate"
+              phx-submit="send_update"
+              class="flex max-h-[calc(100dvh-2rem)] flex-col"
+            >
+              <div class="border-b border-base px-4 py-4 pr-12 sm:px-6 sm:py-5">
                 <h3 class="text-lg font-semibold">Send SMS update</h3>
                 <p class="mt-1 text-sm text-foreground-soft">
                   Queues a message to opted-in recipients for this issue.
                 </p>
               </div>
 
-              <.form
-                for={@update_form}
-                id="issue-send-sms-form"
-                phx-change="validate"
-                phx-submit="send_update"
-                class="space-y-4"
-              >
+              <div class="flex-1 min-h-0 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5 space-y-4">
                 <div class="rounded-xl border border-base bg-accent p-4 space-y-3">
                   <div class="flex flex-wrap items-center justify-between gap-2">
                     <p class="text-xs font-medium text-foreground-soft">Recipients</p>
@@ -433,7 +444,7 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
 
                   <div
                     :if={@sms_recipients != []}
-                    class="rounded-lg border border-base bg-base overflow-hidden"
+                    class="rounded-lg border border-base bg-base overflow-hidden max-h-56 overflow-y-auto"
                   >
                     <div
                       :for={rec <- @sms_recipients}
@@ -468,9 +479,16 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
                   checked={false}
                   label={"I understand this will queue an SMS to #{length(@sms_recipients)} recipient(s)."}
                 />
+              </div>
 
-                <div class="flex items-center justify-end gap-2 pt-2">
-                  <.button type="button" variant="outline" phx-click="close_update_modal">
+              <div class="border-t border-base bg-overlay/95 px-4 py-3 sm:px-6 sm:py-4">
+                <div class="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end">
+                  <.button
+                    type="button"
+                    variant="outline"
+                    phx-click="close_update_modal"
+                    class="w-full sm:w-auto"
+                  >
                     Cancel
                   </.button>
                   <.button
@@ -479,12 +497,13 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
                     color="primary"
                     disabled={@sms_recipients == []}
                     phx-disable-with="Queueing..."
+                    class="w-full sm:w-auto"
                   >
                     Send SMS
                   </.button>
                 </div>
-              </.form>
-            </div>
+              </div>
+            </.form>
           </.modal>
 
           <%= if @issue.updates != [] do %>
@@ -626,7 +645,7 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
     }
 
     form = AshPhoenix.Form.validate(socket.assigns.details_form, params)
-    {:noreply, socket |> assign(:details_form, form) |> assign(:details_error, nil)}
+    {:noreply, assign(socket, :details_form, form)}
   end
 
   def handle_event("open_add_update_modal", _params, socket) do
@@ -730,31 +749,29 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
   end
 
   @impl true
-  def handle_event("issue_details_toggle", _params, socket) do
+  def handle_event("open_issue_details_modal", _params, socket) do
     if socket.assigns.can_edit_issue? do
       {:noreply,
        socket
-       |> assign(:editing_details?, true)
+       |> assign(:details_modal_open?, true)
        |> assign(
          :details_form,
          details_form(socket.assigns.tenant, socket.assigns.issue, socket.assigns.current_user)
-       )
-       |> assign(:details_error, nil)}
+       )}
     else
       {:noreply, put_flash(socket, :error, "Only admins can edit issue details.")}
     end
   end
 
   @impl true
-  def handle_event("issue_details_cancel", _params, socket) do
+  def handle_event("close_issue_details_modal", _params, socket) do
     {:noreply,
      socket
-     |> assign(:editing_details?, false)
+     |> assign(:details_modal_open?, false)
      |> assign(
        :details_form,
        details_form(socket.assigns.tenant, socket.assigns.issue, socket.assigns.current_user)
-     )
-     |> assign(:details_error, nil)}
+     )}
   end
 
   @impl true
@@ -778,16 +795,12 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
            socket
            |> put_flash(:info, "Issue updated.")
            |> assign(:issue, issue)
-           |> assign(:editing_details?, false)
+           |> assign(:details_modal_open?, false)
            |> assign(:details_form, details_form(tenant, issue, user))
-           |> assign(:details_error, nil)
            |> reload_page()}
 
         {:error, form} ->
-          {:noreply,
-           socket
-           |> assign(:details_form, form)
-           |> assign(:details_error, nil)}
+          {:noreply, assign(socket, :details_form, form)}
       end
     else
       {:noreply, put_flash(socket, :error, "Only admins can edit issue details.")}

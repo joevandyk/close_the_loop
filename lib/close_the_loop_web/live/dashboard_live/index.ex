@@ -35,7 +35,7 @@ defmodule CloseTheLoopWeb.DashboardLive.Index do
 
       reporter_link =
         if primary_location do
-          CloseTheLoopWeb.Endpoint.url() <> "/r/#{tenant}/#{primary_location.id}"
+          CloseTheLoopWeb.Endpoint.url() <> ~p"/r/#{tenant}/#{primary_location.id}/manual"
         end
 
       poster_href =

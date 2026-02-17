@@ -1,10 +1,12 @@
 {
-  "$schema": "https://cursor.com/schemas/environment.schema.json",
+  "$schema": "https://www.cursor.com/schemas/environment.schema.json",
   "name": "close-the-loop (Elixir/Phoenix)",
   "snapshot": "POPULATED_FROM_SETTINGS",
+  "user": "root",
   "build": {
     "dockerfile": "../.devcontainer/Dockerfile",
     "context": ".."
   },
-  "install": "bash .cursor/cloud-agent-install.sh"
+  "install": "bash .cursor/cloud-agent/install.sh",
+  "start": "bash .cursor/cloud-agent/start.sh"
 }
