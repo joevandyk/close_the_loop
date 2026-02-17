@@ -1,3 +1,4 @@
+import path from "path";
 import { defineConfig } from "@playwright/test";
 
 // Dedicated port for e2e so it never conflicts with dev (4000) or other services.
@@ -12,10 +13,18 @@ const dopplerProject = process.env.DOPPLER_PROJECT ?? "close-the-loop";
 const dopplerConfig = process.env.DOPPLER_CONFIG ?? "local_close_the_loop";
 
 // E2E runs the app in dev mode but against the test DB for isolation.
-// Override with E2E_DATABASE_URL if your test Postgres is not on localhost.
+// Use a per-worktree DB name so worktrees don't share one DB (avoids unique_violation
+// when the DB already exists from another checkout). Override with E2E_DATABASE_URL.
+function defaultE2eDatabaseUrl(): string {
+  const projectRoot = path.resolve(process.cwd(), "..");
+  const basename = path.basename(projectRoot);
+  const sanitized = basename.replace(/[^a-z0-9_]/gi, "_").toLowerCase() || "default";
+  const dbSuffix = sanitized === "close_the_loop" ? "" : `_${sanitized}`;
+  const dbName = `close_the_loop_test${dbSuffix}`;
+  return `postgres://postgres:postgres@localhost/${dbName}`;
+}
 const e2eDatabaseUrl =
-  process.env.E2E_DATABASE_URL ??
-  "postgres://postgres:postgres@localhost/close_the_loop_test";
+  process.env.E2E_DATABASE_URL ?? defaultE2eDatabaseUrl();
 
 export default defineConfig({
   testDir: "./tests",

@@ -8,6 +8,7 @@ if [[ -z "${OPENAI_API_KEY:-}" ]]; then
 fi
 
 # Playwright e2e runs a dev-mode server against the test DB, resetting it for each run.
+# E2E uses a per-worktree DB name (see e2e/playwright.config.ts) so drop/create don't conflict.
 mix ecto.drop --force || true
 mix ecto.create
 mix ash_postgres.migrate
