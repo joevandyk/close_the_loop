@@ -116,7 +116,10 @@ test("business can onboard, receive a report, and view it", async ({ page }) => 
   expect(reporterLink).toBeTruthy();
 
   // Manual entry: front desk can log a report.
-  const locationId = reporterLink!.split("/").pop();
+  const reporterUrl = new URL(reporterLink!);
+  const reporterPathParts = reporterUrl.pathname.split("/").filter(Boolean);
+  expect(reporterPathParts[0]).toBe("r");
+  const locationId = reporterPathParts[2];
   expect(locationId).toBeTruthy();
 
   await page.goto(`/app/${orgId}/reports/new?location_id=${locationId}`);

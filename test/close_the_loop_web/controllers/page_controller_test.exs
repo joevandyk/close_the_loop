@@ -5,7 +5,7 @@ defmodule CloseTheLoopWeb.PageControllerTest do
     conn = get(conn, ~p"/")
     html = html_response(conn, 200)
     assert html =~ "CloseTheLoop"
-    assert html =~ "Let customers report problems in seconds"
+    assert html =~ "close the loop with one text message"
   end
 
   test "marketing pages render", %{conn: conn} do
