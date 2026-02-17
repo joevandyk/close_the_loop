@@ -58,7 +58,7 @@ scripts/dev
 The `.devcontainer/` directory contains the full development environment:
 
 - **Dockerfile**: Runtime, tooling, and system deps
-- **docker-compose.yml**: App container + Postgres + Redis
+- **docker-compose.yml**: App container + Postgres + MinIO (S3-compatible storage)
 - **devcontainer.json**: IDE settings, extensions, port forwarding
 
 Services available inside the devcontainer:
@@ -67,6 +67,8 @@ Services available inside the devcontainer:
 |---------|------|------|
 | App | `localhost` | 3000 |
 | PostgreSQL | `db` | 5432 |
+| MinIO (S3 API) | `minio` | 9000 |
+| MinIO (Console) | `minio` | 9001 |
 
 The database is automatically created and available at the `DATABASE_URL`
 set in `docker-compose.yml`. No manual `createdb` needed.
@@ -74,9 +76,12 @@ set in `docker-compose.yml`. No manual `createdb` needed.
 ## Cursor Cloud Agents
 
 The `.cursor/environment.json` file configures Cursor's cloud agent
-environment. It points to the devcontainer Dockerfile so that cloud agents
-can install dependencies and run `make test` / `make lint` in a
-fully-provisioned environment.
+environment (Ona). It points to the devcontainer Dockerfile so that cloud
+agents have the same runtime/tooling as the devcontainer.
+
+This repo also includes an install hook (`.cursor/cloud-agent-install.sh`)
+that runs idempotent setup (deps/assets + warm compilation caches) so new
+agent VMs start faster.
 
 ## Daily Workflow
 

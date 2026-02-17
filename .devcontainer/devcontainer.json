@@ -3,10 +3,8 @@
   "dockerComposeFile": "docker-compose.yml",
   "service": "app",
   "workspaceFolder": "/workspace",
-  "features": {
-    "ghcr.io/devcontainers/features/git:1": {}
-  },
-  "postCreateCommand": "bash -lc 'if [ ! -f mix.exs ]; then scripts/setup-phoenix.sh; fi && mix deps.get'",
+  "overrideCommand": false,
+  "postCreateCommand": "bash -lc 'if [ ! -f mix.exs ]; then scripts/setup-phoenix.sh; fi && mix deps.get && mix assets.setup'",
   "customizations": {
     "vscode": {
       "extensions": [
@@ -22,6 +20,12 @@
       }
     }
   },
-  "forwardPorts": [3000, 5432, 9000, 9001],
+  "forwardPorts": [3000],
+  "portsAttributes": {
+    "3000": {
+      "label": "Phoenix (close-the-loop)",
+      "onAutoForward": "openPreview"
+    }
+  },
   "remoteUser": "root"
 }

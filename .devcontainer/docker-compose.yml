@@ -5,8 +5,9 @@ services:
       dockerfile: .devcontainer/Dockerfile
     volumes:
       - ..:/workspace:cached
-      # Allows running `doppler run ...` inside the devcontainer using your host login.
-      - ${HOME}/.doppler:/root/.doppler:ro
+      # Persist Doppler auth/config inside a Docker volume so it works in
+      # hosted environments (Ona/Codespaces) that don't support binding $HOME.
+      - doppler_config:/root/.doppler
     command: sleep infinity
     environment:
       - APP_NAME=close-the-loop
@@ -44,8 +45,6 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: close_the_loop_local
-    ports:
-      - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -62,9 +61,6 @@ services:
     environment:
       MINIO_ROOT_USER: minio
       MINIO_ROOT_PASSWORD: minio123
-    ports:
-      - "9000:9000"
-      - "9001:9001"
     volumes:
       - miniodata:/data
 
@@ -86,4 +82,6 @@ volumes:
   pgdata:
   
   miniodata:
+  
+  doppler_config:
   
