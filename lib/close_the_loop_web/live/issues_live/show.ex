@@ -47,8 +47,7 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
          |> assign(:update_form, update_form(tenant, issue, user))
          |> assign(:can_edit_issue?, can_edit_issue?(socket.assigns.current_role))
          |> assign(:details_modal_open?, false)
-         |> assign(:details_form, details_form(tenant, issue, user))
-        }
+         |> assign(:details_form, details_form(tenant, issue, user))}
       end
     else
       _ ->
@@ -758,8 +757,7 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
        |> assign(
          :details_form,
          details_form(socket.assigns.tenant, socket.assigns.issue, socket.assigns.current_user)
-       )
-      }
+       )}
     else
       {:noreply, put_flash(socket, :error, "Only admins can edit issue details.")}
     end
@@ -773,8 +771,7 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
      |> assign(
        :details_form,
        details_form(socket.assigns.tenant, socket.assigns.issue, socket.assigns.current_user)
-     )
-    }
+     )}
   end
 
   @impl true
@@ -803,8 +800,7 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
            |> reload_page()}
 
         {:error, form} ->
-          {:noreply,
-           assign(socket, :details_form, form)}
+          {:noreply, assign(socket, :details_form, form)}
       end
     else
       {:noreply, put_flash(socket, :error, "Only admins can edit issue details.")}
