@@ -36,7 +36,8 @@ defmodule CloseTheLoopWeb.LocationPosterController do
   end
 
   defp build_poster(org, tenant, location) do
-    reporter_link = CloseTheLoopWeb.Endpoint.url() <> "/r/#{tenant}/#{location.id}"
+    reporter_path = ~p"/r/#{tenant}/#{location.id}/qr"
+    reporter_link = CloseTheLoopWeb.Endpoint.url() <> reporter_path
 
     %{
       org_name: org.name,

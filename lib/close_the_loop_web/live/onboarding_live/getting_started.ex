@@ -38,7 +38,7 @@ defmodule CloseTheLoopWeb.OnboardingLive.GettingStarted do
   defp decorate_locations(locations, tenant, org_id) do
     locations
     |> Enum.map(fn loc ->
-      reporter_link = CloseTheLoopWeb.Endpoint.url() <> "/r/#{tenant}/#{loc.id}"
+      reporter_link = CloseTheLoopWeb.Endpoint.url() <> ~p"/r/#{tenant}/#{loc.id}/manual"
       poster_href = ~p"/app/#{org_id}/settings/locations/#{loc.id}/poster"
 
       %{
