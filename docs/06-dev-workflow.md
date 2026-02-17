@@ -84,12 +84,12 @@ set in `docker-compose.yml`. No manual `createdb` needed.
 ## Cursor Cloud Agents
 
 The `.cursor/environment.json` file configures Cursor's cloud agent
-environment (Ona). It points to the devcontainer Dockerfile so that cloud
+environment. It points to the devcontainer Dockerfile so that cloud
 agents have the same runtime/tooling as the devcontainer.
 
-This repo also includes an install hook (`.cursor/cloud-agent-install.sh`)
-that runs idempotent setup (deps/assets + warm compilation caches) so new
-agent VMs start faster.
+This repo also includes cloud-agent hooks (`.cursor/cloud-agent/install.sh`
+and `.cursor/cloud-agent/start.sh`) that run idempotent setup (deps/assets,
+warm compilation caches, and local Postgres) so new agent VMs start faster.
 
 ## Daily Workflow
 
