@@ -1,5 +1,9 @@
 services:
   app:
+    # Ona multi-container devcontainers require host networking so the Ona agent
+    # can reach the primary service container reliably.
+    # https://ona.com/docs/ona/configuration/devcontainer/overview#multi-container-development
+    network_mode: host
     build:
       context: ..
       dockerfile: .devcontainer/Dockerfile
@@ -14,7 +18,8 @@ services:
       - APP_ENV=local
       - PORT=3000
       - LOG_LEVEL=debug
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/close_the_loop_local
+      # With network_mode: host we connect via localhost, not the compose DNS name.
+      - DATABASE_URL=postgresql://postgres:postgres@localhost:5432/close_the_loop_local
       - SECRET_KEY_BASE=dev-only-secret-key-base-at-least-64-characters-long-CHANGEME-IN-DOPPLER
       - MIX_ENV=dev
 
@@ -23,7 +28,7 @@ services:
       - MIX_DEPS_PATH=/workspace/deps_linux
       
       # S3-compatible object storage (MinIO) for local development
-      - STORAGE_ENDPOINT=http://minio:9000
+      - STORAGE_ENDPOINT=http://localhost:9000
       - STORAGE_BUCKET=close-the-loop-local
       - STORAGE_ACCESS_KEY=minio
       - STORAGE_SECRET_KEY=minio123
@@ -39,6 +44,7 @@ services:
       
 
   db:
+    network_mode: host
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
@@ -55,6 +61,7 @@ services:
   
 
   minio:
+    network_mode: host
     image: minio/minio:latest
     restart: unless-stopped
     command: server /data --console-address ":9001"
@@ -65,13 +72,14 @@ services:
       - miniodata:/data
 
   minio_init:
+    network_mode: host
     image: minio/mc:latest
     depends_on:
       minio:
         condition: service_started
     entrypoint: >
       /bin/sh -c "
-      until mc alias set local http://minio:9000 minio minio123 2>/dev/null; do sleep 1; done;
+      until mc alias set local http://localhost:9000 minio minio123 2>/dev/null; do sleep 1; done;
       mc mb --ignore-existing local/close-the-loop-local;
       exit 0;
       "

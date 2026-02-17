@@ -66,9 +66,9 @@ Services available inside the devcontainer:
 | Service | Host | Port |
 |---------|------|------|
 | App | `localhost` | 3000 |
-| PostgreSQL | `db` | 5432 |
-| MinIO (S3 API) | `minio` | 9000 |
-| MinIO (Console) | `minio` | 9001 |
+| PostgreSQL | `localhost` | 5432 |
+| MinIO (S3 API) | `localhost` | 9000 |
+| MinIO (Console) | `localhost` | 9001 |
 
 The database is automatically created and available at the `DATABASE_URL`
 set in `docker-compose.yml`. No manual `createdb` needed.
