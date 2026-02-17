@@ -7,7 +7,9 @@ const port = process.env.E2E_PORT ?? "41731";
 // filesystem path than the main checkout, so `doppler run` may not discover a
 // previously-configured project/config. Make this explicit (but overrideable).
 const dopplerProject = process.env.DOPPLER_PROJECT ?? "close-the-loop";
-const dopplerConfig = process.env.DOPPLER_CONFIG ?? "local";
+// In this repo, the main checkout typically uses the `local_close_the_loop`
+// config; worktrees should match unless explicitly overridden.
+const dopplerConfig = process.env.DOPPLER_CONFIG ?? "local_close_the_loop";
 
 // E2E runs the app in dev mode but against the test DB for isolation.
 // Override with E2E_DATABASE_URL if your test Postgres is not on localhost.
@@ -26,7 +28,7 @@ export default defineConfig({
   webServer: process.env.E2E_WEB_SERVER
     ? undefined
     : {
-        command: `bash -lc "cd .. && doppler run --preserve-env -p '${dopplerProject}' -c '${dopplerConfig}' -- env PORT=${port} MIX_ENV=dev MIX_BUILD_PATH=_build_e2e DATABASE_URL='${e2eDatabaseUrl}' bash -lc 'mix ecto.drop --force || true; mix ecto.create && mix ash_postgres.migrate && mix run priv/repo/seeds.exs && mix run priv/repo/e2e_seeds.exs && mix phx.server'"`,
+        command: `bash -lc "cd .. && doppler run --preserve-env -p '${dopplerProject}' -c '${dopplerConfig}' -- env PORT=${port} MIX_ENV=dev MIX_BUILD_PATH=_build_e2e DATABASE_URL='${e2eDatabaseUrl}' ./scripts/e2e_webserver.sh"`,
         url: `http://localhost:${port}`,
         reuseExistingServer: false,
         timeout: 180_000,

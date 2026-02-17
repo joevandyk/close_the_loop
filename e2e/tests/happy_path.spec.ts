@@ -1,6 +1,11 @@
 import { test, expect } from "@playwright/test";
 
 test("business can onboard, receive a report, and view it", async ({ page }) => {
+  // This flow depends on an async Oban job that calls OpenAI. It can take longer
+  // than the default 30s timeout, and the Issues LiveView doesn't auto-refresh
+  // when new issues are inserted, so we poll with reloads.
+  test.setTimeout(120_000);
+
   const email = "e2e_owner@example.com";
   const password = "password1234";
   let orgId: string | null = null;
@@ -35,12 +40,13 @@ test("business can onboard, receive a report, and view it", async ({ page }) => 
   const orgName = `[E2E] Org ${Date.now()}`;
   await page.getByRole("textbox", { name: /organization name/i }).fill(orgName);
   await page.getByRole("button", { name: /create organization/i }).click();
-  await expect(page).toHaveURL(/\/app\/[^/]+\/issues/);
+  // New orgs land on the "Getting started" onboarding checklist.
+  await expect(page).toHaveURL(/\/app\/[^/]+\/onboarding/);
 
   {
     const url = new URL(page.url());
     const parts = url.pathname.split("/");
-    // /app/:org_id/issues
+    // /app/:org_id/onboarding
     orgId = parts[2] ?? null;
     expect(orgId).toBeTruthy();
   }
@@ -135,13 +141,35 @@ test("business can onboard, receive a report, and view it", async ({ page }) => 
   await expect(page.getByText(/got it/i)).toBeVisible({ timeout: 20_000 });
 
   // Back on the issues list, verify we can see and open the issue + report.
+  //
+  // Important: issue creation happens asynchronously, and the Issues LiveView
+  // doesn't subscribe to new-issue events. If we land here "too early", the DOM
+  // will stay empty until we reload. So we poll by reloading the page.
   await page.goto(`/app/${orgId}/issues`);
+  await page.waitForFunction(() => (window as any).liveSocket?.isConnected?.(), { timeout: 20_000 });
   await expect(page.locator("#issues-list")).toBeVisible({ timeout: 20_000 });
+
+  const firstIssueLink = page.locator('a[id^="issue-"]').first();
+
+  const startedAt = Date.now();
+  const timeoutMs = 90_000;
+  while (true) {
+    if (await firstIssueLink.count()) break;
+    if (Date.now() - startedAt > timeoutMs) {
+      throw new Error(
+        "Timed out waiting for an issue to appear. The async report->issue job may have failed or OpenAI may be misconfigured."
+      );
+    }
+
+    await page.waitForTimeout(2000);
+    await page.reload({ waitUntil: "commit" });
+    await page.waitForFunction(() => (window as any).liveSocket?.isConnected?.(), { timeout: 20_000 });
+    await expect(page.locator("#issues-list")).toBeVisible({ timeout: 20_000 });
+  }
 
   // Issue titles can vary (AI categorization/dedupe), so open the first issue
   // and assert the report body is present.
-  const firstIssueLink = page.locator('a[id^="issue-"]').first();
-  await expect(firstIssueLink).toBeVisible({ timeout: 30_000 });
+  await expect(firstIssueLink).toBeVisible({ timeout: 20_000 });
   await firstIssueLink.click();
 
   await expect(page.getByText(reportBody).first()).toBeVisible({ timeout: 20_000 });
@@ -154,7 +182,9 @@ test("business can onboard, receive a report, and view it", async ({ page }) => 
   await expect(page.locator("#issue-send-sms-form")).toBeVisible({ timeout: 20_000 });
 
   await page.locator("#issue-send-sms-form textarea").fill("Thanks - we are on it.");
-  await page.getByRole("checkbox", { name: /i understand this will send an sms/i }).check();
+  await page
+    .getByRole("checkbox", { name: /i understand this will queue an sms/i })
+    .check();
   await page.locator("#issue-send-sms-form").getByRole("button", { name: /^send sms$/i }).click();
   await expect(page.locator("#flash-info").getByText(/update queued/i)).toBeVisible();
 });
