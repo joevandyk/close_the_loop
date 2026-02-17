@@ -89,7 +89,8 @@ agents have the same runtime/tooling as the devcontainer.
 
 This repo also includes cloud-agent hooks (`.cursor/cloud-agent/install.sh`
 and `.cursor/cloud-agent/start.sh`) that run idempotent setup (deps/assets,
-warm compilation caches, and local Postgres) so new agent VMs start faster.
+warm compilation caches via `mix precompile`, and local Postgres) so new agent
+VMs start faster.
 
 ## Daily Workflow
 

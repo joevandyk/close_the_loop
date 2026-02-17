@@ -15,6 +15,12 @@ if ! command -v mix >/dev/null 2>&1; then
   exit 1
 fi
 
+# Match the Makefile's Linux build/deps isolation (keeps paths consistent with `make test`).
+if [ "$(uname -s)" = "Linux" ]; then
+  export MIX_BUILD_PATH="${MIX_BUILD_PATH:-_build_linux}"
+  export MIX_DEPS_PATH="${MIX_DEPS_PATH:-deps_linux}"
+fi
+
 if command -v apt-get >/dev/null 2>&1; then
   if [ "$(id -u)" -eq 0 ]; then
     echo "[cloud-agent install] apt-get update"
@@ -45,9 +51,24 @@ mix deps.get
 echo "[cloud-agent install] mix assets.setup"
 mix assets.setup
 
-# Warm compile for precommit (preferred_envs maps precommit -> :test).
-echo "[cloud-agent install] MIX_ENV=test mix compile"
-MIX_ENV=test mix compile
+echo "[cloud-agent install] MIX_ENV=test mix deps.get"
+MIX_ENV=test mix deps.get
+
+# Warm compilation caches. Prefer `mix precompile` (when available), but fall back to `mix compile`.
+if mix help precompile >/dev/null 2>&1; then
+  echo "[cloud-agent install] mix precompile (dev)"
+  mix precompile
+
+  echo "[cloud-agent install] MIX_ENV=test mix precompile"
+  MIX_ENV=test mix precompile
+else
+  echo "[cloud-agent install] mix precompile task not found; falling back to mix compile"
+  echo "[cloud-agent install] mix compile (dev)"
+  mix compile
+
+  echo "[cloud-agent install] MIX_ENV=test mix compile"
+  MIX_ENV=test mix compile
+fi
 
 echo "[cloud-agent install] done"
 
