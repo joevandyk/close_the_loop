@@ -54,13 +54,22 @@ jobs:
         run: mix deps.get
 
       - name: Lint
-        run: doppler run -- make lint
+        run: |
+          if [ -n "${DOPPLER_TOKEN:-}" ]; then
+            doppler run -- make lint
+          else
+            make lint
+          fi
 
       - name: Test
-        run: doppler run -- make test
-
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/close-the-loop_test
+        run: |
+          if [ -n "${DOPPLER_TOKEN:-}" ]; then
+            doppler run -- make test
+          else
+            make test
+          fi
 
 
   docker:
