@@ -164,6 +164,48 @@ defmodule CloseTheLoopWeb.CoreComponents do
     """
   end
 
+  @doc """
+  Renders a Fluxon modal with a consistent, form-friendly layout.
+
+  - Full-screen on mobile (no outer padding, no rounded corners)
+  - Centered dialog on larger screens (with outer padding and rounded corners)
+
+  This helps keep "edit" flows consistent across the app.
+  """
+  attr :id, :string, required: true
+  attr :open, :boolean, default: false
+  attr :on_close, JS, default: %JS{}
+  attr :class, :any, default: nil, doc: "extra classes applied to the modal content container"
+  attr :container_class, :any, default: nil, doc: "extra classes applied to the modal outer container"
+  attr :rest, :global
+
+  slot :inner_block, required: true
+
+  def form_modal(assigns) do
+    ~H"""
+    <.modal
+      id={@id}
+      open={@open}
+      on_close={@on_close}
+      class={[
+        # Base sizing
+        "w-full",
+        # Full-page dialog on mobile, regular dialog on sm+
+        "h-screen sm:h-auto",
+        "max-w-none sm:max-w-lg",
+        # Shape + scrolling behavior
+        "rounded-none sm:rounded-2xl",
+        "sm:max-h-[90vh] sm:overflow-auto",
+        @class
+      ]}
+      container_class={["p-0 sm:p-4", @container_class]}
+      {@rest}
+    >
+      {render_slot(@inner_block)}
+    </.modal>
+    """
+  end
+
   ## JS Commands
 
   def show(js \\ %JS{}, selector) do

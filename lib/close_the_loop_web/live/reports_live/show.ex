@@ -12,7 +12,7 @@ defmodule CloseTheLoopWeb.ReportsLive.Show do
     socket =
       socket
       |> assign(:report, nil)
-      |> assign(:editing?, false)
+      |> assign(:edit_modal_open?, false)
       |> assign(:edit_form, to_form(%{}, as: :report))
       |> assign(:issue_options, [])
       |> assign(:move_form, to_form(%{"issue_id" => ""}, as: :move))
@@ -171,25 +171,17 @@ defmodule CloseTheLoopWeb.ReportsLive.Show do
 
           <div class="flex items-center gap-2">
             <.button navigate={~p"/app/#{@current_org.id}/reports"} variant="ghost">Back</.button>
-            <%= if @editing? do %>
-              <.button
-                id="report-cancel-edit"
-                type="button"
-                variant="outline"
-                phx-click="cancel_edit"
-              >
-                Cancel
-              </.button>
-            <% else %>
-              <.button
-                id="report-edit-btn"
-                type="button"
-                variant="outline"
-                phx-click="edit_report"
-              >
-                Edit
-              </.button>
-            <% end %>
+            <.button
+              id="report-open-edit"
+              type="button"
+              variant="outline"
+              phx-click={
+                Fluxon.open_dialog("report-edit-modal")
+                |> JS.push("open_report_edit_modal")
+              }
+            >
+              Edit
+            </.button>
             <.button
               :if={@report.issue_id}
               navigate={~p"/app/#{@current_org.id}/issues/#{@report.issue_id}"}
@@ -200,74 +192,89 @@ defmodule CloseTheLoopWeb.ReportsLive.Show do
           </div>
         </div>
 
-        <%= if @editing? do %>
-          <.form
-            for={@edit_form}
-            id="report-edit-form"
-            phx-change="validate_edit"
-            phx-submit="save_report"
-            class="space-y-6"
-          >
-            <div class="rounded-2xl border border-base bg-base p-6 shadow-base space-y-4">
-              <.textarea field={@edit_form[:body]} label="Report text" rows={4} />
+        <.form_modal
+          id="report-edit-modal"
+          open={@edit_modal_open?}
+          on_close={JS.push("close_report_edit_modal")}
+          class="sm:max-w-3xl"
+        >
+          <div class="p-6 space-y-6">
+            <div>
+              <h2 class="text-lg font-semibold">Edit report</h2>
+              <p class="mt-1 text-sm text-foreground-soft">
+                Update the reporter details and the original report text.
+              </p>
             </div>
 
-            <div class="rounded-2xl border border-base bg-base p-6 shadow-base space-y-4">
-              <h2 class="text-sm font-semibold">Reporter (optional)</h2>
-
-              <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <.input field={@edit_form[:reporter_name]} label="Name" />
-                <.input field={@edit_form[:reporter_email]} label="Email" type="email" />
+            <.form
+              for={@edit_form}
+              id="report-edit-form"
+              phx-change="validate_edit"
+              phx-submit="save_report"
+              class="space-y-6"
+            >
+              <div class="rounded-2xl border border-base bg-base p-6 shadow-base space-y-4">
+                <.textarea field={@edit_form[:body]} label="Report text" rows={4} />
               </div>
 
-              <.input field={@edit_form[:reporter_phone]} label="Phone" type="tel" />
+              <div class="rounded-2xl border border-base bg-base p-6 shadow-base space-y-4">
+                <h3 class="text-sm font-semibold">Reporter (optional)</h3>
 
-              <.checkbox
-                field={@edit_form[:consent]}
-                label="Consent to receive SMS updates"
-              />
-            </div>
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <.input field={@edit_form[:reporter_name]} label="Name" />
+                  <.input field={@edit_form[:reporter_email]} label="Email" type="email" />
+                </div>
 
-            <div class="flex items-center justify-end gap-2">
-              <.button
-                type="button"
-                variant="outline"
-                phx-click="cancel_edit"
-              >
-                Cancel
-              </.button>
-              <.button
-                type="submit"
-                variant="solid"
-                color="primary"
-                phx-disable-with="Saving..."
-              >
-                Save changes
-              </.button>
-            </div>
-          </.form>
-        <% else %>
-          <div class="rounded-2xl border border-base bg-base p-6 shadow-base">
-            <p class="whitespace-pre-wrap text-sm leading-6">{@report.body}</p>
+                <.input field={@edit_form[:reporter_phone]} label="Phone" type="tel" />
+
+                <.checkbox field={@edit_form[:consent]} label="Consent to receive SMS updates" />
+              </div>
+
+              <div class="flex items-center justify-end gap-2">
+                <.button
+                  id="report-edit-cancel"
+                  type="button"
+                  variant="outline"
+                  phx-click={
+                    Fluxon.close_dialog("report-edit-modal")
+                    |> JS.push("close_report_edit_modal")
+                  }
+                >
+                  Cancel
+                </.button>
+                <.button
+                  type="submit"
+                  variant="solid"
+                  color="primary"
+                  phx-disable-with="Saving..."
+                >
+                  Save changes
+                </.button>
+              </div>
+            </.form>
           </div>
+        </.form_modal>
 
-          <div class="rounded-2xl border border-base bg-base p-6 shadow-base space-y-3">
-            <h2 class="text-sm font-semibold">Reporter (optional)</h2>
-            <div class="text-sm text-foreground-soft">
-              <span class="font-medium text-foreground">
-                {@report.reporter_name || "Anonymous"}
-              </span>
-              <%= if @report.reporter_email do %>
-                <span class="mx-2">•</span>
-                <span>{@report.reporter_email}</span>
-              <% end %>
-              <%= if @report.reporter_phone do %>
-                <span class="mx-2">•</span>
-                <span>{@report.reporter_phone}</span>
-              <% end %>
-            </div>
+        <div class="rounded-2xl border border-base bg-base p-6 shadow-base">
+          <p class="whitespace-pre-wrap text-sm leading-6">{@report.body}</p>
+        </div>
+
+        <div class="rounded-2xl border border-base bg-base p-6 shadow-base space-y-3">
+          <h2 class="text-sm font-semibold">Reporter (optional)</h2>
+          <div class="text-sm text-foreground-soft">
+            <span class="font-medium text-foreground">
+              {@report.reporter_name || "Anonymous"}
+            </span>
+            <%= if @report.reporter_email do %>
+              <span class="mx-2">•</span>
+              <span>{@report.reporter_email}</span>
+            <% end %>
+            <%= if @report.reporter_phone do %>
+              <span class="mx-2">•</span>
+              <span>{@report.reporter_phone}</span>
+            <% end %>
           </div>
-        <% end %>
+        </div>
 
         <div class="rounded-2xl border border-base bg-base p-6 shadow-base space-y-4">
           <h2 class="text-sm font-semibold">Assignment</h2>
@@ -453,19 +460,26 @@ defmodule CloseTheLoopWeb.ReportsLive.Show do
   # --- Edit report events ---
 
   @impl true
-  def handle_event("edit_report", _params, socket) do
-    {:noreply, assign(socket, :editing?, true)}
-  end
-
-  @impl true
-  def handle_event("cancel_edit", _params, socket) do
+  def handle_event("open_report_edit_modal", _params, socket) do
     tenant = socket.assigns.current_tenant
     report = socket.assigns.report
     user = socket.assigns.current_user
 
     {:noreply,
      socket
-     |> assign(:editing?, false)
+     |> assign(:edit_modal_open?, true)
+     |> assign(:edit_form, edit_form(tenant, report, user))}
+  end
+
+  @impl true
+  def handle_event("close_report_edit_modal", _params, socket) do
+    tenant = socket.assigns.current_tenant
+    report = socket.assigns.report
+    user = socket.assigns.current_user
+
+    {:noreply,
+     socket
+     |> assign(:edit_modal_open?, false)
      |> assign(:edit_form, edit_form(tenant, report, user))}
   end
 
@@ -491,7 +505,7 @@ defmodule CloseTheLoopWeb.ReportsLive.Show do
         {:noreply,
          socket
          |> refresh("Report updated.")
-         |> assign(:editing?, false)
+         |> assign(:edit_modal_open?, false)
          |> then(fn s ->
            assign(
              s,
