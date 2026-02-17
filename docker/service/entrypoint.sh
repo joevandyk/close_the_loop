@@ -41,7 +41,10 @@ ensure_repo() {
   git clone --depth 1 --branch "${GIT_BRANCH}" "${GIT_REPO_URL}" "${APP_DIR}"
 }
 
-git_sync_if_needed() {
+git_check_update() {
+  # Returns the remote SHA if an update is available; empty string otherwise.
+  # NOTE: This function MUST NOT modify the working tree because the server
+  # may be running.
   ensure_repo
 
   cd "${APP_DIR}"
@@ -53,23 +56,30 @@ git_sync_if_needed() {
 
   if ! git fetch --prune origin "${GIT_BRANCH}" >/dev/null 2>&1; then
     log "WARN: git fetch failed; keeping current code"
-    return 1
+    echo ""
+    return 0
   fi
 
   local_sha="$(git rev-parse HEAD)"
   remote_sha="$(git rev-parse "origin/${GIT_BRANCH}")"
 
   if [[ "${local_sha}" == "${remote_sha}" ]]; then
-    return 1
+    echo ""
+    return 0
   fi
 
-  log "Update detected: ${local_sha} -> ${remote_sha}"
-  git reset --hard "${remote_sha}" >/dev/null
+  log "Update available: ${local_sha} -> ${remote_sha}"
+  echo "${remote_sha}"
+}
+
+git_apply_update() {
+  local target_sha="${1:?missing target sha}"
+
+  cd "${APP_DIR}"
+  git reset --hard "${target_sha}" >/dev/null
 
   # Remove untracked files (but keep ignored build artifacts like deps/ and _build/)
   git clean -fd >/dev/null
-
-  return 0
 }
 
 mix_prepare() {
@@ -192,8 +202,11 @@ main() {
   while true; do
     sleep "${UPDATE_INTERVAL_SECONDS}"
 
-    if git_sync_if_needed; then
+    remote_sha="$(git_check_update)"
+
+    if [[ -n "${remote_sha}" ]]; then
       stop_server "${app_pid}"
+      git_apply_update "${remote_sha}"
       mix_prepare
       migrate_or_reset || log "WARN: migrate/reset failed after update; restarting anyway"
       app_pid="$(start_server)"
