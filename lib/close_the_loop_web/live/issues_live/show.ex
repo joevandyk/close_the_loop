@@ -4,11 +4,9 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
 
   alias CloseTheLoop.Feedback.Categories
   alias CloseTheLoop.Feedback
-  alias CloseTheLoop.Feedback.Text
   alias CloseTheLoop.Events
   alias CloseTheLoop.Events.ChangeMetadata
   alias CloseTheLoop.Accounts
-  alias CloseTheLoop.Messaging
   alias CloseTheLoopWeb.ActivityFeed
   @impl true
   def mount(%{"id" => id}, _session, socket) do
@@ -30,7 +28,7 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
            to: ~p"/app/#{socket.assigns.current_org.id}/issues/#{issue.duplicate_of_issue_id}"
          )}
       else
-        sms_deliveries? = sms_deliveries_for_issue?(tenant, issue)
+        sms_recipients = sms_recipients_from_reports(reports)
 
         {:ok,
          socket
@@ -42,13 +40,11 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
          |> assign(:activity_issues_by_id, issues_by_id)
          |> assign(:category_labels, Categories.key_label_map(tenant))
          |> assign(:active_category_labels, Categories.active_key_label_map(tenant))
-         |> assign(:sms_deliveries?, sms_deliveries?)
+         |> assign(:sms_recipients, sms_recipients)
          |> assign(:add_update_modal_open?, false)
          |> assign(:add_update_form, add_update_form(tenant, issue, user))
          |> assign(:update_modal_open?, false)
          |> assign(:update_form, update_form(tenant, issue, user))
-         |> assign(:new_report_modal_open?, false)
-         |> assign(:new_report_form, new_report_form(tenant, issue, user))
          |> assign(:can_edit_issue?, can_edit_issue?(socket.assigns.current_role))
          |> assign(:editing_details?, false)
          |> assign(:details_form, details_form(tenant, issue, user))
@@ -238,10 +234,9 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
 
             <.button
               id="issue-open-add-report"
-              type="button"
               size="sm"
               variant="outline"
-              phx-click="open_new_report_modal"
+              href={~p"/r/#{@tenant}/#{@issue.location_id}"}
               class="w-full sm:w-auto"
             >
               <.icon name="hero-plus" class="size-4" /> Add report
@@ -388,7 +383,7 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
           <div>
             <h2 class="text-sm font-semibold">SMS updates</h2>
             <div
-              :if={!@sms_deliveries?}
+              :if={@issue.updates == []}
               id="issue-sms-empty-state"
               class="mt-3 rounded-xl border border-dashed border-base bg-accent p-4"
             >
@@ -399,17 +394,56 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
                 <div class="min-w-0 flex-1">
                   <p class="text-sm font-semibold text-foreground">No SMS sent yet</p>
                   <p class="mt-1 text-sm text-foreground-soft">
-                    Reports do not send SMS automatically. Use "Send SMS" in Actions to queue an update for reporters
-                    who opted in.
+                    Use "Send SMS" in Actions to queue an update for opted-in reporters.
                   </p>
                 </div>
               </div>
             </div>
 
-            <p :if={@sms_deliveries?} class="mt-1 text-sm text-foreground-soft">
-              Reports do not send SMS automatically. Use "Send SMS" in Actions to queue another update for reporters who
-              opted in.
-            </p>
+            <div class="mt-3 rounded-xl border border-base bg-accent p-4">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <p class="text-xs font-medium text-foreground-soft">Recipients (opted in)</p>
+                <.badge size="xs" variant="surface" color="info">
+                  {length(@sms_recipients)} phone number(s)
+                </.badge>
+              </div>
+
+              <div :if={@sms_recipients == []} class="mt-2 text-sm text-foreground-soft">
+                No opted-in reporters with a phone number.
+              </div>
+
+              <.navlist
+                :if={@sms_recipients != []}
+                class="mt-2 space-y-0 rounded-lg border border-base bg-base p-0"
+              >
+                <.navlink
+                  :for={rec <- @sms_recipients}
+                  navigate={~p"/app/#{@current_org.id}/reports/#{rec.report_id}"}
+                  class="ml-0 rounded-none px-3 py-2 hover:bg-accent/40 transition"
+                >
+                  <div class="min-w-0 flex-1">
+                    <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-foreground-soft">
+                      <span class="inline-flex items-center gap-1.5">
+                        <.icon name="hero-user-circle" class="size-3.5" />
+                        <span class="font-medium text-foreground">{rec.name}</span>
+                      </span>
+
+                      <span :if={present?(rec.email)} class="inline-flex items-center gap-1.5">
+                        <.icon name="hero-envelope" class="size-3.5" />
+                        <span class="truncate">{rec.email}</span>
+                      </span>
+
+                      <span class="inline-flex items-center gap-1.5">
+                        <.icon name="hero-device-phone-mobile" class="size-3.5" />
+                        <span class="truncate">{rec.phone}</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  <.icon name="hero-chevron-right" class="ml-auto size-4 text-foreground-soft" />
+                </.navlink>
+              </.navlist>
+            </div>
           </div>
 
           <.modal
@@ -422,7 +456,7 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
               <div>
                 <h3 class="text-lg font-semibold">Send SMS update</h3>
                 <p class="mt-1 text-sm text-foreground-soft">
-                  This queues an SMS update to reporters who opted in.
+                  Queues a message to opted-in recipients for this issue.
                 </p>
               </div>
 
@@ -433,6 +467,42 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
                 phx-submit="send_update"
                 class="space-y-4"
               >
+                <div class="rounded-xl border border-base bg-accent p-4 space-y-3">
+                  <div class="flex flex-wrap items-center justify-between gap-2">
+                    <p class="text-xs font-medium text-foreground-soft">Recipients</p>
+                    <.badge size="xs" variant="surface" color="info">
+                      {length(@sms_recipients)} recipient(s)
+                    </.badge>
+                  </div>
+
+                  <div :if={@sms_recipients == []} class="text-sm text-foreground-soft">
+                    No opted-in reporters with a phone number.
+                  </div>
+
+                  <div
+                    :if={@sms_recipients != []}
+                    class="rounded-lg border border-base bg-base overflow-hidden"
+                  >
+                    <div
+                      :for={rec <- @sms_recipients}
+                      class="flex items-start gap-3 px-3 py-2.5 border-b border-base last:border-b-0"
+                    >
+                      <div class="mt-0.5 flex h-8 w-8 items-center justify-center rounded-lg bg-accent">
+                        <.icon name="hero-user-circle" class="size-4 text-foreground-soft" />
+                      </div>
+                      <div class="min-w-0 flex-1">
+                        <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+                          <span class="text-sm font-medium text-foreground">{rec.name}</span>
+                          <span class="text-xs text-foreground-soft">{rec.phone}</span>
+                        </div>
+                        <div :if={present?(rec.email)} class="mt-0.5 text-xs text-foreground-soft">
+                          {rec.email}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 <.textarea
                   field={@update_form[:message]}
                   rows={4}
@@ -444,7 +514,7 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
                   name="update[confirm]"
                   value="true"
                   checked={false}
-                  label="I understand this will queue an SMS to reporters who opted in."
+                  label={"I understand this will queue an SMS to #{length(@sms_recipients)} recipient(s)."}
                 />
 
                 <div class="flex items-center justify-end gap-2 pt-2">
@@ -455,6 +525,7 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
                     type="submit"
                     variant="solid"
                     color="primary"
+                    disabled={@sms_recipients == []}
                     phx-disable-with="Queueing..."
                   >
                     Send SMS
@@ -486,46 +557,6 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
 
         <div class="rounded-2xl border border-base bg-base p-6 shadow-base space-y-4">
           <h2 class="text-sm font-semibold">Reports</h2>
-
-          <.modal
-            id="issue-add-report-modal"
-            open={@new_report_modal_open?}
-            on_close={JS.push("close_new_report_modal")}
-            class="w-full max-w-lg"
-          >
-            <div class="p-6 space-y-4">
-              <div>
-                <h3 class="text-lg font-semibold">Add report to this issue</h3>
-                <p class="mt-1 text-sm text-foreground-soft">
-                  Creates a manual report and attaches it to this issue.
-                </p>
-              </div>
-
-              <.form
-                for={@new_report_form}
-                id="issue-add-report-form"
-                phx-change="validate"
-                phx-submit="create_manual_report"
-              >
-                <.textarea
-                  id="issue-add-report-body"
-                  field={@new_report_form[:body]}
-                  rows={6}
-                  placeholder="What did you observe?"
-                  required
-                />
-
-                <div class="mt-4 flex items-center justify-end gap-2">
-                  <.button type="button" variant="outline" phx-click="close_new_report_modal">
-                    Cancel
-                  </.button>
-                  <.button type="submit" variant="solid" color="primary" phx-disable-with="Adding...">
-                    Add report
-                  </.button>
-                </div>
-              </.form>
-            </div>
-          </.modal>
 
           <div :if={@reports == []} class="py-10 text-center text-sm text-foreground-soft">
             No reports yet.
@@ -631,12 +662,6 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
     {:noreply, assign(socket, :add_update_form, form)}
   end
 
-  def handle_event("validate", %{"new_report" => params}, socket) when is_map(params) do
-    params = Map.update(params, "body", "", &(&1 |> to_string() |> String.trim()))
-    form = AshPhoenix.Form.validate(socket.assigns.new_report_form, params)
-    {:noreply, assign(socket, :new_report_form, form)}
-  end
-
   def handle_event("validate", %{"issue" => params}, socket) when is_map(params) do
     params = %{
       "title" => params |> Map.get("title", "") |> to_string() |> String.trim(),
@@ -711,20 +736,6 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
      )}
   end
 
-  def handle_event("open_new_report_modal", _params, socket) do
-    {:noreply, assign(socket, :new_report_modal_open?, true)}
-  end
-
-  def handle_event("close_new_report_modal", _params, socket) do
-    {:noreply,
-     socket
-     |> assign(:new_report_modal_open?, false)
-     |> assign(
-       :new_report_form,
-       new_report_form(socket.assigns.tenant, socket.assigns.issue, socket.assigns.current_user)
-     )}
-  end
-
   @impl true
   def handle_event("send_update", %{"update" => update_params}, socket) do
     tenant = socket.assigns.tenant
@@ -732,48 +743,32 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
     confirmed? = truthy?(update_params["confirm"])
     message = update_params["message"] |> to_string() |> String.trim()
 
-    if not confirmed? do
-      {:noreply, put_flash(socket, :error, "Please confirm before sending.")}
-    else
-      case AshPhoenix.Form.submit(socket.assigns.update_form, params: %{"message" => message}) do
-        {:ok, upd} ->
-          case CloseTheLoop.Workers.SendIssueUpdateSmsWorker.enqueue(upd, tenant) do
-            {:ok, _job} ->
-              {:noreply,
-               socket
-               |> put_flash(:info, "Update queued (SMS).")
-               |> assign(:update_modal_open?, false)
-               |> assign(:update_form, update_form(tenant, socket.assigns.issue, user))
-               |> reload_page()}
+    cond do
+      not confirmed? ->
+        {:noreply, put_flash(socket, :error, "Please confirm before sending.")}
 
-            {:error, err} ->
-              {:noreply, put_flash(socket, :error, inspect(err))}
-          end
+      socket.assigns.sms_recipients == [] ->
+        {:noreply, put_flash(socket, :error, "No opted-in recipients with a phone number.")}
 
-        {:error, form} ->
-          {:noreply, assign(socket, :update_form, form)}
-      end
-    end
-  end
+      true ->
+        case AshPhoenix.Form.submit(socket.assigns.update_form, params: %{"message" => message}) do
+          {:ok, upd} ->
+            case CloseTheLoop.Workers.SendIssueUpdateSmsWorker.enqueue(upd, tenant) do
+              {:ok, _job} ->
+                {:noreply,
+                 socket
+                 |> put_flash(:info, "Update queued (SMS).")
+                 |> assign(:update_modal_open?, false)
+                 |> assign(:update_form, update_form(tenant, socket.assigns.issue, user))
+                 |> reload_page()}
 
-  @impl true
-  def handle_event("create_manual_report", %{"new_report" => %{"body" => body}}, socket) do
-    tenant = socket.assigns.tenant
-    user = socket.assigns.current_user
+              {:error, err} ->
+                {:noreply, put_flash(socket, :error, inspect(err))}
+            end
 
-    body = body |> to_string() |> String.trim()
-
-    case AshPhoenix.Form.submit(socket.assigns.new_report_form, params: %{"body" => body}) do
-      {:ok, _report} ->
-        {:noreply,
-         socket
-         |> put_flash(:info, "Report added.")
-         |> assign(:new_report_modal_open?, false)
-         |> assign(:new_report_form, new_report_form(tenant, socket.assigns.issue, user))
-         |> reload_page()}
-
-      {:error, form} ->
-        {:noreply, assign(socket, :new_report_form, form)}
+          {:error, form} ->
+            {:noreply, assign(socket, :update_form, form)}
+        end
     end
   end
 
@@ -851,7 +846,7 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
          {:ok, comments} <- list_comments(tenant, issue_id),
          {:ok, {events, users_by_id, issues_by_id}} <-
            load_activity(tenant, issue, reports, comments) do
-      sms_deliveries? = sms_deliveries_for_issue?(tenant, issue)
+      sms_recipients = sms_recipients_from_reports(reports)
 
       socket
       |> assign(:issue, issue)
@@ -859,40 +854,9 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
       |> assign(:activity_events, events)
       |> assign(:activity_users_by_id, users_by_id)
       |> assign(:activity_issues_by_id, issues_by_id)
-      |> assign(:sms_deliveries?, sms_deliveries?)
+      |> assign(:sms_recipients, sms_recipients)
     else
       _ -> socket
-    end
-  end
-
-  defp sms_deliveries_for_issue?(tenant, issue) when is_binary(tenant) do
-    update_ids =
-      issue.updates
-      |> List.wrap()
-      |> Enum.map(& &1.id)
-
-    case update_ids do
-      [] ->
-        false
-
-      ids ->
-        # We only need to know if any SMS delivery exists for one of this issue's updates.
-        # This avoids claiming anything based on report counts alone.
-        case Messaging.list_outbound_deliveries(
-               query: [
-                 filter: [
-                   channel: :sms,
-                   template: "issue_update",
-                   related_resource: "issue_update",
-                   tenant: tenant,
-                   related_id: [in: ids]
-                 ],
-                 limit: 1
-               ]
-             ) do
-          {:ok, [_ | _]} -> true
-          _ -> false
-        end
     end
   end
 
@@ -947,6 +911,31 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
     |> Enum.join(" ")
   end
 
+  defp sms_recipients_from_reports(reports) when is_list(reports) do
+    reports
+    |> Enum.filter(fn r -> r.consent == true and present?(r.reporter_phone) end)
+    # Keep the most recent report per phone number (reports are sorted newest-first).
+    |> Enum.reduce(%{}, fn r, acc ->
+      phone = r.reporter_phone |> to_string() |> String.trim()
+
+      Map.put_new(acc, phone, %{
+        phone: phone,
+        name: reporter_name(r),
+        email:
+          case r.reporter_email do
+            e when is_binary(e) ->
+              trimmed = String.trim(e)
+              if trimmed == "", do: nil, else: trimmed
+
+            _ ->
+              nil
+          end,
+        report_id: r.id
+      })
+    end)
+    |> Map.values()
+  end
+
   defp reporter_name(%{reporter_name: name}) when is_binary(name) do
     name = String.trim(name)
     if name != "", do: name, else: "Anonymous"
@@ -974,28 +963,6 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
       params: %{"message" => ""},
       prepare_source: fn changeset ->
         Ash.Changeset.change_attribute(changeset, :issue_id, issue.id)
-      end
-    )
-    |> to_form()
-  end
-
-  defp new_report_form(tenant, issue, user) do
-    AshPhoenix.Form.for_create(CloseTheLoop.Feedback.Report, :create,
-      as: "new_report",
-      id: "new_report",
-      tenant: tenant,
-      actor: user,
-      params: %{"body" => ""},
-      prepare_source: fn changeset ->
-        changeset
-        |> Ash.Changeset.change_attribute(:issue_id, issue.id)
-        |> Ash.Changeset.change_attribute(:location_id, issue.location_id)
-        |> Ash.Changeset.change_attribute(:source, :manual)
-        |> Ash.Changeset.change_attribute(:consent, false)
-      end,
-      prepare_params: fn params, _phase ->
-        body = params |> Map.get("body", "") |> to_string()
-        Map.put(params, "normalized_body", Text.normalize_for_dedupe(body))
       end
     )
     |> to_form()

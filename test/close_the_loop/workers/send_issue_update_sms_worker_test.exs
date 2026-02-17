@@ -106,7 +106,12 @@ defmodule CloseTheLoop.Workers.SendIssueUpdateSmsWorkerTest do
 
     query =
       OutboundDelivery
-      |> Ash.Query.filter(expr(channel == :sms and template == "issue_update"))
+      |> Ash.Query.filter(
+        expr(
+          channel == :sms and template == "issue_update" and tenant == ^tenant and
+            related_id == ^issue_update.id
+        )
+      )
 
     {:ok, deliveries} = Ash.read(query, authorize?: false)
 
