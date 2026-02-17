@@ -182,7 +182,9 @@ test("business can onboard, receive a report, and view it", async ({ page }) => 
   await expect(page.locator("#issue-send-sms-form")).toBeVisible({ timeout: 20_000 });
 
   await page.locator("#issue-send-sms-form textarea").fill("Thanks - we are on it.");
-  await page.getByRole("checkbox", { name: /i understand this will send an sms/i }).check();
+  await page
+    .getByRole("checkbox", { name: /i understand this will queue an sms/i })
+    .check();
   await page.locator("#issue-send-sms-form").getByRole("button", { name: /^send sms$/i }).click();
   await expect(page.locator("#flash-info").getByText(/update queued/i)).toBeVisible();
 });
