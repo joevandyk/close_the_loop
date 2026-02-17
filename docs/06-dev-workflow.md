@@ -78,6 +78,10 @@ environment. It points to the devcontainer Dockerfile so that cloud agents
 can install dependencies and run `make test` / `make lint` in a
 fully-provisioned environment.
 
+This repo also includes an install hook (`.cursor/cloud-agent-install.sh`)
+that runs `mix precompile` (and other idempotent setup) so new cloud agent
+VMs start with warmed compile caches.
+
 ## Daily Workflow
 
 ```bash
