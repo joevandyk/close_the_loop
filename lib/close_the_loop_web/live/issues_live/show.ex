@@ -236,7 +236,7 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
               id="issue-open-add-report"
               size="sm"
               variant="outline"
-              href={~p"/r/#{@tenant}/#{@issue.location_id}"}
+              href={~p"/r/#{@tenant}/#{@issue.location_id}/manual"}
               class="w-full sm:w-auto"
             >
               <.icon name="hero-plus" class="size-4" /> Add report

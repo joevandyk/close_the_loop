@@ -108,6 +108,7 @@ defmodule CloseTheLoopWeb.Router do
     post "/invites/:token/accept", OrganizationInvitationController, :accept
 
     live_session :reporter, layout: false do
+      live "/r/:tenant/:location_id/:source", ReporterLive.New, :new
       live "/r/:tenant/:location_id", ReporterLive.New, :new
     end
 

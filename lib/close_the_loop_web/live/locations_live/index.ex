@@ -36,7 +36,9 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
   defp decorate_locations(tenant, locations) do
     locations
     |> Enum.map(fn loc ->
-      reporter_link = CloseTheLoopWeb.Endpoint.url() <> "/r/#{tenant}/#{loc.id}"
+      # This link is intended for manual sharing (email/text), not QR scanning.
+      reporter_path = ~p"/r/#{tenant}/#{loc.id}/manual"
+      reporter_link = CloseTheLoopWeb.Endpoint.url() <> reporter_path
 
       %{
         id: loc.id,
@@ -62,7 +64,7 @@ defmodule CloseTheLoopWeb.LocationsLive.Index do
           <div>
             <h1 class="text-2xl font-semibold">Locations</h1>
             <p class="mt-2 text-foreground-soft text-sm">
-              Create a QR code for each location. Each location has its own reporter link.
+              Print posters (QR) and share manual links for each location.
             </p>
           </div>
 

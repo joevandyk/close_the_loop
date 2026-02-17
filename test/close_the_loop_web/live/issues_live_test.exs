@@ -204,7 +204,7 @@ defmodule CloseTheLoopWeb.IssuesLiveTest do
       |> AshAuthentication.Plug.Helpers.store_in_session(user)
 
     {:ok, view, _html} = live(conn, ~p"/app/#{org.id}/issues/#{issue.id}")
-    assert has_element?(view, "#issue-open-add-report[href='/r/#{tenant}/#{location.id}']")
+    assert has_element?(view, "#issue-open-add-report[href='/r/#{tenant}/#{location.id}/manual']")
   end
 
   test "issue show report items link to report detail", %{conn: conn} do

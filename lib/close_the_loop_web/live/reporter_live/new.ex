@@ -5,18 +5,24 @@ defmodule CloseTheLoopWeb.ReporterLive.New do
   alias CloseTheLoop.Tenants
   alias CloseTheLoop.Tenants.Organization
   alias CloseTheLoop.Feedback.Location
+
+  @allowed_sources ~w(qr manual sms)a
+
   @impl true
-  def mount(%{"tenant" => tenant, "location_id" => location_id}, _session, socket) do
+  def mount(%{"tenant" => tenant, "location_id" => location_id} = params, _session, socket) do
+    source = parse_source(Map.get(params, "source"))
+
     socket =
       socket
       |> assign_new(:current_user, fn -> nil end)
       |> assign(:current_scope, %{actor: nil, tenant: tenant})
       |> assign(:tenant, tenant)
       |> assign(:location_id, location_id)
+      |> assign(:report_source, source)
       |> assign(:org, get_org_by_tenant(tenant))
       |> assign(
         :report_form,
-        report_form(tenant, location_id)
+        report_form(tenant, location_id, source)
       )
       |> assign(:submitted, false)
       |> assign(:error, nil)
@@ -65,7 +71,10 @@ defmodule CloseTheLoopWeb.ReporterLive.New do
                 If you opted into text updates, we will send status changes to your phone.
               </p>
 
-              <.button href={~p"/r/#{@tenant}/#{@location_id}"} variant="outline">
+              <.button
+                href={reporter_path(@tenant, @location_id, @report_source)}
+                variant="outline"
+              >
                 Report another issue
               </.button>
             </div>
@@ -299,7 +308,7 @@ defmodule CloseTheLoopWeb.ReporterLive.New do
     end
   end
 
-  defp report_form(tenant, location_id) do
+  defp report_form(tenant, location_id, source) when source in @allowed_sources do
     AshPhoenix.Form.for_create(CloseTheLoop.Feedback.Report, :create,
       as: "report",
       id: "report",
@@ -314,7 +323,7 @@ defmodule CloseTheLoopWeb.ReporterLive.New do
       prepare_source: fn changeset ->
         changeset
         |> Ash.Changeset.change_attribute(:location_id, location_id)
-        |> Ash.Changeset.change_attribute(:source, :qr)
+        |> Ash.Changeset.change_attribute(:source, source)
       end,
       post_process_errors: fn _form, _path, {field, message, vars} ->
         # `issue_id` is resolved server-side during report creation. We still want
@@ -328,4 +337,21 @@ defmodule CloseTheLoopWeb.ReporterLive.New do
     )
     |> to_form()
   end
+
+  # NOTE: user input -> only map to known atoms (never String.to_atom/1).
+  defp parse_source(nil), do: :qr
+  defp parse_source(""), do: :qr
+
+  defp parse_source(source) when is_binary(source) do
+    case source |> String.trim() |> String.downcase() do
+      "qr" -> :qr
+      "manual" -> :manual
+      "sms" -> :sms
+      _ -> :qr
+    end
+  end
+
+  defp reporter_path(tenant, location_id, :qr), do: ~p"/r/#{tenant}/#{location_id}/qr"
+  defp reporter_path(tenant, location_id, :manual), do: ~p"/r/#{tenant}/#{location_id}/manual"
+  defp reporter_path(tenant, location_id, :sms), do: ~p"/r/#{tenant}/#{location_id}/sms"
 end
