@@ -1,7 +1,11 @@
 {
-  "$schema": "https://cursor.sh/schema/environment.json",
-  "dockerfile": {
-    "path": ".devcontainer/Dockerfile",
-    "context": "."
-  }
+  "$schema": "https://www.cursor.com/schemas/environment.schema.json",
+  "name": "close-the-loop (Elixir/Phoenix)",
+  "user": "root",
+  "build": {
+    "dockerfile": "../.devcontainer/Dockerfile",
+    "context": ".."
+  },
+  "install": "bash .cursor/cloud-agent/install.sh",
+  "start": "bash .cursor/cloud-agent/start.sh"
 }
