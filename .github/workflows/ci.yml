@@ -20,7 +20,7 @@ jobs:
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: close-the-loop_test
+          POSTGRES_DB: close_the_loop_test
         ports:
           - 5432:5432
         options: >-
@@ -54,13 +54,22 @@ jobs:
         run: mix deps.get
 
       - name: Lint
-        run: doppler run -- make lint
+        run: |
+          if [ -n "${DOPPLER_TOKEN:-}" ]; then
+            doppler run -- make lint
+          else
+            make lint
+          fi
 
       - name: Test
-        run: doppler run -- make test
-
         env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/close-the-loop_test
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/close_the_loop_test
+        run: |
+          if [ -n "${DOPPLER_TOKEN:-}" ]; then
+            doppler run -- make test
+          else
+            make test
+          fi
 
 
   docker:
@@ -68,11 +77,45 @@ jobs:
     needs: ci
     if: github.ref == 'refs/heads/main'
 
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: close_the_loop_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Doppler CLI
-        uses: dopplerhq/cli-action@v3
+      - name: Set up Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: "1.17.3"
+          otp-version: "27.2"
+
+      - name: Cache deps
+        uses: actions/cache@v4
+        with:
+          path: |
+            deps
+            _build
+          key: ${{ runner.os }}-mix-${{ hashFiles('mix.lock') }}
+
+      - name: Install dependencies
+        run: mix deps.get
+
+      - name: Prepare database schema (docker smoke test)
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/close_the_loop_test
+        run: MIX_ENV=test mix ash.setup --quiet
 
       - name: Build Docker image
         run: |
@@ -84,11 +127,32 @@ jobs:
 
       - name: Verify health endpoint
         run: |
-          docker run -d --name test-container -p 3000:3000 \
-            -e APP_ENV=test \
-            -e APP_NAME=close-the-loop \
+          set -euo pipefail
+
+          cleanup() {
+            docker logs test-container 2>/dev/null || true
+            docker rm -f test-container 2>/dev/null || true
+          }
+
+          trap cleanup EXIT
+
+          docker run -d --name test-container --network host \
+            -e PHX_SERVER=true \
             -e PORT=3000 \
+            -e PHX_HOST=localhost \
+            -e DATABASE_URL=postgresql://postgres:postgres@localhost:5432/close_the_loop_test \
+            -e SECRET_KEY_BASE=0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdef \
+            -e TOKEN_SIGNING_SECRET=0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdef \
+            -e OPENAI_API_KEY=dummy \
             close-the-loop:${{ github.sha }}
-          sleep 5
-          curl -f http://localhost:3000/health || exit 1
-          docker stop test-container
+
+          for i in $(seq 1 30); do
+            if curl -fsS http://localhost:3000/health >/dev/null; then
+              echo "Health check passed"
+              exit 0
+            fi
+            sleep 1
+          done
+
+          echo "Health check failed"
+          exit 1
