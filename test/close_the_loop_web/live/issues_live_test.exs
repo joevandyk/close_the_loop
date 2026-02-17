@@ -174,7 +174,7 @@ defmodule CloseTheLoopWeb.IssuesLiveTest do
     assert render(view) =~ "Please confirm before sending."
   end
 
-  test "owner can add a manual report from issue page", %{conn: conn} do
+  test "add report link goes to reporter intake page", %{conn: conn} do
     tenant = "public"
     email = unique_email("owner-add-report")
 
@@ -204,16 +204,7 @@ defmodule CloseTheLoopWeb.IssuesLiveTest do
       |> AshAuthentication.Plug.Helpers.store_in_session(user)
 
     {:ok, view, _html} = live(conn, ~p"/app/#{org.id}/issues/#{issue.id}")
-    assert has_element?(view, "#issue-open-add-report")
-
-    view |> element("#issue-open-add-report") |> render_click()
-    assert has_element?(view, "#issue-add-report-form")
-
-    view
-    |> form("#issue-add-report-form", new_report: %{body: "Saw standing water near the drain."})
-    |> render_submit()
-
-    assert render(view) =~ "Saw standing water near the drain."
+    assert has_element?(view, "#issue-open-add-report[href='/r/#{tenant}/#{location.id}']")
   end
 
   test "issue show report items link to report detail", %{conn: conn} do
