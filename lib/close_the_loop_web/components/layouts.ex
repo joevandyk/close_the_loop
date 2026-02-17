@@ -483,9 +483,6 @@ defmodule CloseTheLoopWeb.Layouts do
       <.navlink :if={@is_admin} navigate={~p"/ops"} active={@ops_active}>
         <.icon name="hero-wrench-screwdriver" class="size-5" /> Ops Dashboard
       </.navlink>
-      <.navlink href={~p"/app/oban"}>
-        <.icon name="hero-queue-list" class="size-5" /> Jobs
-      </.navlink>
     </.navlist>
     """
   end

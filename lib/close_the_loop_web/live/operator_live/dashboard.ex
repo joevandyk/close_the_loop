@@ -5,6 +5,8 @@ defmodule CloseTheLoopWeb.OperatorLive.Dashboard do
   alias CloseTheLoop.Accounts
   alias CloseTheLoop.Tenants
 
+  @dev_routes_enabled Application.compile_env(:close_the_loop, :dev_routes, false)
+
   @impl true
   def mount(_params, _session, socket) do
     orgs = load_organizations()
@@ -24,6 +26,7 @@ defmodule CloseTheLoopWeb.OperatorLive.Dashboard do
       |> assign(:org_count, length(orgs))
       |> assign(:user_count, length(users))
       |> assign(:pending_invitation_count, length(pending_invitations))
+      |> assign(:dev_routes?, @dev_routes_enabled)
 
     {:ok, socket}
   end
@@ -78,6 +81,40 @@ defmodule CloseTheLoopWeb.OperatorLive.Dashboard do
             icon="hero-envelope"
           />
         </div>
+
+        <%!-- Operator tools --%>
+        <section id="ops-tools">
+          <h2 class="text-lg font-semibold mb-3">Tools</h2>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <.tool_card
+              href={~p"/app/oban"}
+              icon="hero-queue-list"
+              title="Jobs"
+              description="Inspect and manage background jobs."
+            />
+
+            <.tool_card
+              :if={@dev_routes?}
+              href="/dev/mailbox"
+              icon="hero-envelope"
+              title="Dev Mailbox"
+              description="Preview outgoing emails (dev-only)."
+            />
+
+            <.tool_card
+              :if={@dev_routes?}
+              href="/dev/sms"
+              icon="hero-device-phone-mobile"
+              title="Dev SMS"
+              description="Review outbound SMS delivery (dev-only)."
+            />
+          </div>
+
+          <p :if={!@dev_routes?} class="mt-3 text-xs text-foreground-soft">
+            Dev-only tools are disabled in this environment.
+          </p>
+        </section>
 
         <%!-- Organizations --%>
         <section id="ops-organizations">
@@ -203,6 +240,34 @@ defmodule CloseTheLoopWeb.OperatorLive.Dashboard do
         </div>
       </div>
     </div>
+    """
+  end
+
+  attr :href, :string, required: true
+  attr :icon, :string, required: true
+  attr :title, :string, required: true
+  attr :description, :string, required: true
+
+  defp tool_card(assigns) do
+    ~H"""
+    <.link
+      href={@href}
+      class="group rounded-2xl border border-base bg-base shadow-base p-5 transition hover:bg-accent"
+    >
+      <div class="flex items-start gap-3">
+        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-accent transition group-hover:bg-base">
+          <.icon name={@icon} class="size-5 text-foreground-soft" />
+        </div>
+        <div class="min-w-0 flex-1">
+          <div class="text-sm font-semibold text-foreground">{@title}</div>
+          <div class="mt-0.5 text-xs text-foreground-soft">{@description}</div>
+        </div>
+        <.icon
+          name="hero-arrow-top-right-on-square"
+          class="size-4 shrink-0 text-foreground-soft opacity-0 transition group-hover:opacity-100"
+        />
+      </div>
+    </.link>
     """
   end
 

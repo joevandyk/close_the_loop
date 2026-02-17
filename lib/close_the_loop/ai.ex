@@ -270,7 +270,9 @@ defmodule CloseTheLoop.AI do
 
       reporter_count_line =
         cond do
-          is_integer(reporter_count) and reporter_count >= 0 -> "report_count: #{reporter_count}\n        "
+          is_integer(reporter_count) and reporter_count >= 0 ->
+            "report_count: #{reporter_count}\n        "
+
           is_binary(reporter_count) and String.trim(reporter_count) != "" ->
             "report_count: #{String.trim(reporter_count)}\n        "
 

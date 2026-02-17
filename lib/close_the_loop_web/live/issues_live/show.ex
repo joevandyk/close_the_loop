@@ -8,6 +8,7 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
   alias CloseTheLoop.Events
   alias CloseTheLoop.Events.ChangeMetadata
   alias CloseTheLoop.Accounts
+  alias CloseTheLoop.Messaging
   alias CloseTheLoopWeb.ActivityFeed
   @impl true
   def mount(%{"id" => id}, _session, socket) do
@@ -29,6 +30,8 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
            to: ~p"/app/#{socket.assigns.current_org.id}/issues/#{issue.duplicate_of_issue_id}"
          )}
       else
+        sms_deliveries? = sms_deliveries_for_issue?(tenant, issue)
+
         {:ok,
          socket
          |> assign(:tenant, tenant)
@@ -39,6 +42,7 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
          |> assign(:activity_issues_by_id, issues_by_id)
          |> assign(:category_labels, Categories.key_label_map(tenant))
          |> assign(:active_category_labels, Categories.active_key_label_map(tenant))
+         |> assign(:sms_deliveries?, sms_deliveries?)
          |> assign(:add_update_modal_open?, false)
          |> assign(:add_update_form, add_update_form(tenant, issue, user))
          |> assign(:update_modal_open?, false)
@@ -383,8 +387,28 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
         <div class="rounded-2xl border border-base bg-base p-6 shadow-base space-y-4">
           <div>
             <h2 class="text-sm font-semibold">SMS updates</h2>
-            <p class="mt-1 text-sm text-foreground-soft">
-              Queued updates for {@issue.reporter_count} reporter(s). Use "Send SMS" in Actions to send another.
+            <div
+              :if={!@sms_deliveries?}
+              id="issue-sms-empty-state"
+              class="mt-3 rounded-xl border border-dashed border-base bg-accent p-4"
+            >
+              <div class="flex items-start gap-3">
+                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-base">
+                  <.icon name="hero-device-phone-mobile" class="size-5 text-foreground-soft" />
+                </div>
+                <div class="min-w-0 flex-1">
+                  <p class="text-sm font-semibold text-foreground">No SMS sent yet</p>
+                  <p class="mt-1 text-sm text-foreground-soft">
+                    Reports do not send SMS automatically. Use "Send SMS" in Actions to queue an update for reporters
+                    who opted in.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <p :if={@sms_deliveries?} class="mt-1 text-sm text-foreground-soft">
+              Reports do not send SMS automatically. Use "Send SMS" in Actions to queue another update for reporters who
+              opted in.
             </p>
           </div>
 
@@ -398,7 +422,7 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
               <div>
                 <h3 class="text-lg font-semibold">Send SMS update</h3>
                 <p class="mt-1 text-sm text-foreground-soft">
-                  This will notify {@issue.reporter_count} reporter(s).
+                  This queues an SMS update to reporters who opted in.
                 </p>
               </div>
 
@@ -420,7 +444,7 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
                   name="update[confirm]"
                   value="true"
                   checked={false}
-                  label={"I understand this will send an SMS to #{@issue.reporter_count} reporter(s)."}
+                  label="I understand this will queue an SMS to reporters who opted in."
                 />
 
                 <div class="flex items-center justify-end gap-2 pt-2">
@@ -535,6 +559,31 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
 
                   <div class="mt-1 text-sm leading-6 text-foreground line-clamp-2">
                     {report_preview(r.body)}
+                  </div>
+
+                  <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-foreground-soft">
+                    <div class="inline-flex items-center gap-1.5">
+                      <.icon name="hero-user-circle" class="size-3.5" />
+                      <span class="font-medium text-foreground">{reporter_name(r)}</span>
+                    </div>
+
+                    <div :if={present?(r.reporter_email)} class="inline-flex items-center gap-1.5">
+                      <.icon name="hero-envelope" class="size-3.5" />
+                      <span class="truncate">{String.trim(to_string(r.reporter_email))}</span>
+                    </div>
+
+                    <div :if={present?(r.reporter_phone)} class="inline-flex items-center gap-1.5">
+                      <.icon name="hero-device-phone-mobile" class="size-3.5" />
+                      <span class="truncate">{String.trim(to_string(r.reporter_phone))}</span>
+                    </div>
+
+                    <.badge
+                      size="xs"
+                      variant="ghost"
+                      color={if r.consent, do: "success", else: "info"}
+                    >
+                      {if r.consent, do: "SMS opt-in", else: "no SMS consent"}
+                    </.badge>
                   </div>
                 </div>
 
@@ -802,14 +851,48 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
          {:ok, comments} <- list_comments(tenant, issue_id),
          {:ok, {events, users_by_id, issues_by_id}} <-
            load_activity(tenant, issue, reports, comments) do
+      sms_deliveries? = sms_deliveries_for_issue?(tenant, issue)
+
       socket
       |> assign(:issue, issue)
       |> assign(:reports, reports)
       |> assign(:activity_events, events)
       |> assign(:activity_users_by_id, users_by_id)
       |> assign(:activity_issues_by_id, issues_by_id)
+      |> assign(:sms_deliveries?, sms_deliveries?)
     else
       _ -> socket
+    end
+  end
+
+  defp sms_deliveries_for_issue?(tenant, issue) when is_binary(tenant) do
+    update_ids =
+      issue.updates
+      |> List.wrap()
+      |> Enum.map(& &1.id)
+
+    case update_ids do
+      [] ->
+        false
+
+      ids ->
+        # We only need to know if any SMS delivery exists for one of this issue's updates.
+        # This avoids claiming anything based on report counts alone.
+        case Messaging.list_outbound_deliveries(
+               query: [
+                 filter: [
+                   channel: :sms,
+                   template: "issue_update",
+                   related_resource: "issue_update",
+                   tenant: tenant,
+                   related_id: [in: ids]
+                 ],
+                 limit: 1
+               ]
+             ) do
+          {:ok, [_ | _]} -> true
+          _ -> false
+        end
     end
   end
 
@@ -863,6 +946,17 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
     |> Enum.reject(&(&1 == ""))
     |> Enum.join(" ")
   end
+
+  defp reporter_name(%{reporter_name: name}) when is_binary(name) do
+    name = String.trim(name)
+    if name != "", do: name, else: "Anonymous"
+  end
+
+  defp reporter_name(_), do: "Anonymous"
+
+  defp present?(value) when is_binary(value), do: String.trim(value) != ""
+  defp present?(nil), do: false
+  defp present?(value), do: String.trim(to_string(value)) != ""
 
   defp can_edit_issue?(:owner), do: true
   defp can_edit_issue?(_), do: false

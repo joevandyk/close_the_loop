@@ -23,6 +23,7 @@ defmodule CloseTheLoopWeb.OperatorDashboardTest do
 
       assert html =~ "Ops Dashboard"
       assert has_element?(view, "#ops-stats")
+      assert has_element?(view, "#ops-tools a[href='/app/oban']")
       assert has_element?(view, "#ops-organizations")
       assert has_element?(view, "#ops-users")
       assert has_element?(view, "#ops-invitations")
