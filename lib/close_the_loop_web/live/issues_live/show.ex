@@ -248,23 +248,23 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
           id="issue-add-update-modal"
           open={@add_update_modal_open?}
           on_close={JS.push("close_add_update_modal")}
-          class="w-full max-w-lg"
+          class="w-full max-w-lg p-0 overflow-hidden"
         >
-          <div class="p-6 space-y-4">
-            <div>
+          <.form
+            for={@add_update_form}
+            id="issue-add-update-form"
+            phx-change="validate"
+            phx-submit="submit_update"
+            class="flex max-h-[calc(100dvh-2rem)] flex-col"
+          >
+            <div class="border-b border-base px-4 py-4 pr-12 sm:px-6 sm:py-5">
               <h3 class="text-lg font-semibold">Add update</h3>
               <p class="mt-1 text-sm text-foreground-soft">
                 Optionally update status and/or add an internal note.
               </p>
             </div>
 
-            <.form
-              for={@add_update_form}
-              id="issue-add-update-form"
-              phx-change="validate"
-              phx-submit="submit_update"
-              class="space-y-4"
-            >
+            <div class="flex-1 min-h-0 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5 space-y-4">
               <input
                 type="hidden"
                 name={@add_update_form[:status].name}
@@ -273,17 +273,18 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
               />
 
               <div class="space-y-2">
-                <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center justify-between gap-3">
                   <h4 class="text-sm font-semibold">Status</h4>
                   <span class="text-xs text-foreground-soft">Optional</span>
                 </div>
 
-                <.button_group>
+                <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
                   <.button
                     :for={{label, value} <- status_options()}
                     type="button"
                     size="sm"
                     color="primary"
+                    class="w-full justify-center px-2.5 sm:px-3.5"
                     variant={
                       if(@add_update_form.params["status"] == to_string(value),
                         do: "solid",
@@ -295,7 +296,7 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
                   >
                     {label}
                   </.button>
-                </.button_group>
+                </div>
               </div>
 
               <div class="space-y-2">
@@ -312,17 +313,30 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
                 />
                 <p class="text-xs text-foreground-soft">Visible only to your team.</p>
               </div>
+            </div>
 
-              <div class="flex items-center justify-end gap-2 pt-2">
-                <.button type="button" variant="outline" phx-click="close_add_update_modal">
+            <div class="border-t border-base bg-overlay/95 px-4 py-3 sm:px-6 sm:py-4">
+              <div class="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end">
+                <.button
+                  type="button"
+                  variant="outline"
+                  phx-click="close_add_update_modal"
+                  class="w-full sm:w-auto"
+                >
                   Cancel
                 </.button>
-                <.button type="submit" variant="solid" color="primary" phx-disable-with="Saving...">
+                <.button
+                  type="submit"
+                  variant="solid"
+                  color="primary"
+                  phx-disable-with="Saving..."
+                  class="w-full sm:w-auto"
+                >
                   Save update
                 </.button>
               </div>
-            </.form>
-          </div>
+            </div>
+          </.form>
         </.modal>
 
         <div id="issue-details-card" class="rounded-2xl border border-base bg-base p-6 shadow-base">
@@ -400,23 +414,23 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
             id="issue-send-sms-modal"
             open={@update_modal_open?}
             on_close={JS.push("close_update_modal")}
-            class="w-full max-w-lg"
+            class="w-full max-w-lg p-0 overflow-hidden"
           >
-            <div class="p-6 space-y-4">
-              <div>
+            <.form
+              for={@update_form}
+              id="issue-send-sms-form"
+              phx-change="validate"
+              phx-submit="send_update"
+              class="flex max-h-[calc(100dvh-2rem)] flex-col"
+            >
+              <div class="border-b border-base px-4 py-4 pr-12 sm:px-6 sm:py-5">
                 <h3 class="text-lg font-semibold">Send SMS update</h3>
                 <p class="mt-1 text-sm text-foreground-soft">
                   Queues a message to opted-in recipients for this issue.
                 </p>
               </div>
 
-              <.form
-                for={@update_form}
-                id="issue-send-sms-form"
-                phx-change="validate"
-                phx-submit="send_update"
-                class="space-y-4"
-              >
+              <div class="flex-1 min-h-0 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5 space-y-4">
                 <div class="rounded-xl border border-base bg-accent p-4 space-y-3">
                   <div class="flex flex-wrap items-center justify-between gap-2">
                     <p class="text-xs font-medium text-foreground-soft">Recipients</p>
@@ -431,7 +445,7 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
 
                   <div
                     :if={@sms_recipients != []}
-                    class="rounded-lg border border-base bg-base overflow-hidden"
+                    class="rounded-lg border border-base bg-base overflow-hidden max-h-56 overflow-y-auto"
                   >
                     <div
                       :for={rec <- @sms_recipients}
@@ -466,9 +480,16 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
                   checked={false}
                   label={"I understand this will queue an SMS to #{length(@sms_recipients)} recipient(s)."}
                 />
+              </div>
 
-                <div class="flex items-center justify-end gap-2 pt-2">
-                  <.button type="button" variant="outline" phx-click="close_update_modal">
+              <div class="border-t border-base bg-overlay/95 px-4 py-3 sm:px-6 sm:py-4">
+                <div class="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end">
+                  <.button
+                    type="button"
+                    variant="outline"
+                    phx-click="close_update_modal"
+                    class="w-full sm:w-auto"
+                  >
                     Cancel
                   </.button>
                   <.button
@@ -477,12 +498,13 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
                     color="primary"
                     disabled={@sms_recipients == []}
                     phx-disable-with="Queueing..."
+                    class="w-full sm:w-auto"
                   >
                     Send SMS
                   </.button>
                 </div>
-              </.form>
-            </div>
+              </div>
+            </.form>
           </.modal>
 
           <%= if @issue.updates != [] do %>
