@@ -58,8 +58,11 @@ scripts/dev
 The `.devcontainer/` directory contains the full development environment:
 
 - **Dockerfile**: Runtime, tooling, and system deps
-- **docker-compose.yml**: App container + Postgres + MinIO (S3-compatible storage)
+- **docker-compose.yml**: App container + Postgres + MinIO (S3-compatible storage) — **Ona-compatible**
 - **devcontainer.json**: IDE settings, extensions, port forwarding
+
+This repo also includes a local devcontainer config at `.devcontainer/local/` that uses
+standard Docker networking (bridge) for better compatibility on developer machines.
 
 Services available inside the devcontainer:
 
@@ -72,6 +75,11 @@ Services available inside the devcontainer:
 
 The database is automatically created and available at the `DATABASE_URL`
 set in `docker-compose.yml`. No manual `createdb` needed.
+
+> Note: Ona requires `network_mode: host` for Docker Compose-based devcontainers.
+> In the Ona-compatible devcontainer, services are reachable via `localhost`.
+> In the local devcontainer (`.devcontainer/local/`), services are reachable via
+> Docker Compose DNS names (`db`, `minio`).
 
 ## Cursor Cloud Agents
 
