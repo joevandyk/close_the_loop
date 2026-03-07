@@ -99,7 +99,7 @@ defmodule CloseTheLoopWeb.Layouts do
               <div class="border-b border-base px-5 py-4 space-y-3">
                 <a href={~p"/"} class="flex items-center gap-2">
                   <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-zinc-900 text-white text-sm font-semibold">
-                    CTL
+                    FIF
                   </span>
                   <span class="text-sm font-semibold tracking-tight">Fix It First</span>
                 </a>
@@ -151,7 +151,7 @@ defmodule CloseTheLoopWeb.Layouts do
               <div class="px-6 py-5 space-y-3">
                 <a href={~p"/"} class="flex items-center gap-2">
                   <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-zinc-900 text-white text-sm font-semibold">
-                    CTL
+                    FIF
                   </span>
                   <span class="text-sm font-semibold tracking-tight">Fix It First</span>
                 </a>
@@ -218,7 +218,7 @@ defmodule CloseTheLoopWeb.Layouts do
 
                   <a href={~p"/"} class="flex items-center gap-2">
                     <span class="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-zinc-900 text-white text-xs font-semibold">
-                      CTL
+                      FIF
                     </span>
                     <span class="text-sm font-semibold tracking-tight">Fix It First</span>
                   </a>
@@ -289,7 +289,7 @@ defmodule CloseTheLoopWeb.Layouts do
         <nav class="flex items-center justify-between">
           <a href={~p"/"} class="flex items-center gap-2">
             <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-zinc-900 text-white text-sm font-semibold">
-              CTL
+              FIF
             </span>
             <span class="text-sm font-semibold tracking-tight">Fix It First</span>
           </a>
