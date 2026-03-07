@@ -76,7 +76,7 @@ defmodule CloseTheLoopWeb.Layouts do
           <footer class="mx-auto max-w-3xl px-6 pb-10 text-sm text-foreground-soft">
             <div class="flex flex-wrap items-center justify-between gap-3 border-t border-base pt-6">
               <div class="flex flex-col gap-1">
-                <span class="text-xs">Powered by CloseTheLoop</span>
+                <span class="text-xs">Powered by Fix It First</span>
                 <span :if={note = org_footer_note(assigns[:org])} class="text-xs">
                   {note}
                 </span>
@@ -101,7 +101,7 @@ defmodule CloseTheLoopWeb.Layouts do
                   <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-zinc-900 text-white text-sm font-semibold">
                     CTL
                   </span>
-                  <span class="text-sm font-semibold tracking-tight">CloseTheLoop</span>
+                  <span class="text-sm font-semibold tracking-tight">Fix It First</span>
                 </a>
 
                 <.link
@@ -153,7 +153,7 @@ defmodule CloseTheLoopWeb.Layouts do
                   <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-zinc-900 text-white text-sm font-semibold">
                     CTL
                   </span>
-                  <span class="text-sm font-semibold tracking-tight">CloseTheLoop</span>
+                  <span class="text-sm font-semibold tracking-tight">Fix It First</span>
                 </a>
 
                 <.link
@@ -220,7 +220,7 @@ defmodule CloseTheLoopWeb.Layouts do
                     <span class="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-zinc-900 text-white text-xs font-semibold">
                       CTL
                     </span>
-                    <span class="text-sm font-semibold tracking-tight">CloseTheLoop</span>
+                    <span class="text-sm font-semibold tracking-tight">Fix It First</span>
                   </a>
 
                   <div class="flex-1" />
@@ -291,7 +291,7 @@ defmodule CloseTheLoopWeb.Layouts do
             <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-zinc-900 text-white text-sm font-semibold">
               CTL
             </span>
-            <span class="text-sm font-semibold tracking-tight">CloseTheLoop</span>
+            <span class="text-sm font-semibold tracking-tight">Fix It First</span>
           </a>
 
           <div class="hidden items-center gap-6 text-sm font-medium text-zinc-600 sm:flex">
@@ -318,7 +318,7 @@ defmodule CloseTheLoopWeb.Layouts do
 
       <footer class="mx-auto max-w-6xl px-6 pb-10 text-sm text-zinc-500">
         <div class="flex flex-wrap items-center justify-between gap-3 border-t border-zinc-200 pt-6">
-          <span>CloseTheLoop</span>
+          <span>Fix It First</span>
           <div class="flex items-center gap-4">
             <a href={~p"/privacy"} class="hover:text-zinc-700 transition">Privacy</a>
             <a href={~p"/terms"} class="hover:text-zinc-700 transition">Terms</a>
