@@ -8,7 +8,7 @@ cd "$ROOT"
 
 echo "[cloud-agent install] repo_root=$ROOT"
 
-# Cursor Cloud Agents run inside a container built from `.cursor/environment.json`.
+# Cloud agents run inside a container built from the devcontainer Dockerfile.
 # The Dockerfile should provide Erlang/Elixir, Node, build tools, etc.
 if ! command -v mix >/dev/null 2>&1; then
   echo "[cloud-agent install] ERROR: mix not found. Check your Dockerfile/image."

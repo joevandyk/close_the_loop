@@ -3,7 +3,7 @@
 ## Prerequisites
 
 - Docker Desktop (for devcontainer)
-- [VS Code](https://code.visualstudio.com/) with [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) **or** [Cursor](https://cursor.sh/)
+- [VS Code](https://code.visualstudio.com/) (or compatible editor like Cursor) with [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
 - [Doppler CLI](https://docs.doppler.com/docs/install-cli)
 
 > **Recommended**: Use the devcontainer. It has everything pre-configured —
@@ -16,9 +16,8 @@
 git clone <repo-url>
 cd close-the-loop
 
-# 2. Open in VS Code / Cursor
-#    VS Code: "Reopen in Container" when prompted
-#    Cursor:  Same prompt, or use Command Palette → "Dev Containers: Reopen in Container"
+# 2. Open in your editor
+#    "Reopen in Container" when prompted (or Command Palette → "Dev Containers: Reopen in Container")
 
 # 3. Set up Doppler (inside the container)
 doppler setup --project close-the-loop --config local
@@ -81,16 +80,20 @@ set in `docker-compose.yml`. No manual `createdb` needed.
 > In the local devcontainer (`.devcontainer/local/`), services are reachable via
 > Docker Compose DNS names (`db`, `minio`).
 
-## Cursor Cloud Agents
+## AI Agent Environment
 
-The `.cursor/environment.json` file configures Cursor's cloud agent
-environment. It points to the devcontainer Dockerfile so that cloud
-agents have the same runtime/tooling as the devcontainer.
+Cloud-based AI agents (Cursor, Claude Code, etc.) can use the devcontainer
+Dockerfile as their runtime environment.
 
-This repo also includes cloud-agent hooks (`.cursor/cloud-agent/install.sh`
-and `.cursor/cloud-agent/start.sh`) that run idempotent setup (deps/assets,
-warm compilation caches via `mix precompile`, and local Postgres) so new agent
-VMs start faster.
+The `.agents/` directory contains shared agent scripts:
+
+- **`.agents/cloud/install.sh`** — Idempotent setup: installs deps, compiles
+  assets, warms compilation caches, installs local Postgres for tests.
+- **`.agents/cloud/start.sh`** — Starts Postgres and sets up the test database.
+- **`.agents/setup-worktree-mac.sh`** — Worktree setup for local agents on macOS.
+
+Editor-specific config (e.g. `.cursor/environment.json`) references these
+shared scripts so the setup stays consistent across tools.
 
 ## Daily Workflow
 

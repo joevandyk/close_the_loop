@@ -1,5 +1,5 @@
 {
   "setup-worktree-unix": [
-    ".cursor/setup-worktree-mac.sh"
+    ".agents/setup-worktree-mac.sh"
   ]
 }

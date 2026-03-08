@@ -26,7 +26,8 @@
 - `scripts/`: command wrappers (Doppler-aware)
 - `docs/`: documentation and runbooks
 - `.devcontainer/`: development container config
-- `.cursor/`: editor/agent config
+- `.agents/`: shared AI agent scripts (cloud install/start, worktree setup)
+- `.cursor/`: Cursor-specific config (references `.agents/` scripts)
 
 ## When Making Changes
 
