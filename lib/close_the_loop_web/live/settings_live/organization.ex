@@ -106,7 +106,7 @@ defmodule CloseTheLoopWeb.SettingsLive.Organization do
               field={@brand_form[:reporter_tagline]}
               type="text"
               label="Tagline"
-              placeholder="e.g. Thanks for helping us keep the gym in top shape."
+              placeholder="e.g. Thanks for helping us improve your experience."
             />
 
             <.textarea

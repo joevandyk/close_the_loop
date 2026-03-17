@@ -188,7 +188,7 @@ defmodule CloseTheLoopWeb.ReportsLive.New do
                   field={@manual_form[:body]}
                   label="What happened?"
                   rows={6}
-                  placeholder="Customer said the men's showers are cold again."
+                  placeholder="Customer said their food came out cold and the table wasn't cleaned."
                   required
                 />
               </div>

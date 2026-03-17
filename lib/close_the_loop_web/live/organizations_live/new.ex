@@ -40,7 +40,7 @@ defmodule CloseTheLoopWeb.OrganizationsLive.New do
               field={@form[:name]}
               type="text"
               label="Organization name"
-              placeholder="Acme Gym"
+              placeholder="The Spot Restaurant"
               required
             />
 

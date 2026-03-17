@@ -188,6 +188,11 @@ defmodule CloseTheLoopWeb.ReportsLive.Index do
                     <.icon name="hero-arrow-right" class="ml-auto size-4 text-foreground-soft" />
                   </div>
 
+                  <div :if={present?(r.reporter_name)} class="mt-1.5 flex items-center gap-1.5 text-xs text-foreground-soft">
+                    <.icon name="hero-user-circle" class="size-3.5" />
+                    <span class="font-medium text-foreground">{String.trim(to_string(r.reporter_name))}</span>
+                  </div>
+
                   <p class="mt-2 text-sm font-medium text-foreground line-clamp-2">
                     {normalize_whitespace(r.body)}
                   </p>
@@ -230,4 +235,8 @@ defmodule CloseTheLoopWeb.ReportsLive.Index do
     do: source |> Atom.to_string() |> String.upcase()
 
   defp format_source(source), do: source |> to_string() |> String.upcase()
+
+  defp present?(value) when is_binary(value), do: String.trim(value) != ""
+  defp present?(nil), do: false
+  defp present?(value), do: String.trim(to_string(value)) != ""
 end

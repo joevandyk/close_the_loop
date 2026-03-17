@@ -308,7 +308,7 @@ defmodule CloseTheLoopWeb.IssuesLive.Show do
                   id="issue-add-update-comment-body"
                   field={@add_update_form[:comment_body]}
                   rows={4}
-                  placeholder="Called maintenance; plumber scheduled for Tuesday."
+                  placeholder="Talked to kitchen about food temp; adjusting plate timing."
                 />
                 <p class="text-xs text-foreground-soft">Visible only to your team.</p>
               </div>

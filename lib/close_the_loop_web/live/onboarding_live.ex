@@ -43,7 +43,7 @@ defmodule CloseTheLoopWeb.OnboardingLive do
             field={@form[:org_name]}
             type="text"
             label="Organization name"
-            placeholder="Acme Gym"
+            placeholder="The Spot Restaurant"
             required
           />
 

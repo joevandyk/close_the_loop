@@ -138,6 +138,8 @@ defmodule CloseTheLoop.DevSeeds do
       source: string_to_source!(Map.fetch!(report, "source")),
       consent: Map.fetch!(report, "consent"),
       reporter_phone: Map.fetch!(report, "reporter_phone"),
+      reporter_name: Map.get(report, "reporter_name"),
+      reporter_email: Map.get(report, "reporter_email"),
       inserted_at: inserted_at
     }
   end
@@ -422,7 +424,9 @@ defmodule CloseTheLoop.DevSeeds do
         normalized_body: normalize_text(body),
         source: Map.fetch!(attrs, :source),
         consent: Map.fetch!(attrs, :consent),
-        reporter_phone: attrs[:reporter_phone]
+        reporter_phone: attrs[:reporter_phone],
+        reporter_name: attrs[:reporter_name],
+        reporter_email: attrs[:reporter_email]
       },
       tenant: tenant
     )

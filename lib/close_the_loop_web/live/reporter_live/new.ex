@@ -92,7 +92,7 @@ defmodule CloseTheLoopWeb.ReporterLive.New do
                 field={@report_form[:body]}
                 label="What's wrong?"
                 rows={4}
-                placeholder="Cold water in the men's showers"
+                placeholder="e.g. Table was sticky, bathroom needs attention, long wait for food..."
                 required
               />
 

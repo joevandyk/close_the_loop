@@ -4,7 +4,7 @@ defmodule CloseTheLoopWeb.AuthController do
 
   def success(conn, activity, user, _token) do
     # Default to the app, not marketing. Onboarding will redirect as needed.
-    return_to = get_session(conn, :return_to) || ~p"/app/issues"
+    return_to = get_session(conn, :return_to) || ~p"/app"
 
     message =
       case activity do

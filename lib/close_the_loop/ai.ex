@@ -82,7 +82,7 @@ defmodule CloseTheLoop.AI do
         openai = OpenaiEx.new(api_key) |> OpenaiEx.with_receive_timeout(45_000)
 
         prompt = """
-        You are deduplicating facility issues.
+        You are deduplicating customer-reported issues for a business.
 
         Given a NEW issue and a list of EXISTING open issues in the same organization, decide if the new issue
         is reporting the same underlying problem as one of the existing issues.
@@ -90,8 +90,8 @@ defmodule CloseTheLoop.AI do
         Each existing issue may include a report count and a sample of recent report texts. Use that context to
         match issues that look different at the title/description level but are clearly the same underlying problem.
 
-        Location is an important hint (e.g. men's vs women's locker room), but not a hard constraint: reports may be
-        submitted from a generic/front-desk location while describing a more specific location in the text.
+        Location is an important hint (e.g. dining room vs patio), but not a hard constraint: reports may be
+        submitted from a generic location while describing a more specific area in the text.
         Use your best judgment.
 
         Return ONLY:
@@ -164,7 +164,7 @@ defmodule CloseTheLoop.AI do
 
         system_prompt =
           """
-          You triage a NEW customer report about a facility issue.
+          You triage a NEW customer report about an issue at a business.
 
           Your job is to either:
           1) match it to one EXISTING open issue (if it is clearly the same underlying problem), OR
@@ -181,8 +181,8 @@ defmodule CloseTheLoop.AI do
           Matching rules:
           - Choose at most one existing issue id.
           - Be strict: only match when you're confident it's the same underlying issue.
-          - Location is a strong hint (e.g. men's vs women's locker room), but not a hard constraint:
-            reports may be submitted from a generic/front-desk location while describing a more specific location.
+          - Location is a strong hint (e.g. dining room vs patio), but not a hard constraint:
+            reports may be submitted from a generic location while describing a more specific area.
             Prefer matching the underlying problem, using report text + recent reports as evidence.
           - Existing issues may include a report count and a sample of recent report texts. Use those reports
             as primary evidence of similarity when matching.

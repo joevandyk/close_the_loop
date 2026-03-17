@@ -82,7 +82,7 @@ defmodule CloseTheLoopWeb.IssueCategoriesLive.Index do
               field={@ai_form[:ai_business_context]}
               label="Business context (optional)"
               rows={4}
-              placeholder="We run a gym with locker rooms, pool, sauna, and hot tub. Members frequently report issues about showers, HVAC, and cleanliness."
+              placeholder="We run a restaurant with a dining room, bar, patio, and restrooms. Customers report issues about food, service, cleanliness, and facilities."
             />
 
             <.textarea
@@ -90,7 +90,7 @@ defmodule CloseTheLoopWeb.IssueCategoriesLive.Index do
               field={@ai_form[:ai_categorization_instructions]}
               label="Categorization rules (optional)"
               rows={4}
-              placeholder="If a report mentions water temperature, leaks, toilets, drains, or showers -> plumbing. If it's about lighting, outlets, breakers -> electrical. If uncertain, choose other."
+              placeholder="If a report mentions food quality, wrong order, or allergies -> food quality. If it's about wait times, rude staff, or slow service -> service quality. If uncertain, choose other."
             />
 
             <div class="flex items-center justify-between gap-3">
@@ -142,7 +142,7 @@ defmodule CloseTheLoopWeb.IssueCategoriesLive.Index do
                 type="text"
                 label="Key"
                 class="font-mono"
-                placeholder="plumbing"
+                placeholder="food_quality"
                 required
               />
               <div class="mt-1 text-xs text-zinc-500">
@@ -156,7 +156,7 @@ defmodule CloseTheLoopWeb.IssueCategoriesLive.Index do
               type="text"
               label="Label"
               class="sm:col-span-2"
-              placeholder="Plumbing"
+              placeholder="Food Quality"
               required
             />
 
@@ -320,7 +320,7 @@ defmodule CloseTheLoopWeb.IssueCategoriesLive.Index do
                 field={@edit_form[:description]}
                 type="text"
                 label="Description (optional)"
-                placeholder="Problems with showers, toilets, drains, leaks, water heaters."
+                placeholder="Food arrived cold, wrong order, missing items, allergy concerns."
               />
 
               <.textarea
@@ -328,7 +328,7 @@ defmodule CloseTheLoopWeb.IssueCategoriesLive.Index do
                 field={@edit_form[:ai_guidance]}
                 label="AI guidance (optional)"
                 rows={4}
-                placeholder="Use this category when the issue is about water flow/pressure/temperature, leaks, clogs, toilets, drains, sinks, showers."
+                placeholder="Use this category when the issue is about food temperature, taste, wrong items, portion size, or allergy mistakes."
               />
 
               <.textarea
@@ -336,7 +336,7 @@ defmodule CloseTheLoopWeb.IssueCategoriesLive.Index do
                 field={@edit_form[:ai_include_keywords]}
                 label="Include keywords (optional)"
                 rows={3}
-                placeholder="shower\nsink\ntoilet\ndrain\nleak\nclog\nhot water\ncold water"
+                placeholder="cold food\nwrong order\nallergy\nmissing item\nundercooked\nstale"
               />
 
               <.textarea
@@ -344,7 +344,7 @@ defmodule CloseTheLoopWeb.IssueCategoriesLive.Index do
                 field={@edit_form[:ai_exclude_keywords]}
                 label="Exclude keywords (optional)"
                 rows={3}
-                placeholder="light\nbreaker\noutlet\npower\nwifi\ninternet"
+                placeholder="slow service\nwait time\nrude staff\nnoise\ncleanliness"
               />
 
               <.textarea
@@ -352,7 +352,7 @@ defmodule CloseTheLoopWeb.IssueCategoriesLive.Index do
                 field={@edit_form[:ai_examples]}
                 label="Examples (optional)"
                 rows={5}
-                placeholder="Cold water in men's showers\nToilet overflowing near pool\nDrain in sauna backing up"
+                placeholder="Burger came out cold\nWrong order — got pasta instead of steak\nAllergy request ignored on my salad"
               />
 
               <div class="flex justify-end gap-2">

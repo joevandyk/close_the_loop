@@ -33,7 +33,7 @@ defmodule CloseTheLoop.Workers.ResolveReportIssueWorker do
              load: [location: [:name, :full_path]]
            ),
          true <- is_nil(report.issue_id) do
-      # Location is a strong hint (e.g. men's vs women's locker room), but not a hard constraint:
+      # Location is a strong hint (e.g. dining room vs patio), but not a hard constraint:
       # reports can be submitted from a generic kiosk/front-desk location while describing a more
       # specific location in the text.
       candidates = list_candidates(tenant)

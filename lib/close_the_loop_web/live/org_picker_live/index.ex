@@ -21,6 +21,9 @@ defmodule CloseTheLoopWeb.OrgPickerLive.Index do
       {:ok, []} ->
         {:ok, push_navigate(socket, to: ~p"/app/onboarding")}
 
+      {:ok, [single]} ->
+        {:ok, push_navigate(socket, to: ~p"/app/#{single.organization_id}/issues")}
+
       {:ok, memberships} ->
         {:ok, assign(socket, :memberships, memberships)}
 
