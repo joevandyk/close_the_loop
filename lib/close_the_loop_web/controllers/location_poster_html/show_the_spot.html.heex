@@ -1,0 +1,245 @@
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@400;500;600&display=swap');
+
+  .ts-poster {
+    width: 4in;
+    height: 6in;
+    background: #1a1714;
+    color: #f5f0eb;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .ts-poster::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .ts-poster::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #c4956a, #d4a574, #8b6f4e);
+    z-index: 2;
+  }
+
+  .ts-inner {
+    position: relative;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 0.55in 0.4in 0.4in;
+  }
+
+  .ts-brand { text-align: center; margin-bottom: 0.2in; }
+
+  .ts-brand-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 700;
+    font-size: 28pt;
+    letter-spacing: 0.04em;
+    color: #f5f0eb;
+    line-height: 1;
+  }
+
+  .ts-brand-dot { color: #c4956a; margin: 0 0.06em; }
+
+  .ts-brand-tagline {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 7pt;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: #a89580;
+    margin-top: 6px;
+  }
+
+  .ts-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0.12in 0;
+  }
+
+  .ts-divider-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #5a4d3e, transparent);
+  }
+
+  .ts-divider-ornament { color: #c4956a; font-size: 8pt; line-height: 1; }
+
+  .ts-qr-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+  }
+
+  .ts-qr-prompt {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 15pt;
+    font-weight: 600;
+    text-align: center;
+    line-height: 1.3;
+    color: #f5f0eb;
+    margin-bottom: 0.18in;
+    font-style: italic;
+  }
+
+  .ts-qr-frame {
+    background: #f5f0eb;
+    padding: 12px;
+    border-radius: 6px;
+    position: relative;
+    box-shadow: 0 0 0 1px rgba(196,149,106,0.3), 0 8px 32px rgba(0,0,0,0.4);
+  }
+
+  .ts-qr-frame::before,
+  .ts-qr-frame::after {
+    content: '';
+    position: absolute;
+    width: 16px; height: 16px;
+    border-color: #c4956a;
+    border-style: solid;
+  }
+  .ts-qr-frame::before { top: -4px; left: -4px; border-width: 2px 0 0 2px; }
+  .ts-qr-frame::after { bottom: -4px; right: -4px; border-width: 0 2px 2px 0; }
+
+  .ts-qr-code { width: 1.8in; height: 1.8in; display: block; }
+
+  .ts-instructions { margin-top: 0.2in; text-align: center; }
+
+  .ts-instructions-heading {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 7.5pt;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #c4956a;
+    margin-bottom: 8px;
+  }
+
+  .ts-steps {
+    list-style: none;
+    font-size: 8.5pt;
+    line-height: 1.65;
+    color: #c8bdb0;
+    padding: 0;
+    margin: 0;
+  }
+
+  .ts-steps li {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .ts-step-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 700;
+    font-size: 10pt;
+    color: #c4956a;
+    min-width: 14px;
+    text-align: right;
+  }
+
+  .ts-footer {
+    margin-top: auto;
+    padding-top: 0.15in;
+    border-top: 1px solid #2e2820;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+
+  .ts-footer-location {
+    font-size: 7pt;
+    color: #7a6d5e;
+    line-height: 1.4;
+  }
+
+  .ts-footer-location strong { color: #a89580; font-weight: 600; }
+
+  .ts-footer-powered {
+    font-size: 6pt;
+    color: #5a4d3e;
+    text-align: right;
+    line-height: 1.4;
+  }
+
+  @media print {
+    @page { size: 4in 6in; margin: 0; }
+    body { background: none !important; }
+    .ts-print-controls { display: none !important; }
+    .ts-poster-wrap { padding: 0 !important; display: block !important; min-height: auto !important; background: none !important; }
+  }
+</style>
+
+<div class="ts-poster-wrap" style="background: #e8e0d8; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 2rem;">
+  <div class="ts-print-controls" style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem;">
+    <.button href={~p"/app/#{@org_id}/settings/locations"} variant="ghost">Back</.button>
+    <.button type="button" variant="solid" color="primary" data-ctl-print="true">
+      Print / Save PDF
+    </.button>
+  </div>
+
+  <div class="ts-poster">
+    <div class="ts-inner">
+      <div class="ts-brand">
+        <div class="ts-brand-name">The<span class="ts-brand-dot">&bull;</span>Spot</div>
+        <div class="ts-brand-tagline">Espresso &amp; Wine Bar &middot; Capitol Hill</div>
+      </div>
+
+      <div class="ts-divider">
+        <div class="ts-divider-line"></div>
+        <div class="ts-divider-ornament">&#10022;</div>
+        <div class="ts-divider-line"></div>
+      </div>
+
+      <div class="ts-qr-section">
+        <div class="ts-qr-prompt">
+          We'd love to hear<br>from you
+        </div>
+
+        <div class="ts-qr-frame">
+          <img
+            :if={@poster.qr_svg_data_uri}
+            src={@poster.qr_svg_data_uri}
+            alt="QR code"
+            class="ts-qr-code"
+          />
+        </div>
+
+        <div class="ts-instructions">
+          <div class="ts-instructions-heading">How it works</div>
+          <ol class="ts-steps">
+            <li><span class="ts-step-num">1</span> Scan with your phone camera</li>
+            <li><span class="ts-step-num">2</span> Tell us what's on your mind</li>
+            <li><span class="ts-step-num">3</span> We'll take care of it</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="ts-footer">
+        <div class="ts-footer-location">
+          <strong>{@poster.location_name}</strong><br>
+          The&bull;Spot &middot; Capitol Hill
+        </div>
+        <div class="ts-footer-powered">
+          Powered by<br>Fix It First
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -23,9 +23,11 @@ defmodule CloseTheLoopWeb.LocationPosterController do
                FeedbackDomain.get_location_by_id(id, tenant: tenant) do
           poster = build_poster(org, tenant, location)
 
+          template = poster_template(tenant)
+
           conn
           |> assign(:page_title, "Printable poster - #{poster.location_name}")
-          |> render(:show, poster: poster, org_id: org.id)
+          |> render(template, poster: poster, org_id: org.id)
         else
           _ ->
             conn
@@ -34,6 +36,12 @@ defmodule CloseTheLoopWeb.LocationPosterController do
         end
     end
   end
+
+  @custom_templates %{
+    "org_the_spot" => :show_the_spot
+  }
+
+  defp poster_template(tenant), do: Map.get(@custom_templates, tenant, :show)
 
   defp build_poster(org, tenant, location) do
     reporter_path = ~p"/r/#{tenant}/#{location.id}/qr"
