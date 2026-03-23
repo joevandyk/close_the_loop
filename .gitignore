@@ -28,9 +28,11 @@ erl_crash.dump
 .env
 .env.local
 .env.*.local
+.devcontainer/.env.doppler
 
 # Devbox
 .devbox-prompt
+.devcontainer/docker-compose.override.yml
 
 # Misc
 .DS_Store

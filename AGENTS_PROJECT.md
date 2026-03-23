@@ -27,7 +27,6 @@
 - `docs/`: documentation and runbooks
 - `.devcontainer/`: development container config
 - `.agents/`: shared AI agent scripts (cloud install/start, worktree setup)
-- `.cursor/`: Cursor-specific config (references `.agents/` scripts)
 
 ## When Making Changes
 

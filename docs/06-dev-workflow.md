@@ -9,28 +9,52 @@
 > **Recommended**: Use the devcontainer. It has everything pre-configured —
 > runtime, database, and tooling. No local install of Elixir >= 1.20 (rc), Erlang/OTP >= 28 required.
 
-## First-Time Setup (Devcontainer)
+## First-Time Setup (Devcontainer via devbox)
+
+```bash
+# 1. Create a new environment (clones worktree, starts containers, injects Doppler secrets)
+dev new ctl my-feature
+
+# 2. Shell into the running environment
+dev shell my-feature
+
+# 3. Run migrations
+scripts/migrate
+
+# 4. Seed data (optional)
+scripts/seed
+
+# 5. Start dev server
+scripts/dev
+```
+
+## First-Time Setup (Devcontainer via editor)
 
 ```bash
 # 1. Clone the repo
 git clone <repo-url>
 cd close-the-loop
 
-# 2. Open in your editor
+# 2. Generate .env.doppler with secrets (requires Doppler CLI on host)
+doppler secrets download --no-file --format env \
+  -p close-the-loop -c local_close_the_loop > .devcontainer/.env.doppler
+
+# 3. Open in your editor
 #    "Reopen in Container" when prompted (or Command Palette → "Dev Containers: Reopen in Container")
 
-# 3. Set up Doppler (inside the container)
-doppler setup --project close-the-loop --config local
-
-# 4. Run migrations
-scripts/migrate
+# 4. Run migrations (use `make` directly — secrets are already in env via env_file)
+make migrate
 
 # 5. Seed data (optional)
-scripts/seed
+make seed
 
 # 6. Start dev server
-scripts/dev
+make dev
 ```
+
+> **Note**: The `scripts/*` wrappers use `doppler run` to inject secrets, which requires
+> Doppler CLI auth inside the container. In the devcontainer, secrets are already injected
+> via `.env.doppler`, so use `make` targets directly instead.
 
 ## First-Time Setup (Without Devcontainer)
 
@@ -57,28 +81,21 @@ scripts/dev
 The `.devcontainer/` directory contains the full development environment:
 
 - **Dockerfile**: Runtime, tooling, and system deps
-- **docker-compose.yml**: App container + Postgres + MinIO (S3-compatible storage) — **Ona-compatible**
+- **docker-compose.yml**: App container + Postgres + MinIO (S3-compatible storage)
 - **devcontainer.json**: IDE settings, extensions, port forwarding
+- **.env.doppler**: Secrets injected by the `dev` tool from Doppler on the host (local-only; do not commit)
 
-This repo also includes a local devcontainer config at `.devcontainer/local/` that uses
-standard Docker networking (bridge) for better compatibility on developer machines.
+Services available inside the devcontainer (via Docker Compose DNS names):
 
-Services available inside the devcontainer:
-
-| Service | Host | Port |
-|---------|------|------|
-| App | `localhost` | 3000 |
-| PostgreSQL | `localhost` | 5432 |
-| MinIO (S3 API) | `localhost` | 9000 |
-| MinIO (Console) | `localhost` | 9001 |
+| Service | Host (inside container) | Host (from browser) | Port |
+|---------|------------------------|---------------------|------|
+| App | `localhost` | `localhost` | 3000 |
+| PostgreSQL | `db` | — | 5432 |
+| MinIO (S3 API) | `minio` | — | 9000 |
+| MinIO (Console) | `minio` | — | 9001 |
 
 The database is automatically created and available at the `DATABASE_URL`
 set in `docker-compose.yml`. No manual `createdb` needed.
-
-> Note: Ona requires `network_mode: host` for Docker Compose-based devcontainers.
-> In the Ona-compatible devcontainer, services are reachable via `localhost`.
-> In the local devcontainer (`.devcontainer/local/`), services are reachable via
-> Docker Compose DNS names (`db`, `minio`).
 
 ## AI Agent Environment
 
@@ -92,8 +109,7 @@ The `.agents/` directory contains shared agent scripts:
 - **`.agents/cloud/start.sh`** — Starts Postgres and sets up the test database.
 - **`.agents/setup-worktree-mac.sh`** — Worktree setup for local agents on macOS.
 
-Editor-specific config (e.g. `.cursor/environment.json`) references these
-shared scripts so the setup stays consistent across tools.
+These scripts keep agent setup consistent across tools (Claude Code, Cursor, etc.).
 
 ## Daily Workflow
 
