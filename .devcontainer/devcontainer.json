@@ -1,6 +1,6 @@
 {
   "name": "close-the-loop (ona)",
-  "dockerComposeFile": "docker-compose.yml",
+  "dockerComposeFile": ["docker-compose.yml", "docker-compose.override.yml"],
   "service": "app",
   "workspaceFolder": "/workspace",
   "overrideCommand": false,
@@ -20,9 +20,9 @@
       }
     }
   },
-  "forwardPorts": [3000],
+  "forwardPorts": [4000],
   "portsAttributes": {
-    "3000": {
+    "4000": {
       "label": "Phoenix (close-the-loop)",
       "onAutoForward": "openPreview"
     }
