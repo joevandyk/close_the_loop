@@ -29,6 +29,9 @@ erl_crash.dump
 .env.local
 .env.*.local
 
+# Devbox
+.devbox-prompt
+
 # Misc
 .DS_Store
 *.beam
