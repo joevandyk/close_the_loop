@@ -9,18 +9,38 @@
 > **Recommended**: Use the devcontainer. It has everything pre-configured —
 > runtime, database, and tooling. No local install of Elixir >= 1.20 (rc), Erlang/OTP >= 28 required.
 
-## First-Time Setup (Devcontainer)
+## First-Time Setup (Devcontainer via devbox)
+
+```bash
+# 1. Create a new environment (clones worktree, starts containers, injects Doppler secrets)
+dev new ctl my-feature
+
+# 2. Shell into the running environment
+dev shell my-feature
+
+# 3. Run migrations
+scripts/migrate
+
+# 4. Seed data (optional)
+scripts/seed
+
+# 5. Start dev server
+scripts/dev
+```
+
+## First-Time Setup (Devcontainer via editor)
 
 ```bash
 # 1. Clone the repo
 git clone <repo-url>
 cd close-the-loop
 
-# 2. Open in your editor
-#    "Reopen in Container" when prompted (or Command Palette → "Dev Containers: Reopen in Container")
+# 2. Generate .env.doppler with secrets (requires Doppler CLI on host)
+doppler secrets download --no-file --format env \
+  -p close-the-loop -c local_close_the_loop > .devcontainer/.env.doppler
 
-# 3. Secrets are auto-injected via .env.doppler (created by `dev new` on the host)
-#    No Doppler setup needed inside the container.
+# 3. Open in your editor
+#    "Reopen in Container" when prompted (or Command Palette → "Dev Containers: Reopen in Container")
 
 # 4. Run migrations
 scripts/migrate
@@ -59,16 +79,16 @@ The `.devcontainer/` directory contains the full development environment:
 - **Dockerfile**: Runtime, tooling, and system deps
 - **docker-compose.yml**: App container + Postgres + MinIO (S3-compatible storage)
 - **devcontainer.json**: IDE settings, extensions, port forwarding
-- **.env.doppler**: Secrets injected by the `dev` tool from Doppler on the host (not committed)
+- **.env.doppler**: Secrets injected by the `dev` tool from Doppler on the host (local-only; do not commit)
 
 Services available inside the devcontainer (via Docker Compose DNS names):
 
-| Service | Host | Port |
-|---------|------|------|
-| App | `app` | 3000 |
-| PostgreSQL | `db` | 5432 |
-| MinIO (S3 API) | `minio` | 9000 |
-| MinIO (Console) | `minio` | 9001 |
+| Service | Host (inside container) | Host (from browser) | Port |
+|---------|------------------------|---------------------|------|
+| App | `localhost` | `localhost` | 3000 |
+| PostgreSQL | `db` | — | 5432 |
+| MinIO (S3 API) | `minio` | — | 9000 |
+| MinIO (Console) | `minio` | — | 9001 |
 
 The database is automatically created and available at the `DATABASE_URL`
 set in `docker-compose.yml`. No manual `createdb` needed.

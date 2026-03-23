@@ -5,7 +5,7 @@
 - App: `close-the-loop`
 - Runtime: Elixir/Phoenix
 - Deploy target: Coolify (Dockerfile build pack)
-- Secrets: Doppler (never commit secrets; never rely on `.env` files)
+- Secrets: Doppler (never commit secrets; `.env.doppler` is generated locally by the `dev` tool)
 - Dev environment: devcontainer (`.devcontainer/`)
 
 ## Dev Commands

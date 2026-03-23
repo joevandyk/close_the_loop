@@ -1,6 +1,6 @@
 {
   "name": "close-the-loop (ona)",
-  "dockerComposeFile": ["docker-compose.yml", "docker-compose.override.yml"],
+  "dockerComposeFile": "docker-compose.yml",
   "service": "app",
   "workspaceFolder": "/workspace",
   "overrideCommand": false,
