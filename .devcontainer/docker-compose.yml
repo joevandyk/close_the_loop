@@ -8,7 +8,7 @@ services:
     env_file:
       - path: .env.doppler
         required: false
-    command: sleep infinity
+    command: bash -c 'cd /workspace && mix deps.get && mix ash.setup --quiet && exec mix phx.server'
     environment:
       - APP_NAME=close-the-loop
       - APP_ENV=local
