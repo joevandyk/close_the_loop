@@ -5,7 +5,9 @@ services:
       dockerfile: .devcontainer/Dockerfile
     volumes:
       - ..:/workspace:cached
-      - doppler_config:/root/.doppler
+    env_file:
+      - path: .env.doppler
+        required: false
     command: sleep infinity
     environment:
       - APP_NAME=close-the-loop
@@ -70,8 +72,4 @@ services:
 
 volumes:
   pgdata:
-  
   miniodata:
-  
-  doppler_config:
-  
