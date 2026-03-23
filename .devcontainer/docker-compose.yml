@@ -19,7 +19,7 @@ services:
       - PORT=3000
       - LOG_LEVEL=debug
       # With network_mode: host we connect via localhost, not the compose DNS name.
-      - DATABASE_URL=postgresql://postgres:postgres@localhost:5432/close_the_loop_local
+      - DATABASE_URL=postgresql://postgres:postgres@localhost:5433/close_the_loop_local
       - SECRET_KEY_BASE=dev-only-secret-key-base-at-least-64-characters-long-CHANGEME-IN-DOPPLER
       - MIX_ENV=dev
 
@@ -28,7 +28,7 @@ services:
       - MIX_DEPS_PATH=/workspace/deps_linux
       
       # S3-compatible object storage (MinIO) for local development
-      - STORAGE_ENDPOINT=http://localhost:9000
+      - STORAGE_ENDPOINT=http://localhost:9002
       - STORAGE_BUCKET=close-the-loop-local
       - STORAGE_ACCESS_KEY=minio
       - STORAGE_SECRET_KEY=minio123
@@ -51,10 +51,11 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: close_the_loop_local
+      PGPORT: "5433"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -p 5433"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -64,7 +65,7 @@ services:
     network_mode: host
     image: minio/minio:latest
     restart: unless-stopped
-    command: server /data --console-address ":9001"
+    command: server /data --address ":9002" --console-address ":9003"
     environment:
       MINIO_ROOT_USER: minio
       MINIO_ROOT_PASSWORD: minio123
@@ -79,7 +80,7 @@ services:
         condition: service_started
     entrypoint: >
       /bin/sh -c "
-      until mc alias set local http://localhost:9000 minio minio123 2>/dev/null; do sleep 1; done;
+      until mc alias set local http://localhost:9002 minio minio123 2>/dev/null; do sleep 1; done;
       mc mb --ignore-existing local/close-the-loop-local;
       exit 0;
       "
