@@ -106,7 +106,7 @@ config :esbuild,
     cd: Path.expand("../assets", __DIR__),
     env: %{
       "NODE_PATH" => [
-        Path.expand("../deps", __DIR__),
+        Mix.Project.deps_path(),
         Path.expand("../vendor", __DIR__),
         Mix.Project.build_path()
       ]
