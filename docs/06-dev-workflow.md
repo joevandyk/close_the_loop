@@ -42,15 +42,19 @@ doppler secrets download --no-file --format env \
 # 3. Open in your editor
 #    "Reopen in Container" when prompted (or Command Palette → "Dev Containers: Reopen in Container")
 
-# 4. Run migrations
-scripts/migrate
+# 4. Run migrations (use `make` directly — secrets are already in env via env_file)
+make migrate
 
 # 5. Seed data (optional)
-scripts/seed
+make seed
 
 # 6. Start dev server
-scripts/dev
+make dev
 ```
+
+> **Note**: The `scripts/*` wrappers use `doppler run` to inject secrets, which requires
+> Doppler CLI auth inside the container. In the devcontainer, secrets are already injected
+> via `.env.doppler`, so use `make` targets directly instead.
 
 ## First-Time Setup (Without Devcontainer)
 
