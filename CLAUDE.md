@@ -1,16 +1,21 @@
-# Project-Specific Agent Notes
-#
-# If this repository also contains an `AGENTS.md`, treat that as the canonical
-# framework/runtime guidance and do not edit it lightly (it may be generated).
+# Close The Loop
 
 ## Project Overview
 
 - App: `close-the-loop`
-- Runtime: `elixir-phoenix`
-- Profile: `experiment`
+- Runtime: Elixir/Phoenix
 - Deploy target: Coolify (Dockerfile build pack)
 - Secrets: Doppler (never commit secrets; never rely on `.env` files)
 - Dev environment: devcontainer (`.devcontainer/`)
+
+## Dev Commands
+
+Run inside the devcontainer (`docker exec <container> bash -c 'cd /workspace && ...'`):
+
+- `mix test` — run tests (auto-runs `ash.setup --quiet` first via alias)
+- `mix precommit` — compile (warnings-as-errors), codegen check, format, test
+- `mix ash.setup` — create/migrate database
+- `mix ash.codegen <name>` — generate migrations after resource changes
 
 ## Key Conventions
 
@@ -22,19 +27,20 @@
 
 ## File Organization
 
-- App code: `src/` (Node) or `lib/` (Elixir)
-- `scripts/`: command wrappers (Doppler-aware)
-- `docs/`: documentation and runbooks
-- `.devcontainer/`: development container config
-- `.agents/`: shared AI agent scripts (cloud install/start, worktree setup)
+- `lib/` — app code
+- `test/` — tests
+- `scripts/` — command wrappers (Doppler-aware)
+- `docs/` — documentation and runbooks
+- `.devcontainer/` — development container config
+- `.agents/` — shared AI agent scripts (cloud install/start, worktree setup)
 
 ## When Making Changes
 
-- Run `make lint` and `make test` before committing
+- Run `mix precommit` before committing
 - Update docs when changing architecture or integrations
 - Add runbook entries for new operational procedures
 - Never hardcode secrets: add to Doppler and reference via env vars
-- Add tests for new routes/features (at least 1 happy path + 1 failure/edge case for user-visible pages).
+- Add tests for new routes/features (at least 1 happy path + 1 failure/edge case for user-visible pages)
 
 ## Product UX Expectations
 
