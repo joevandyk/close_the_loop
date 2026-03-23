@@ -19,8 +19,8 @@ cd close-the-loop
 # 2. Open in your editor
 #    "Reopen in Container" when prompted (or Command Palette → "Dev Containers: Reopen in Container")
 
-# 3. Set up Doppler (inside the container)
-doppler setup --project close-the-loop --config local
+# 3. Secrets are auto-injected via .env.doppler (created by `dev new` on the host)
+#    No Doppler setup needed inside the container.
 
 # 4. Run migrations
 scripts/migrate
@@ -57,28 +57,21 @@ scripts/dev
 The `.devcontainer/` directory contains the full development environment:
 
 - **Dockerfile**: Runtime, tooling, and system deps
-- **docker-compose.yml**: App container + Postgres + MinIO (S3-compatible storage) — **Ona-compatible**
+- **docker-compose.yml**: App container + Postgres + MinIO (S3-compatible storage)
 - **devcontainer.json**: IDE settings, extensions, port forwarding
+- **.env.doppler**: Secrets injected by the `dev` tool from Doppler on the host (not committed)
 
-This repo also includes a local devcontainer config at `.devcontainer/local/` that uses
-standard Docker networking (bridge) for better compatibility on developer machines.
-
-Services available inside the devcontainer:
+Services available inside the devcontainer (via Docker Compose DNS names):
 
 | Service | Host | Port |
 |---------|------|------|
-| App | `localhost` | 3000 |
-| PostgreSQL | `localhost` | 5432 |
-| MinIO (S3 API) | `localhost` | 9000 |
-| MinIO (Console) | `localhost` | 9001 |
+| App | `app` | 3000 |
+| PostgreSQL | `db` | 5432 |
+| MinIO (S3 API) | `minio` | 9000 |
+| MinIO (Console) | `minio` | 9001 |
 
 The database is automatically created and available at the `DATABASE_URL`
 set in `docker-compose.yml`. No manual `createdb` needed.
-
-> Note: Ona requires `network_mode: host` for Docker Compose-based devcontainers.
-> In the Ona-compatible devcontainer, services are reachable via `localhost`.
-> In the local devcontainer (`.devcontainer/local/`), services are reachable via
-> Docker Compose DNS names (`db`, `minio`).
 
 ## AI Agent Environment
 
@@ -92,8 +85,7 @@ The `.agents/` directory contains shared agent scripts:
 - **`.agents/cloud/start.sh`** — Starts Postgres and sets up the test database.
 - **`.agents/setup-worktree-mac.sh`** — Worktree setup for local agents on macOS.
 
-Editor-specific config (e.g. `.cursor/environment.json`) references these
-shared scripts so the setup stays consistent across tools.
+These scripts keep agent setup consistent across tools (Claude Code, Cursor, etc.).
 
 ## Daily Workflow
 

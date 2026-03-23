@@ -30,9 +30,22 @@ Run inside the devcontainer (`docker exec <container> bash -c 'cd /workspace && 
 - `lib/` — app code
 - `test/` — tests
 - `scripts/` — command wrappers (Doppler-aware)
-- `docs/` — documentation and runbooks
+- `docs/` — documentation and runbooks (see below)
 - `.devcontainer/` — development container config
 - `.agents/` — shared AI agent scripts (cloud install/start, worktree setup)
+
+## Documentation
+
+- `docs/00-overview.md` — project quick facts (runtime, deploy target, URLs)
+- `docs/01-business.md` — business model, target users, value proposition
+- `docs/02-architecture.md` — system design, service topology, health endpoints
+- `docs/03-data-model.md` — database schema, migrations, naming conventions
+- `docs/04-integrations.md` — third-party services (Twilio, OpenAI, Resend, Sentry, PostHog)
+- `docs/05-ops.md` — environments, env vars, Doppler configs, deployment
+- `docs/06-dev-workflow.md` — devcontainer setup, daily commands, agent environments
+- `docs/07-style-guide.md` — formatting, logging, security headers, API conventions
+- `docs/08-decisions.md` — architectural decision records (Doppler, Coolify, structured logging)
+- `docs/runbooks/` — operational runbooks: deploy, rollback, db-restore, alerts, jobs, cron, support, sunset
 
 ## When Making Changes
 
