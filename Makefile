@@ -6,17 +6,6 @@
 .PHONY: e2e e2e-install
 .PHONY: precommit
 
-# ─── Devcontainer (Linux) build isolation ─────────────────────────────
-#
-# Only Linux (devcontainer) needs isolation to prevent ELF NIFs landing in
-# the macOS host `_build/` + `deps/` directories.
-UNAME_S := $(shell uname -s 2>/dev/null || echo unknown)
-ifeq ($(UNAME_S),Linux)
-  MIX_BUILD_PATH ?= _build_linux
-  MIX_DEPS_PATH ?= deps_linux
-  export MIX_BUILD_PATH MIX_DEPS_PATH
-endif
-
 # ─── Development ──────────────────────────────────────────────────────
 
 install:
@@ -81,7 +70,7 @@ docker-test:
 # ─── Utility ─────────────────────────────────────────────────────────
 
 clean:
-	rm -rf _build deps _build_darwin deps_darwin _build_linux deps_linux
+	rm -rf _build deps
 
 # ─── E2E (Playwright) ────────────────────────────────────────────────
 

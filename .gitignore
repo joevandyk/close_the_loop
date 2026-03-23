@@ -1,24 +1,12 @@
 # Dependencies
 /deps/
 /_build/
-/priv/static/assets/
-
-# When using devcontainers, keep Linux artifacts separate
-/deps_linux/
-/_build_linux/
-
-# When running locally on macOS, keep artifacts separate too
-/deps_darwin/
-/_build_darwin/
 
 # E2E / Playwright custom Mix build path
 /_build_e2e/
 
-# Platform-specific binaries (esbuild, tailwind)
-/esbuild-darwin-arm64
-/esbuild-darwin-x64
-/tailwind-macos-arm64
-/tailwind-macos-x64
+# Generated assets
+/priv/static/assets/
 
 # Crash dumps
 /erl_crash.dump

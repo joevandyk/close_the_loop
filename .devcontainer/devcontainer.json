@@ -4,7 +4,7 @@
   "service": "app",
   "workspaceFolder": "/workspace",
   "overrideCommand": false,
-  "postCreateCommand": "bash -lc 'if [ ! -f mix.exs ]; then scripts/setup-phoenix.sh; fi && mix deps.get && mix assets.setup'",
+  "postCreateCommand": "bash -lc 'if [ ! -f mix.exs ]; then scripts/setup-phoenix.sh; fi'",
   "customizations": {
     "vscode": {
       "extensions": [

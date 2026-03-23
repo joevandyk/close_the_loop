@@ -21,6 +21,13 @@ end
 
 {:ok, _} = Application.ensure_all_started(:close_the_loop)
 
+require Ash.Query
+
+if Ash.read_one!(Ash.Query.filter(CloseTheLoop.Accounts.User, email == "joevandyk@gmail.com"), authorize?: false) do
+  IO.puts("Database already seeded, skipping.")
+  System.halt(0)
+end
+
 admin = CloseTheLoop.DevSeeds.ensure_admin_user!()
 orgs = CloseTheLoop.DevSeeds.run_all_sample_orgs!()
 dev_logins = CloseTheLoop.DevSeeds.ensure_dev_users_for_orgs!(orgs)
